@@ -1,0 +1,209 @@
+@import 'tailwindcss';
+
+@plugin 'tailwind-scrollbar';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --animate-*: initial;
+  --animate-custom-pulse: pulse 2s infinite;
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-move-sIde: moveSide 0.3s ease-in-out infinite;
+  --animate-move-up: moveUp 0.2s ease-in-out;
+  --animate-move-down: moveDown 0.3s ease-in-out;
+  --animate-fade-in-1: fadeIn 0.1s ease-in-out;
+  --animate-fade-in-2: fadeIn 0.2s ease-in-out;
+  --animate-fade-in-3: fadeIn 0.3s ease-in-out;
+  --animate-fade-in-4: fadeIn 0.4s ease-in-out;
+  --animate-fade-in-5: fadeIn 0.5s ease-in-out;
+  --animate-fade-in-6: fadeIn 0.6s ease-in-out;
+  --animate-fade-in-7: fadeIn 0.7s ease-in-out;
+  --animate-fade-in-8: fadeIn 0.8s ease-in-out;
+  --animate-fade-in-9: fadeIn 0.9s ease-in-out;
+  --animate-fade-in-10: fadeIn 1s ease-in-out;
+  --animate-fade-in-11: fadeIn 1.1s ease-in-out;
+  --animate-fade-in-12: fadeIn 1.2s ease-in-out;
+  --animate-fade-in-13: fadeIn 1.3s ease-in-out;
+  --animate-fade-in-14: fadeIn 1.4s ease-in-out;
+  --animate-fade-in-15: fadeIn 1.5s ease-in-out;
+  --animate-fade-in-16: fadeIn 1.6s ease-in-out;
+  --animate-fade-in-17: fadeIn 1.7s ease-in-out;
+  --animate-fade-in-18: fadeIn 1.8s ease-in-out;
+  --animate-fade-in-19: fadeIn 1.9s ease-in-out;
+  --animate-fade-in-20: fadeIn 2s ease-in-out;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  @keyframes moveSide {
+    0% {
+      transform: translateX(100%);
+    }
+    50% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes moveDown {
+    0% {
+      transform: translateY(-20px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes moveUp {
+    0% {
+      opacity: 0.5;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 50px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+    border: 0;
+  }
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 20px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+}
+
+@layer utilities {
+  :root {
+    --background: #fafafa;
+    --foreground: #171717;
+    --scrollbar-thumb: #d4d4d4;
+    --scrollbar-thumb-hover: #737373;
+  }
+
+  .dark {
+    --background: #0d1f1c;
+    --foreground: #ffffff;
+    --scrollbar-thumb: #27272a;
+    --scrollbar-thumb-hover: #52525b;
+  }
+
+  .font-raleway {
+    font-family: var(--font-raleway), sans-serif;
+  }
+
+  .font-montserrat {
+    font-family: var(--font-montserrat), sans-serif;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family:
+    var(--font-montserrat),
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  overflow-x: hidden;
+  transition:
+    background-color 0.5s ease,
+    color 0.5s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    var(--font-raleway),
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-weight: 700;
+}

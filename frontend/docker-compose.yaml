@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/cooktale-app
+      - ./node_modules:/cooktale-app/node_modules
+    environment:
+      - DATABASE_URL=postgresql://azamshaikh:azamshaikh@postgres_container:5432/cooktale
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    command: npm run dev
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: azamshaikh
+      POSTGRES_PASSWORD: azamshaikh
+      POSTGRES_DB: cooktale
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U azamshaikh -d cooktale"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+volumes:
+  postgres_data:

@@ -1,0 +1,15 @@
+# Operating-system files
+.DS_Store
+
+# Local environment settings and production secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Local deployment output and backups
+deploy/backups/
+deploy/.state/
+
+# Docker override files created only on a server
+docker-compose.override.yml

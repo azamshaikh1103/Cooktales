@@ -15,6 +15,8 @@ export default [
       globals: {
         console: 'readonly',
         fetch: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
         process: 'readonly',
         Buffer: 'readonly',
         FormData: 'readonly',

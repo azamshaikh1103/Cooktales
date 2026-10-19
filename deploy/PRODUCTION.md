@@ -11,7 +11,8 @@ internet; PostgreSQL and Redis stay private inside Docker.
 3. Copy `.env.production.example` to `.env.production` on the server.
 4. Replace every `replace-with...` value with a long random value.
 5. Fill the required Cloudinary, Google, Resend, VAPID and Lemon Squeezy values.
-6. Point `www` and `api` DNS records to the server's public IP address.
+6. In Cloudflare, point `cooktale.in`, `www`, and `api` to the server's stable
+   public IP address. Keep the proxy enabled.
 7. In the AWS firewall, allow only ports 80 and 443 to everyone. Restrict SSH to
    your own IP address.
 
@@ -29,14 +30,30 @@ changes and does not reset or delete the database.
 
 ## Daily backup
 
-Set a server scheduler to run this once each day:
+This uses Google Drive only; it does not use S3. The backup is encrypted on the
+server before it is uploaded, so Drive never receives a readable database file.
+
+1. Install `rclone` and `gpg` on the server.
+2. Connect a private Google Drive `rclone` remote named `cooktale-drive`.
+3. Create `/etc/cooktale/backup-passphrase` with a long recovery passphrase and
+   make it readable only by the server administrator. Save that passphrase in
+   your password manager too: without it, a Drive backup cannot be restored.
+4. Create `/etc/cooktale/backup.env` with:
 
 ```sh
-POSTGRES_USER=cooktale POSTGRES_DB=cooktale sh deploy/backup-postgres.sh
+RCLONE_REMOTE=cooktale-drive
+BACKUP_PASSPHRASE_FILE=/etc/cooktale/backup-passphrase
 ```
 
-Keep encrypted copies in a private S3 bucket and test restoring one backup before
-calling the deployment ready.
+5. Test one manual backup, then schedule it daily as the server administrator:
+
+```sh
+sh deploy/backup-postgres.sh
+```
+
+The script checks that the encrypted upload exists in Drive. It does not delete
+old Drive backups automatically. Set a retention rule only after a successful
+restore test.
 
 ## Updates
 

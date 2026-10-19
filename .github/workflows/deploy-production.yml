@@ -63,7 +63,7 @@ jobs:
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --comment "CookTale production deployment $COMMIT" \
-            --parameters "commands=[\"cd /home/ec2-user/cooktale && ./deploy/deploy-production.sh $COMMIT\"]" \
+            --parameters "commands=[\"/home/ec2-user/cooktale/deploy/deploy-production.sh $COMMIT\"]" \
             --query 'Command.CommandId' \
             --output text)"
 

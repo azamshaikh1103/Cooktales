@@ -21,20 +21,27 @@ fi
 
 cd "$repo_dir"
 
+# SSM commands run as root, while this repository is intentionally owned by
+# the non-root application user. Keep Git operations under that user so the
+# deployment never changes repository ownership or trips Git's safety check.
+git_ec2() {
+  sudo -u ec2-user git -C "$repo_dir" "$@"
+}
+
 # Never overwrite a server-side change unexpectedly. The private .env.production
 # file is ignored by Git and is therefore unaffected by this check.
-git diff --quiet
-git diff --cached --quiet
+git_ec2 diff --quiet
+git_ec2 diff --cached --quiet
 
-git fetch --prune origin main
-git cat-file -e "$commit^{commit}"
-git merge-base --is-ancestor "$commit" origin/main
+git_ec2 fetch --prune origin main
+git_ec2 cat-file -e "$commit^{commit}"
+git_ec2 merge-base --is-ancestor "$commit" origin/main
 
-previous_commit="$(git rev-parse HEAD)"
+previous_commit="$(git_ec2 rev-parse HEAD)"
 mkdir -p "$state_dir"
 printf '%s\n' "$previous_commit" > "$state_dir/previous-deploy-commit"
 
-git checkout --detach "$commit"
+git_ec2 checkout --detach "$commit"
 
 # Build before replacing the running application. Migrations are additive-only
 # and use Prisma's production-safe 'migrate deploy' command.

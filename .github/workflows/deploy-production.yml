@@ -63,7 +63,7 @@ jobs:
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --comment "CookTale production deployment $COMMIT" \
-            --parameters "commands=[\"set -eu; git -C /home/ec2-user/cooktale diff --quiet; git -C /home/ec2-user/cooktale diff --cached --quiet; git -C /home/ec2-user/cooktale fetch --prune origin main; git -C /home/ec2-user/cooktale cat-file -e $COMMIT^{commit}; git -C /home/ec2-user/cooktale merge-base --is-ancestor $COMMIT origin/main; git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-production.sh | sh -s -- $COMMIT\"]" \
+            --parameters "commands=[\"set -eu; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --cached --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale fetch --prune origin main; sudo -u ec2-user git -C /home/ec2-user/cooktale cat-file -e $COMMIT^{commit}; sudo -u ec2-user git -C /home/ec2-user/cooktale merge-base --is-ancestor $COMMIT origin/main; sudo -u ec2-user git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-production.sh | sh -s -- $COMMIT\"]" \
             --query 'Command.CommandId' \
             --output text)"
 

@@ -24,6 +24,7 @@ function createController(authServiceOverrides: Partial<AuthService> = {}) {
     get(key: keyof AppConfig) {
       if (key === 'NODE_ENV') return 'production';
       if (key === 'JWT_REFRESH_TTL_DAYS') return 30;
+      if (key === 'FRONTEND_URL') return 'https://www.cooktale.example';
       throw new Error(`Unexpected config key: ${key}`);
     },
   } as ConfigService<AppConfig, true>;
@@ -114,6 +115,34 @@ describe('Auth HTTP safety', () => {
     expect(response.clearCookie).toHaveBeenCalledWith(
       'refreshToken',
       expect.objectContaining({ path: REFRESH_COOKIE_PATH, secure: true }),
+    );
+  });
+
+  it('returns Google sign-ins to the frontend without exposing tokens in the URL', async () => {
+    const handleGoogleCallback = jest.fn().mockResolvedValue({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      user: { id: 'user-1' },
+    });
+    const { controller } = createController({ handleGoogleCallback } as Partial<AuthService>);
+    const response = {
+      cookie: jest.fn(),
+      redirect: jest.fn(),
+    } as unknown as Response;
+
+    await controller.googleCallback(
+      'google-code',
+      { headers: {}, cookies: {}, ip: '127.0.0.1' } as unknown as Request,
+      response,
+    );
+
+    expect(response.cookie).toHaveBeenCalledWith(
+      'refreshToken',
+      'refresh-token',
+      expect.objectContaining({ httpOnly: true, secure: true }),
+    );
+    expect(response.redirect).toHaveBeenCalledWith(
+      'https://www.cooktale.example/auth/google/callback',
     );
   });
 });

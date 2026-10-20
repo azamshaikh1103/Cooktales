@@ -127,11 +127,16 @@ export class AuthController {
   async googleCallback(
     @Query('code') code: string,
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     const result = await this.authService.handleGoogleCallback(code, this.getRequestMeta(request));
     this.setRefreshCookie(response, result.refreshToken);
-    return removeRefreshTokenFromResponse(result);
+    return response.redirect(
+      new URL(
+        '/auth/google/callback',
+        this.config.get('FRONTEND_URL', { infer: true }),
+      ).toString(),
+    );
   }
 
   private setRefreshCookie(response: Response, refreshToken: string) {

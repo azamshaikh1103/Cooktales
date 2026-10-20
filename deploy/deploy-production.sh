@@ -54,7 +54,10 @@ docker compose --env-file "$env_file" -f "$compose_file" build
 # cannot be hidden behind an older Docker image.
 docker compose --env-file "$env_file" -f "$compose_file" build --no-cache frontend
 docker compose --env-file "$env_file" -f "$compose_file" up -d postgres redis
-docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance run --rm backend-migrate
+# This script can be launched by automation. Do not let the one-off migration
+# container inherit that automation input; otherwise it can consume the rest of
+# this deployment script before the frontend and proxy are recreated.
+docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance run --rm backend-migrate </dev/null
 # Recreate every application container from the newly built images. Database
 # and Redis are deliberately excluded so deployment never clears their data.
 docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans --force-recreate \

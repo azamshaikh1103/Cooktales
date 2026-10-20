@@ -165,7 +165,7 @@ export default async function RootLayout({
 		>
 			<meta name="application-name" content="CookTale" />
 			<meta property="og:site_name" content="CookTale" />
-			<meta name="google-adsense-account" content="ca-pub-8865084370467032" />
+			<meta name="google-adsense-account" content="ca-pub-4957518824200533" />
 			<head>
 				<script
 					dangerouslySetInnerHTML={{

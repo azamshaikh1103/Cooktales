@@ -36,7 +36,7 @@ import AuthTab from "./popUps/AuthTab";
 import SettingsModal from "./popUps/Settings";
 import SearchTab from "./Search";
 
-const Navbar = () => {
+const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 	const pathname = usePathname();
 	const dispatch = useDispatch();
 	const { status, user } = useAuth();
@@ -154,7 +154,7 @@ const Navbar = () => {
 
 			{/* Navbar Container */}
 			<div
-				className={`fixed top-0 z-40 flex w-screen items-center justify-between border-b px-5 py-2 backdrop-blur-xl transition-all duration-300 ease-in-out lg:h-16 lg:px-24 ${isVisible ? "translate-y-0" : "-translate-y-full"} border-gray-100 bg-white/80 text-gray-900 dark:border-white/5 dark:bg-[#0d1f1c]/90 dark:text-white`}
+				className={`fixed top-0 z-40 flex w-screen items-center justify-between border-b px-5 py-2 backdrop-blur-xl transition-all duration-300 ease-in-out lg:h-16 lg:px-24 ${(alwaysVisible || isVisible) ? "translate-y-0" : "-translate-y-full"} border-gray-100 bg-white/80 text-gray-900 dark:border-white/5 dark:bg-[#0d1f1c]/90 dark:text-white`}
 			>
 				{/* --- LEFT: BRANDING --- */}
 				<div className="flex items-center gap-5">

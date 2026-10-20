@@ -6,6 +6,7 @@ import { ArrowLeft, LoaderCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { HeaderImageUpload, TagEditor } from '../newRecipe/RecipeComponents';
 import { StoryBlockList, type StoryEditorBlock } from './StoryComponents';
+import Navbar from '@/components/Navbar';
 import { useCloudinaryUpload, type CloudinaryUploadResult } from '@/lib/hooks/useCloudinaryUpload';
 import { storyClient, type Story, type StoryBlockInput, type StoryMediaInput, type UpdateStoryInput } from '@/lib/api/storyClient';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -167,11 +168,12 @@ export default function NewStory() {
   }
 
   return <main className="min-h-screen bg-white pb-24 pt-16 dark:bg-[#0d1f1c]">
-    <header className="sticky top-16 z-30 border-b border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-white/10 dark:bg-[#0d1f1c]/95">
+    <Navbar alwaysVisible />
+    <header className="border-b border-gray-100 bg-white px-6 py-4 dark:border-white/10 dark:bg-[#0d1f1c]">
       <div className="mx-auto flex max-w-4xl items-center justify-between">
-        <button onClick={() => router.back()} className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-300"><ArrowLeft size={17} /> Back</button>
-        <span className="text-sm text-gray-500">{syncState === 'starting' ? 'Preparing draft...' : syncState === 'saving' ? 'Saving draft...' : syncState === 'saved' ? 'Draft saved' : 'Save needs attention'}</span>
-        <button onClick={handlePublish} disabled={!draft || isPublishing || uploading} className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[#006c5e] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ade80] dark:text-[#092019]">{isPublishing ? <LoaderCircle size={16} className="animate-spin" /> : <Send size={16} />} Publish</button>
+        <button onClick={() => router.back()} className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600 transition-colors hover:text-[#006c5e] dark:text-gray-300 dark:hover:text-[#4ade80]"><ArrowLeft size={17} /> Back</button>
+        <span className="hidden text-sm text-gray-500 sm:block">{syncState === 'starting' ? 'Preparing draft...' : syncState === 'saving' ? 'Saving draft...' : syncState === 'saved' ? 'Draft saved' : 'Save needs attention'}</span>
+        <button onClick={handlePublish} disabled={!draft || isPublishing || uploading} className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#006c5e] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00564b] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ade80] dark:text-[#092019] dark:hover:bg-[#86efac]">{isPublishing ? <LoaderCircle size={16} className="animate-spin" /> : <Send size={16} />} Publish</button>
       </div>
     </header>
     <div className="mx-auto max-w-3xl px-6 py-12">

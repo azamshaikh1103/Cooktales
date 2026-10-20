@@ -3,11 +3,13 @@
 import {
 	Bold,
 	Code2,
+	ChevronDown,
 	ImageIcon,
 	Italic,
 	Link2,
 	List,
 	ListOrdered,
+	Plus,
 	Trash2,
 	Video,
 } from "lucide-react";
@@ -75,7 +77,7 @@ export function StoryBlockList({ content, onChange, onUpload }: Props) {
 	};
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-5">
 			{content.map((block, index) => (
 				<StoryBlockRow
 					key={block.id}
@@ -106,6 +108,7 @@ function StoryBlockRow({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const textRef = useRef<HTMLTextAreaElement | HTMLInputElement>(null);
 	const [linkMode, setLinkMode] = useState(false);
+	const [showBlockMenu, setShowBlockMenu] = useState(false);
 	const [linkUrl, setLinkUrl] = useState("");
 	const mediaBlock = block.type === "image" || block.type === "video";
 	const placeholders: Record<StoryEditorBlock["type"], string> = {
@@ -162,30 +165,37 @@ function StoryBlockRow({
 	const inputClass = `w-full resize-none bg-transparent outline-none placeholder:text-gray-300 dark:text-gray-200 dark:placeholder:text-gray-600 ${block.type === "quote" ? "border-l-4 border-[#006c5e] pl-5 text-2xl italic dark:border-[#4ade80]" : block.type === "codeblock" ? "rounded-lg bg-slate-900 p-4 font-mono text-sm text-green-300" : "text-lg leading-relaxed text-gray-700"}`;
 
 	return (
-		<section className="group relative">
-			<div className="absolute -left-12 top-1 hidden items-center gap-1 group-hover:flex">
-				<select
-					aria-label="Add content block"
-					defaultValue=""
-					onChange={(event) => {
-						if (event.target.value)
-							onInsert(event.target.value as StoryEditorBlock["type"]);
-						event.currentTarget.value = "";
-					}}
-					className="h-8 max-w-8 cursor-pointer rounded-full border border-gray-200 bg-white px-1 text-xs text-gray-500 outline-none dark:border-white/15 dark:bg-[#17312b] dark:text-gray-300"
-				>
-					<option value="">+</option>
-					{blockOptions.map((option) => (
-						<option value={option.type} key={option.type}>
-							{option.label}
-						</option>
-					))}
-				</select>
+		<section className="group relative rounded-2xl border border-transparent px-4 py-4 transition-colors hover:border-[#006c5e]/15 hover:bg-[#f4faf8] dark:hover:border-[#4ade80]/15 dark:hover:bg-white/[0.03] sm:px-6">
+			<div className="mb-3 flex items-center justify-between">
+				<div className="relative">
+					<button
+						type="button"
+						onClick={() => setShowBlockMenu((open) => !open)}
+						aria-expanded={showBlockMenu}
+						className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#006c5e]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#006c5e] shadow-sm transition hover:border-[#006c5e] hover:bg-[#eaf6f2] dark:border-[#4ade80]/25 dark:bg-[#17312b] dark:text-[#86efac] dark:hover:bg-[#204239]"
+					>
+						<Plus size={14} /> Add block <ChevronDown size={14} />
+					</button>
+					{showBlockMenu && (
+						<div className="absolute left-0 top-10 z-20 grid w-52 overflow-hidden rounded-xl border border-[#006c5e]/15 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17312b]">
+							{blockOptions.map((option) => (
+								<button
+									type="button"
+									key={option.type}
+									onClick={() => { onInsert(option.type); setShowBlockMenu(false); }}
+									className="cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-[#eaf6f2] hover:text-[#006c5e] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-[#86efac]"
+								>
+									{option.label}
+								</button>
+							))}
+						</div>
+					)}
+				</div>
 				<button
 					type="button"
 					aria-label="Delete block"
 					onClick={onRemove}
-					className="cursor-pointer rounded-full p-1 text-gray-400 hover:text-red-500"
+					className="cursor-pointer rounded-full p-2 text-gray-400 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 focus:opacity-100 dark:hover:bg-red-500/10"
 				>
 					<Trash2 size={15} />
 				</button>

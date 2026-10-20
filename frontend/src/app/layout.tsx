@@ -22,7 +22,7 @@ export const montserrat = Montserrat({
 	variable: "--font-montserrat",
 });
 
-const BASE_URL = "https://www.cooktale.in";
+const BASE_URL = "https://cooktale.in";
 
 export const metadata: Metadata = {
 	metadataBase: new URL(BASE_URL),
@@ -113,12 +113,12 @@ export default async function RootLayout({
 		"@graph": [
 			{
 				"@type": "Organization",
-				"@id": "https://www.cooktale.in/#organization",
+				"@id": "https://cooktale.in/#organization",
 				name: "CookTale",
-				url: "https://www.cooktale.in",
+				url: "https://cooktale.in",
 				logo: {
 					"@type": "ImageObject",
-					url: "https://www.cooktale.in/favicon-512x512.png",
+					url: "https://cooktale.in/favicon-512x512.png",
 					width: 512,
 					height: 512,
 				},
@@ -137,19 +137,19 @@ export default async function RootLayout({
 			},
 			{
 				"@type": "WebSite",
-				"@id": "https://www.cooktale.in/#website",
-				url: "https://www.cooktale.in",
+				"@id": "https://cooktale.in/#website",
+				url: "https://cooktale.in",
 				name: "CookTale",
 				alternateName: "CookTale Recipes",
 				inLanguage: "en",
-				image: "https://www.cooktale.in/og-image.jpg",
-				publisher: { "@id": "https://www.cooktale.in/#organization" },
+				image: "https://cooktale.in/og-image.jpg",
+				publisher: { "@id": "https://cooktale.in/#organization" },
 				potentialAction: {
 					"@type": "SearchAction",
 					target: {
 						"@type": "EntryPoint",
 						urlTemplate:
-							"https://www.cooktale.in/search?q={search_term_string}",
+							"https://cooktale.in/search?q={search_term_string}",
 					},
 					"query-input": "required name=search_term_string",
 				},

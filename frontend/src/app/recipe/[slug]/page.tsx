@@ -59,7 +59,7 @@ export default async function RecipeDetailPage({ params }: PageProps) {
       '@type': 'HowToStep',
       name: step.name,
       text: step.detail,
-      url: `${process.env.FRONTEND_URL || 'https://www.cooktale.in'}/recipe/${recipe.slug}#step-${index + 1}`,
+      url: `${process.env.FRONTEND_URL || 'https://cooktale.in'}/recipe/${recipe.slug}#step-${index + 1}`,
       image: step.image || undefined,
     })),
   };
@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: PageProps) {
   if (!recipe) return { title: 'Recipe Not Found' };
 
   const description = recipe.about || `Learn how to make ${recipe.name} on CookTale.`;
-  const url = `https://www.cooktale.in/recipe/${recipe.slug}`;
+  const url = `https://cooktale.in/recipe/${recipe.slug}`;
   return {
     title: recipe.name,
     description,

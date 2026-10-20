@@ -89,6 +89,7 @@ services:
       dockerfile: Dockerfile.production
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        APP_REVISION: ${APP_REVISION:-unknown}
     restart: unless-stopped
     environment:
       NODE_ENV: production

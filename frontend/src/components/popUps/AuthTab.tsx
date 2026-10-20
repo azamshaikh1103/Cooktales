@@ -18,6 +18,7 @@ import {
 import TurnstileWidget from '@/components/auth/TurnstileWidget';
 import { ApiClientError, authClient, persistAuthResponse } from '@/lib/api/authClient';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { rememberGoogleReturnTo } from '@/lib/auth/googleReturnTo';
 import { setTab } from '@/lib/Slices/tabSlice';
 import type { RootState } from '@/lib/store';
 import { toast } from 'sonner';
@@ -119,6 +120,7 @@ export default function AuthTab() {
 
     try {
       const { url } = await authClient.getGoogleAuthUrl();
+      rememberGoogleReturnTo();
       window.location.href = url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Google sign-in is not configured yet.');

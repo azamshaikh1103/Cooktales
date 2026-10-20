@@ -43,6 +43,10 @@ printf '%s\n' "$previous_commit" > "$state_dir/previous-deploy-commit"
 
 git_ec2 checkout --detach "$commit"
 
+# Give the frontend image a new build identity for every approved commit. This
+# prevents Docker from reusing an older frontend image when source changes.
+export APP_REVISION="$commit"
+
 # Build before replacing the running application. Migrations are additive-only
 # and use Prisma's production-safe 'migrate deploy' command.
 docker compose --env-file "$env_file" -f "$compose_file" build

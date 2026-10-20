@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { authClient, persistAuthResponse } from "@/lib/api/authClient";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { consumeGoogleReturnTo } from "@/lib/auth/googleReturnTo";
 
 export default function GoogleCallbackPage() {
 	const router = useRouter();
@@ -26,7 +27,9 @@ export default function GoogleCallbackPage() {
 					user: result.user,
 					accessToken: result.accessToken,
 				});
-				router.replace(result.user.surveyCompleted ? "/" : "/onboarding");
+				router.replace(
+					result.user.surveyCompleted ? consumeGoogleReturnTo() : "/onboarding",
+				);
 			} catch {
 				if (active) {
 					setError("Google sign-in could not be completed. Please try again.");

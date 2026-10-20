@@ -19,7 +19,7 @@ const API_URL =
 	process.env.NEXT_SERVER_API_URL ||
 	process.env.NEXT_PUBLIC_API_URL ||
 	"http://localhost:4000/api/v1";
-const SITE_URL = process.env.FRONTEND_URL || "https://www.cooktale.in";
+const SITE_URL = process.env.FRONTEND_URL || "https://cooktale.in";
 
 async function getStory(slug: string): Promise<Story | null> {
 	const response = await fetch(

@@ -77,7 +77,7 @@ export const HeaderImageUpload = ({
 	return (
 		<div
 			onClick={() => inputRef.current?.click()}
-			className="group relative flex h-[400px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[2.5rem] border-4 border-dashed border-gray-200 bg-gray-100 transition-all hover:border-[#006C5E] hover:bg-[#006C5E]/5 dark:border-white/10 dark:bg-white/5 dark:hover:border-[#4ADE80] dark:hover:bg-[#4ADE80]/5"
+			className="group relative flex h-[400px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[2.5rem] border-2 border-dashed border-gray-200 bg-gray-100 transition-all hover:border-[#006C5E] hover:bg-[#006C5E]/5 dark:border-white/10 dark:bg-white/5 dark:hover:border-[#4ADE80] dark:hover:bg-[#4ADE80]/5"
 		>
 			<input
 				ref={inputRef}

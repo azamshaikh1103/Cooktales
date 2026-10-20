@@ -178,13 +178,13 @@ export default function NewStory() {
     </header>
     <div className="mx-auto max-w-3xl px-6 py-12">
       <HeaderImageUpload currentImage={cover?.publicUrl || null} onImageSelect={(file) => void handleCoverUpload(file)} readAsDataUrl={false} />
-      <p className="mt-2 text-xs text-gray-500">Cover image: JPG, PNG, or WebP. It is optimized by Cloudinary when shown to readers.</p>
+      <p className="mt-3 text-center text-xs text-gray-500">Cover image: JPG, PNG, or WebP. It is optimized by Cloudinary when shown to readers.</p>
       <input value={title} maxLength={140} onChange={(event) => setTitle(event.target.value)} placeholder="Story title" className="mt-10 w-full bg-transparent text-4xl font-semibold text-gray-900 outline-none placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-600" />
       <div className="mt-2 text-right text-xs text-gray-400">{title.length}/140</div>
-      <textarea value={description} maxLength={600} onChange={(event) => setDescription(event.target.value)} placeholder="A short introduction" rows={2} className="mt-4 w-full resize-none bg-transparent text-xl text-gray-600 outline-none placeholder:text-gray-300 dark:text-gray-300 dark:placeholder:text-gray-600" />
+      <textarea value={description} maxLength={600} onChange={(event) => setDescription(event.target.value)} placeholder="A short description" rows={2} className="mt-4 w-full resize-none bg-transparent text-xl text-gray-600 outline-none placeholder:text-gray-300 dark:text-gray-300 dark:placeholder:text-gray-600" />
       <div className="text-right text-xs text-gray-400">{description.length}/600</div>
       <div className="mt-10"><StoryBlockList content={content} onChange={setContent} onUpload={handleBlockUpload} /></div>
-      <section className="mt-16 border-t border-gray-100 pt-8 dark:border-white/10"><TagEditor tags={tags} onChange={setTags} /><p className="mt-2 text-xs text-gray-500">Up to 12 tags. Each tag can have up to 30 characters.</p></section>
+      <section className="mt-16 border-t border-gray-100 pt-8 dark:border-white/10"><TagEditor tags={tags} onChange={setTags} /><p className="mt-3 text-center text-xs text-gray-500">Up to 12 tags. Each tag can have up to 30 characters.</p></section>
     </div>
   </main>;
 }

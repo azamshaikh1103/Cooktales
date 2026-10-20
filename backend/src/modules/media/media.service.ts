@@ -25,6 +25,9 @@ type DeleteAssetInput = {
   resourceType?: Exclude<MediaResourceType, MediaResourceType.AUTO>;
 };
 
+const IMAGE_INCOMING_TRANSFORMATION = 'c_limit,w_2560,h_2560/q_auto:good';
+const VIDEO_INCOMING_TRANSFORMATION = 'c_limit,w_1920,h_1080/q_auto:good/vc_auto';
+
 @Injectable()
 export class MediaService {
   private readonly rootFolder: string;
@@ -53,6 +56,7 @@ export class MediaService {
       timestamp,
       overwrite: false,
       tags,
+      transformation: this.resolveIncomingTransformation(resourceType),
     };
 
     const signature = cloudinary.utils.api_sign_request(
@@ -327,22 +331,28 @@ export class MediaService {
   }
 
   private resolveResourceType(input: SignedUploadInput) {
-    const expected =
-      input.context === MediaUploadContext.RECIPE_VIDEO
-        ? MediaResourceType.VIDEO
-        : input.context === MediaUploadContext.TEMP
-          ? input.resourceType || MediaResourceType.IMAGE
-          : MediaResourceType.IMAGE;
+    if (input.context === MediaUploadContext.TEMP) {
+      return input.resourceType || MediaResourceType.IMAGE;
+    }
 
-    if (
-      input.context !== MediaUploadContext.TEMP &&
-      input.resourceType &&
-      input.resourceType !== expected
-    ) {
+    const allowsStoryVideo = input.context === MediaUploadContext.STORY_CONTENT;
+    const expected =
+      input.context === MediaUploadContext.RECIPE_VIDEO ||
+      (allowsStoryVideo && input.resourceType === MediaResourceType.VIDEO)
+        ? MediaResourceType.VIDEO
+        : MediaResourceType.IMAGE;
+
+    if (input.resourceType && input.resourceType !== expected) {
       throw new BadRequestException('Resource type is not allowed for this media context');
     }
 
     return expected;
+  }
+
+  private resolveIncomingTransformation(resourceType: MediaResourceType) {
+    return resourceType === MediaResourceType.VIDEO
+      ? VIDEO_INCOMING_TRANSFORMATION
+      : IMAGE_INCOMING_TRANSFORMATION;
   }
 
   private resolveTags(input: SignedUploadInput) {

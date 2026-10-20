@@ -30,6 +30,7 @@ type SignedUploadResponse = {
     timestamp: number;
     overwrite: boolean;
     tags: string;
+    transformation: string;
   };
 };
 
@@ -55,12 +56,40 @@ type DeleteCloudinaryAssetInput = {
   resourceType?: Exclude<MediaResourceType, 'auto'>;
 };
 
-function withAutoOptimization(url: string) {
-  if (!url.includes('/upload/') || url.includes('/upload/f_auto,q_auto/')) {
+const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
+const VIDEO_TYPES = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
+
+function withAutoOptimization(url: string, resourceType: MediaResourceType) {
+  const optimization = resourceType === 'video'
+    ? 'f_auto:video/q_auto/vc_auto'
+    : 'f_auto/q_auto';
+
+  if (!url.includes('/upload/') || url.includes(`/upload/${optimization}/`)) {
     return url;
   }
 
-  return url.replace('/upload/', '/upload/f_auto,q_auto/');
+  return url.replace('/upload/', `/upload/${optimization}/`);
+}
+
+function validateUploadFile(file: File, resourceType: MediaResourceType) {
+  const isVideo = resourceType === 'video';
+  const allowedTypes = isVideo ? VIDEO_TYPES : IMAGE_TYPES;
+  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  const label = isVideo ? 'video' : 'image';
+
+  if (!allowedTypes.has(file.type)) {
+    throw new Error(
+      isVideo
+        ? 'Choose an MP4, WebM, or MOV video.'
+        : 'Choose a JPG, PNG, WebP, or AVIF image.',
+    );
+  }
+
+  if (file.size > maxBytes) {
+    throw new Error(`This ${label} is too large. Maximum size is ${isVideo ? '100MB' : '12MB'}.`);
+  }
 }
 
 async function requestSignedUpload(input: Omit<CloudinaryUploadInput, 'file'>) {
@@ -142,10 +171,12 @@ export function useCloudinaryUpload() {
     setError(null);
 
     try {
+      const resolvedResourceType = resourceType || (file.type.startsWith('video/') ? 'video' : 'image');
+      validateUploadFile(file, resolvedResourceType);
       const signed = await requestSignedUpload({
         context,
         entityId,
-        resourceType,
+        resourceType: resolvedResourceType,
       });
       const formData = new FormData();
 
@@ -157,6 +188,7 @@ export function useCloudinaryUpload() {
       formData.set('public_id', signed.params.public_id);
       formData.set('overwrite', String(signed.params.overwrite));
       formData.set('tags', signed.params.tags);
+      formData.set('transformation', signed.params.transformation);
 
       const uploadResponse = await fetch(signed.uploadUrl, {
         method: 'POST',
@@ -169,7 +201,7 @@ export function useCloudinaryUpload() {
       }
 
       const result: CloudinaryUploadResult = {
-        publicUrl: withAutoOptimization(uploaded.secure_url),
+        publicUrl: withAutoOptimization(uploaded.secure_url, signed.resourceType),
         publicId: uploaded.public_id || signed.publicId,
         resourceType: signed.resourceType,
         width: uploaded.width,

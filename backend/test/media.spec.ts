@@ -60,6 +60,7 @@ describe('Media service safety', () => {
     expect(result.folder).toBe('cooktale/users/user-1/avatar');
     expect(result.publicId).toMatch(/^cooktale\/users\/user-1\/avatar\//);
     expect(result.resourceType).toBe(MediaResourceType.IMAGE);
+    expect(result.params.transformation).toBe('c_limit,w_2560,h_2560/q_auto:good');
     expect(result).not.toHaveProperty('apiSecret');
     expect(signSpy).toHaveBeenCalledWith(
       expect.objectContaining({ folder: result.folder, overwrite: false }),
@@ -134,6 +135,21 @@ describe('Media service safety', () => {
         resourceType: MediaResourceType.IMAGE,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('allows video only for a story content block and applies the video upload policy', async () => {
+    (prisma.story.findFirst as jest.Mock).mockResolvedValueOnce({ id: 'story-1' });
+
+    const result = await service.createSignedUpload({
+      userId: 'user-1',
+      context: MediaUploadContext.STORY_CONTENT,
+      entityId: 'story-1',
+      resourceType: MediaResourceType.VIDEO,
+    });
+
+    expect(result.folder).toBe('cooktale/stories/story-1/content');
+    expect(result.resourceType).toBe(MediaResourceType.VIDEO);
+    expect(result.params.transformation).toBe('c_limit,w_1920,h_1080/q_auto:good/vc_auto');
   });
 
   it('validates profile public IDs and Cloudinary URLs', () => {

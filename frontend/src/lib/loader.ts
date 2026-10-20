@@ -3,8 +3,13 @@
 const imageLoader = ({ src, width, quality }: { src: string; width: number; quality?: number }) => {
   // 1. Cloudinary (Our Main Image Host) - Optimize this!
   if (src.includes('res.cloudinary.com')) {
-    const params = [`w_${width}`, `q_${quality || 75}`, 'f_auto'].join(',');
-    return src.replace('/upload/', `/upload/${params}/`);
+    const resized = `w_${width},c_limit`;
+
+    if (src.includes('/upload/f_auto/q_auto/')) {
+      return src.replace('/upload/f_auto/q_auto/', `/upload/${resized}/f_auto/q_auto/`);
+    }
+
+    return src.replace('/upload/', `/upload/${resized}/f_auto/q_auto/`);
   }
 
   // 2. Unsplash - Optimize this!

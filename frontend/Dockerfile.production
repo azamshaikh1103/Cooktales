@@ -8,6 +8,7 @@ WORKDIR /app
 ARG NEXT_PUBLIC_API_URL
 ARG APP_REVISION
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_REVISION=$APP_REVISION
 COPY --from=deps /app/node_modules ./node_modules
 RUN printf '%s\n' "$APP_REVISION" > /tmp/app-revision
 COPY . .

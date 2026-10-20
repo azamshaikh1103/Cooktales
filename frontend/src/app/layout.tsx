@@ -165,6 +165,10 @@ export default async function RootLayout({
 		>
 			<meta name="application-name" content="CookTale" />
 			<meta property="og:site_name" content="CookTale" />
+			<meta
+				name="cooktale-build-revision"
+				content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
+			/>
 			<meta name="google-adsense-account" content="ca-pub-4957518824200533" />
 			<head>
 				<script

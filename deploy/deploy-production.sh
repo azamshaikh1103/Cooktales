@@ -73,12 +73,28 @@ if [ "$frontend_callback_status" != "200" ]; then
   exit 1
 fi
 
+# A version label proves only that the build received a commit argument. Prove
+# the new frontend actually renders that commit and the AdSense files too.
+frontend_homepage="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
+  node -e "fetch('http://127.0.0.1:3000/').then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
+printf '%s' "$frontend_homepage" | grep -F "name=\"cooktale-build-revision\" content=\"$commit\"" >/dev/null
+printf '%s' "$frontend_homepage" | grep -F 'name="google-adsense-account" content="ca-pub-4957518824200533"' >/dev/null
+
+frontend_ads_txt="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
+  node -e "fetch('http://127.0.0.1:3000/ads.txt').then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
+printf '%s' "$frontend_ads_txt" | grep -Fx 'google.com, pub-4957518824200533, DIRECT, f08c47fec0942fa0' >/dev/null
+
 caddy_callback_status="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
   sh -c "wget -q -S -O /dev/null --header='Host: \$DOMAIN' http://127.0.0.1/auth/google/callback 2>&1 | awk '/HTTP\\// { status=\$2 } END { print status }'")"
 if [ "$caddy_callback_status" != "200" ]; then
   echo "Reverse proxy does not serve the frontend callback route." >&2
   exit 1
 fi
+
+caddy_homepage="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
+  sh -c "wget -qO- --header='Host: \$DOMAIN' http://127.0.0.1/")"
+printf '%s' "$caddy_homepage" | grep -F "name=\"cooktale-build-revision\" content=\"$commit\"" >/dev/null
+printf '%s' "$caddy_homepage" | grep -F 'name="google-adsense-account" content="ca-pub-4957518824200533"' >/dev/null
 
 # Confirm the actual API process is responding before calling the deployment a success.
 attempt=0

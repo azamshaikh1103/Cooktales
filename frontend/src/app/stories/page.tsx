@@ -1,19 +1,33 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { StoryCoverImage } from "@/components/stories/StoryImage";
-import { type Story, storyClient } from "@/lib/api/storyClient";
+import type { Story } from "@/lib/api/storyClient";
 
-export default function StoriesPage() {
-	const [stories, setStories] = useState<Story[]>([]);
-	const [loading, setLoading] = useState(true);
-	useEffect(() => {
-		void storyClient
-			.list()
-			.then(({ stories: next }) => setStories(next))
-			.finally(() => setLoading(false));
-	}, []);
+const API_URL =
+	process.env.SERVER_API_URL ||
+	process.env.NEXT_SERVER_API_URL ||
+	process.env.NEXT_PUBLIC_API_URL ||
+	"http://localhost:4000/api/v1";
+
+export const metadata: Metadata = {
+	title: "Food Stories",
+	description: "Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
+	alternates: { canonical: "/stories" },
+	openGraph: {
+		title: "Food Stories | CookTale",
+		description: "Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
+		url: "/stories",
+	},
+};
+
+async function getStories(): Promise<Story[]> {
+	const response = await fetch(`${API_URL}/stories?limit=12`, { cache: "no-store" });
+	if (!response.ok) return [];
+	return ((await response.json()) as { stories: Story[] }).stories;
+}
+
+export default async function StoriesPage() {
+	const stories = await getStories();
 	return (
 		<main className="mx-auto min-h-screen max-w-6xl px-6 py-28 dark:bg-[#0d1f1c]">
 			<div className="mb-10 flex items-end justify-between">
@@ -32,9 +46,7 @@ export default function StoriesPage() {
 					Write a story
 				</Link>
 			</div>
-			{loading ? (
-				<p className="text-gray-500">Loading stories...</p>
-			) : stories.length === 0 ? (
+			{stories.length === 0 ? (
 				<p className="text-gray-500">No stories have been published yet.</p>
 			) : (
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

@@ -80,6 +80,7 @@ export class ProfileService {
       authorId: resolved.userId,
       status: StoryStatus.PUBLISHED,
       deletedAt: null,
+      slug: { not: null },
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.story.findMany({
@@ -798,7 +799,9 @@ export class ProfileService {
           recipes: {
             where: { status: RecipeStatus.PUBLISHED, deletedAt: null },
           },
-          stories: { where: { status: StoryStatus.PUBLISHED, deletedAt: null } },
+          stories: {
+            where: { status: StoryStatus.PUBLISHED, deletedAt: null, slug: { not: null } },
+          },
           followers: true,
           following: true,
         },
@@ -809,6 +812,7 @@ export class ProfileService {
         orderBy: { createdAt: 'desc' as const },
         select: {
           id: true,
+          slug: true,
           name: true,
           mainImage: true,
           totalTimeReq: true,
@@ -819,10 +823,12 @@ export class ProfileService {
         },
       },
       stories: {
+        where: { status: StoryStatus.PUBLISHED, deletedAt: null, slug: { not: null } },
         take: 6,
         orderBy: { createdAt: 'desc' as const },
         select: {
           id: true,
+          slug: true,
           coverImage: true,
           title: true,
           createdAt: true,

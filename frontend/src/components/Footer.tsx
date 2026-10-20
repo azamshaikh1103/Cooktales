@@ -153,7 +153,7 @@ const Footer = () => {
 							Recipes
 						</Link>
 						<Link
-							href="/blogs"
+							href="/stories"
 							className="text-sm text-white/70 transition-colors hover:text-white"
 						>
 							Stories

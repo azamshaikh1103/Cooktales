@@ -111,14 +111,20 @@ export default async function StoryDetailPage({ params }: PageProps) {
 	const url = `${SITE_URL}/stories/${story.slug || slug}`;
 	const jsonLd = {
 		"@context": "https://schema.org",
-		"@type": "Article",
+		"@type": "BlogPosting",
 		headline: story.title,
 		description: storyDescription(story),
-		mainEntityOfPage: url,
+		mainEntityOfPage: { "@type": "WebPage", "@id": url },
 		datePublished: story.publishedAt || story.createdAt,
 		dateModified: story.updatedAt || story.publishedAt || story.createdAt,
 		author: story.author?.name
-			? { "@type": "Person", name: story.author.name }
+			? {
+					"@type": "Person",
+					name: story.author.name,
+					...(story.author.username
+						? { url: `${SITE_URL}/profile/${story.author.username}` }
+						: {}),
+				}
 			: undefined,
 		image: story.coverImage ? [story.coverImage] : undefined,
 		publisher: { "@type": "Organization", name: "CookTale", url: SITE_URL },

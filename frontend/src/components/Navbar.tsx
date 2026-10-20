@@ -154,13 +154,13 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 
 			{/* Navbar Container */}
 			<div
-				className={`fixed top-0 z-40 flex w-screen items-center justify-between border-b px-5 py-2 backdrop-blur-xl transition-all duration-300 ease-in-out lg:h-16 lg:px-24 ${(alwaysVisible || isVisible) ? "translate-y-0" : "-translate-y-full"} border-gray-100 bg-white/80 text-gray-900 dark:border-white/5 dark:bg-[#0d1f1c]/90 dark:text-white`}
+				className={`fixed top-0 z-40 flex w-screen items-center justify-between border-b px-4 py-3 backdrop-blur-xl transition-all duration-300 ease-in-out sm:px-5 lg:h-16 lg:px-24 lg:py-2 ${alwaysVisible || isVisible ? "translate-y-0" : "-translate-y-full"} border-gray-100 bg-white/80 text-gray-900 dark:border-white/5 dark:bg-[#0d1f1c]/90 dark:text-white`}
 			>
 				{/* --- LEFT: BRANDING --- */}
 				<div className="flex items-center gap-5">
 					<Link
 						href="/"
-						className="font-raleway cursor-pointer text-2xl font-bold tracking-tight text-[#006C5E] lg:text-3xl dark:text-[#4ADE80]"
+						className="font-raleway cursor-pointer text-xl font-bold tracking-tight text-[#006C5E] sm:text-2xl lg:text-3xl dark:text-[#4ADE80]"
 					>
 						CookTale
 					</Link>
@@ -189,7 +189,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 				</div>
 
 				{/* --- RIGHT: ACTIONS --- */}
-				<div className="flex items-center gap-3 lg:gap-5">
+				<div className="flex items-center gap-1 sm:gap-2 lg:gap-5">
 					{/* Search */}
 					<button
 						type="button"
@@ -204,7 +204,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 					<button
 						type="button"
 						onClick={() => dispatch(setSearchTab(true))}
-						className="cursor-pointer p-1 text-[#006C5E] lg:hidden dark:text-[#4ADE80]"
+						className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-[#006C5E] transition-colors hover:bg-[#f1f7f6] lg:hidden dark:text-[#4ADE80] dark:hover:bg-white/10"
 						aria-label="Open search"
 					>
 						<CiSearch className="text-2xl" />
@@ -225,7 +225,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 					<button
 						type="button"
 						onClick={toggleTheme}
-						className="cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-yellow-400 dark:hover:bg-white/10"
+						className="hidden cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 lg:block dark:text-yellow-400 dark:hover:bg-white/10"
 						aria-label="Toggle theme"
 					>
 						<span className="dark:hidden">
@@ -236,13 +236,15 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 						</span>
 					</button>
 
-					<NotificationInbox />
+					<div className="hidden lg:block">
+						<NotificationInbox />
+					</div>
 
 					{/* Profile */}
 					<button
 						type="button"
 						onClick={() => dispatch(setProfilePopup(true))}
-						className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-transparent bg-transparent opacity-90 transition-opacity hover:opacity-100 dark:border-white/10"
+						className="hidden h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-transparent bg-transparent opacity-90 transition-opacity hover:opacity-100 lg:flex dark:border-white/10"
 						aria-label="Open profile menu"
 					>
 						{user?.image ? (
@@ -263,7 +265,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 					<button
 						type="button"
 						onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-						className="p-1 text-2xl text-[#2D2D2D] lg:hidden dark:text-white"
+						className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-2xl text-[#2D2D2D] transition-colors hover:bg-gray-100 lg:hidden dark:text-white dark:hover:bg-white/10"
 						aria-label="Toggle Menu"
 					>
 						{isMobileMenuOpen ? <IoCloseOutline /> : <IoMenuOutline />}
@@ -271,7 +273,11 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 
 					<ProfilePopup onRequestLogout={() => setIsLogoutConfirmOpen(true)} />
 					{isMobileMenuOpen && (
-						<SmallWidthMenusPopup onClose={() => setIsMobileMenuOpen(false)} />
+						<SmallWidthMenusPopup
+							onClose={() => setIsMobileMenuOpen(false)}
+							onToggleTheme={toggleTheme}
+							onOpenSettings={() => dispatch(setSettingsPopup(true))}
+						/>
 					)}
 				</div>
 			</div>
@@ -624,37 +630,91 @@ const ConfirmLogoutModal = ({
 	);
 };
 
-const SmallWidthMenusPopup = ({ onClose }: { onClose: () => void }) => {
+const SmallWidthMenusPopup = ({
+	onClose,
+	onToggleTheme,
+	onOpenSettings,
+}: {
+	onClose: () => void;
+	onToggleTheme: () => void;
+	onOpenSettings: () => void;
+}) => {
+	const { status, user } = useAuth();
+
 	return (
-		<div className="absolute top-16 right-4 left-4 z-50 flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white/95 p-4 shadow-2xl backdrop-blur-md lg:hidden dark:border-white/10 dark:bg-[#152a26]/95">
-			<Link
-				href="/recipe"
-				onClick={onClose}
-				className="cursor-pointer rounded-xl p-4 text-center font-bold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
-			>
-				RECIPES
-			</Link>
-			<Link
-				href="/stories"
-				onClick={onClose}
-				className="cursor-pointer rounded-xl p-4 text-center font-bold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
-			>
-				STORIES
-			</Link>
-			<Link
-				href="/community"
-				onClick={onClose}
-				className="cursor-pointer rounded-xl p-4 text-center font-bold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
-			>
-				COMMUNITY
-			</Link>
-			<Link
-				href="/membership"
-				onClick={onClose}
-				className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#006C5E] p-4 text-center font-bold text-white dark:bg-[#4ADE80] dark:text-black"
-			>
-				<Crown className="h-4 w-4" /> Join Club
-			</Link>
+		<div className="absolute top-[4.5rem] right-3 left-3 z-50 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl lg:hidden dark:border-white/10 dark:bg-[#152a26]">
+			<nav className="grid gap-1" aria-label="Mobile navigation">
+				<Link
+					href="/recipe"
+					onClick={onClose}
+					className="cursor-pointer rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
+				>
+					Recipes
+				</Link>
+				<Link
+					href="/stories"
+					onClick={onClose}
+					className="cursor-pointer rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
+				>
+					Stories
+				</Link>
+				<Link
+					href="/community"
+					onClick={onClose}
+					className="cursor-pointer rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
+				>
+					Community
+				</Link>
+				<Link
+					href="/membership"
+					onClick={onClose}
+					className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-3 py-3 text-left text-sm font-semibold text-white dark:bg-[#4ADE80] dark:text-black"
+				>
+					<Crown className="h-4 w-4" /> Join Club
+				</Link>
+			</nav>
+
+			<div className="my-3 h-px bg-gray-100 dark:bg-white/10" />
+			<div className="grid gap-1">
+				{status === "authenticated" && user?.username && (
+					<>
+						<Link
+							href={`/profile/${user.username}`}
+							onClick={onClose}
+							className="rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+						>
+							My kitchen
+						</Link>
+						<Link
+							href="/notifications"
+							onClick={onClose}
+							className="rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+						>
+							Notifications
+						</Link>
+						<button
+							type="button"
+							onClick={() => {
+								onOpenSettings();
+								onClose();
+							}}
+							className="rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+						>
+							Settings
+						</button>
+					</>
+				)}
+				<button
+					type="button"
+					onClick={() => {
+						onToggleTheme();
+						onClose();
+					}}
+					className="rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+				>
+					Theme
+				</button>
+			</div>
 		</div>
 	);
 };

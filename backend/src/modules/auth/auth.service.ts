@@ -518,18 +518,18 @@ export class AuthService {
   private async generateUniqueUsername(seed: string) {
     const base = seed
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 24);
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 18);
 
     for (let index = 0; index < 10; index += 1) {
       const username =
-        index === 0 ? base || `chef-${randomUUID().slice(0, 8)}` : `${base}-${index}`;
+        index === 0 ? base || `chef_${randomUUID().slice(0, 8)}` : `${base}_${index}`;
       const existingUser = await this.prisma.user.findUnique({ where: { username } });
       if (!existingUser) return username;
     }
 
-    return `chef-${randomUUID().slice(0, 8)}`;
+    return `chef_${randomUUID().slice(0, 8)}`;
   }
 
   private async hashToken(token: string) {

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import {
   FaCamera,
   FaCheckCircle,
@@ -42,7 +42,7 @@ import { RiVipCrownFill } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { ApiClientError } from '@/lib/api/authClient';
-import { profileClient } from '@/lib/api/profileClient';
+import { profileClient, type UpdateProfileInput } from '@/lib/api/profileClient';
 import {
   browserPushPermission,
   disableBrowserPush,
@@ -60,10 +60,25 @@ import UpgradeModal from '../UpgradeModal';
 // --- TYPES ---
 type Tab = 'profile' | 'account' | 'preferences' | 'notifications' | 'billing' | 'danger';
 
+type SaveBarState = {
+  loading: boolean;
+  disabled?: boolean;
+  onSave: () => void;
+};
+
+const SettingsSaveBarContext = createContext<Dispatch<SetStateAction<SaveBarState | null>> | null>(null);
+
+function useSettingsSaveBar() {
+  const setSaveBar = useContext(SettingsSaveBarContext);
+  if (!setSaveBar) throw new Error('Settings save bar is unavailable.');
+  return setSaveBar;
+}
+
 export default function SettingsModal() {
   const dispatch = useDispatch();
   const isOpen = useSelector((state: RootState) => state.settings.isSettingsPopupActive);
   const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const [saveBar, setSaveBar] = useState<SaveBarState | null>(null);
 
   if (!isOpen) return null;
 
@@ -78,7 +93,7 @@ export default function SettingsModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-70 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-70 flex items-end justify-center p-0 sm:items-center sm:p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -93,18 +108,18 @@ export default function SettingsModal() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative flex h-[700px] w-full max-w-5xl flex-col overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-2xl md:flex-row dark:border-white/10 dark:bg-[#0d1f1c]"
+          className="relative flex h-[min(760px,100dvh)] w-full max-w-5xl flex-col overflow-hidden rounded-t-[2rem] border border-gray-100 bg-white shadow-2xl md:h-[700px] md:flex-row md:rounded-[2.5rem] dark:border-white/10 dark:bg-[#0d1f1c]"
         >
           {/* --- LEFT: SIDEBAR --- */}
-          <div className="flex w-full flex-col border-b border-gray-200 bg-gray-50/80 p-6 backdrop-blur-xl md:w-72 md:border-r md:border-b-0 dark:border-white/5 dark:bg-[#152a26]/80">
-            <div className="mb-8 flex items-center gap-3 pt-2 pl-2">
+          <div className="flex w-full shrink-0 flex-col border-b border-gray-200 bg-gray-50/80 p-4 backdrop-blur-xl md:w-72 md:border-r md:border-b-0 md:p-6 dark:border-white/5 dark:bg-[#152a26]/80">
+            <div className="mb-4 flex items-center gap-3 pl-1 md:mb-8 md:pt-2 md:pl-2">
               <div className="rounded-xl bg-[#006C5E] p-2.5 text-white dark:bg-[#4ADE80] dark:text-black">
                 <FiSettings size={22} />
               </div>
-              <span className="text-xl font-black text-gray-900 dark:text-white">Settings</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Settings</span>
             </div>
 
-            <nav className="no-scrollbar flex-1 space-y-1 overflow-y-auto">
+            <nav className="no-scrollbar flex flex-1 gap-1 overflow-x-auto md:flex-col md:space-y-1 md:overflow-y-auto">
               {MENU_ITEMS.map((item) => (
                 <NavButton
                   key={item.id}
@@ -116,11 +131,11 @@ export default function SettingsModal() {
                 />
               ))}
 
-              <div className="mx-2 my-4 h-px bg-gray-200 dark:bg-white/10" />
+              <div className="hidden md:mx-2 md:my-4 md:block md:h-px md:bg-gray-200 dark:md:bg-white/10" />
 
               <NavButton
                 id="danger"
-                label="Danger Zone"
+                label="Account actions"
                 icon={FiLogOut}
                 active={activeTab}
                 onClick={setActiveTab}
@@ -129,32 +144,43 @@ export default function SettingsModal() {
             </nav>
 
             {/* Mini Footer */}
-            <div className="mt-6 px-4 text-xs font-medium text-gray-500">v1.0.4 • Build 2025</div>
+            <div className="hidden md:mt-6 md:block md:px-4 md:text-xs md:font-medium md:text-gray-500">CookTale · v1.0.4</div>
           </div>
 
           {/* --- RIGHT: CONTENT AREA --- */}
-          <div className="relative flex flex-1 flex-col bg-white dark:bg-[#0d1f1c]">
+          <div className="relative flex min-h-0 flex-1 flex-col bg-white dark:bg-[#0d1f1c]">
             {/* Close Button */}
             <button
               type="button"
               aria-label="Close"
               onClick={() => dispatch(setSettingsPopup(false))}
-              className="absolute top-6 right-6 z-10 cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-white"
+              className="absolute top-3 right-3 z-10 cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 md:top-6 md:right-6 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-white"
             >
               <FiX size={24} />
             </button>
 
             {/* Scrollable Content */}
-            <div className="custom-scrollbar flex-1 overflow-y-auto p-8 md:p-12">
-              <div className="mx-auto max-w-3xl">
-                {activeTab === 'profile' && <ProfileTab />}
-                {activeTab === 'account' && <AccountTab />}
-                {activeTab === 'preferences' && <PreferencesTab />}
-                {activeTab === 'notifications' && <NotificationsTab />}
-                {activeTab === 'billing' && <BillingTab />}
-                {activeTab === 'danger' && <DangerTab />}
+            <SettingsSaveBarContext.Provider value={setSaveBar}>
+              <div className="custom-scrollbar flex-1 overflow-y-auto p-5 pt-16 sm:p-8 sm:pt-16 md:p-12">
+                <div className="mx-auto max-w-3xl">
+                  {activeTab === 'profile' && <ProfileTab />}
+                  {activeTab === 'account' && <AccountTab />}
+                  {activeTab === 'preferences' && <PreferencesTab />}
+                  {activeTab === 'notifications' && <NotificationsTab />}
+                  {activeTab === 'billing' && <BillingTab />}
+                  {activeTab === 'danger' && <DangerTab />}
+                </div>
               </div>
-            </div>
+              {saveBar && (
+                <div className="flex shrink-0 justify-end border-t border-gray-100 bg-white px-5 py-4 shadow-[0_-8px_18px_rgba(0,0,0,0.04)] sm:px-8 md:px-12 dark:border-white/10 dark:bg-[#0d1f1c] dark:shadow-[0_-8px_18px_rgba(0,0,0,0.18)]">
+                  <SaveButton
+                    onClick={saveBar.onSave}
+                    loading={saveBar.loading}
+                    disabled={saveBar.disabled}
+                  />
+                </div>
+              )}
+            </SettingsSaveBarContext.Provider>
           </div>
         </motion.div>
       </div>
@@ -166,22 +192,31 @@ export default function SettingsModal() {
 export const ProfileTab = () => {
   const { uploadFile, deleteAsset } = useCloudinaryUpload();
   const { updateUser } = useAuth();
+  const setSaveBar = useSettingsSaveBar();
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
+  type ProfileForm = {
+    name: string;
+    username: string;
+    about: string;
+    image: string;
+    imagePublicId: string;
+    socialLinks: { instagram: string; twitter: string; youtube: string };
+  };
+
   // Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileForm>({
     name: '',
     username: '',
     about: '',
-    signature: '',
-    mission: '',
     image: '',
     imagePublicId: '',
     socialLinks: { instagram: '', twitter: '', youtube: '' },
   });
+  const [savedFormData, setSavedFormData] = useState<ProfileForm | null>(null);
 
   // New States for Username Check
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid'>(
@@ -193,7 +228,7 @@ export const ProfileTab = () => {
   useEffect(() => {
     const checkUsername = setTimeout(async () => {
       // Skip if empty or hasn't changed from initial load (optional optimization)
-      if (!formData.username) {
+      if (!formData.username || formData.username === savedFormData?.username) {
         setUsernameStatus('idle');
         setUsernameMessage('');
         return;
@@ -213,32 +248,41 @@ export const ProfileTab = () => {
     }, 500); // Wait 500ms after typing stops
 
     return () => clearTimeout(checkUsername);
-  }, [formData.username]);
+  }, [formData.username, savedFormData?.username]);
 
   // ... rest of component ...
 
   // Update the Save Button to disable if username is invalid
-  const isSaveDisabled = loading || usernameStatus === 'invalid';
+  const usernameHasChanged = formData.username !== savedFormData?.username;
+  const profileHasChanges = Boolean(
+    savedFormData &&
+      (formData.name !== savedFormData.name ||
+        formData.username !== savedFormData.username ||
+        formData.about !== savedFormData.about ||
+        JSON.stringify(formData.socialLinks) !== JSON.stringify(savedFormData.socialLinks)),
+  );
+  const isSaveDisabled =
+    loading || (usernameHasChanged && (usernameStatus === 'invalid' || usernameStatus === 'loading'));
 
   // Fetch latest data on mount (Single Source of Truth)
   useEffect(() => {
     const loadData = async () => {
       const data = await profileClient.me().catch(() => null);
       if (data?.user) {
-        setFormData({
+        const nextFormData = {
           name: data.user.name || '',
           username: data.user.username || '',
           about: data.user.about || '',
-          signature: data.user.signature || '',
-          mission: data.user.mission || '',
           image: data.user.image || '',
           imagePublicId: data.user.imagePublicId || '',
-          socialLinks: (data.user.socialLinks as any) || {
+          socialLinks: (data.user.socialLinks as ProfileForm['socialLinks']) || {
             instagram: '',
             twitter: '',
             youtube: '',
           },
-        });
+        };
+        setFormData(nextFormData);
+        setSavedFormData(nextFormData);
       }
       setFetching(false);
     };
@@ -246,29 +290,48 @@ export const ProfileTab = () => {
   }, []);
 
   const handleSave = async () => {
+    if (!savedFormData) return;
+
+    const changes: UpdateProfileInput = {};
+    if (formData.name !== savedFormData.name) changes.name = formData.name;
+    if (formData.username !== savedFormData.username) changes.username = formData.username;
+    if (formData.about !== savedFormData.about) changes.about = formData.about;
+    if (JSON.stringify(formData.socialLinks) !== JSON.stringify(savedFormData.socialLinks)) {
+      changes.socialLinks = formData.socialLinks;
+    }
+
+    if (Object.keys(changes).length === 0) {
+      toast.message('There are no profile changes to save.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const result = await profileClient.updateMe({
-        name: formData.name,
-        username: formData.username,
-        about: formData.about,
-        signature: formData.signature,
-        mission: formData.mission,
-        image: formData.image || null,
-        imagePublicId: formData.imagePublicId || null,
-        socialLinks: formData.socialLinks,
-      });
+      const result = await profileClient.updateMe(changes);
       updateUser({
         name: result.user.name,
         username: result.user.username,
         image: result.user.image,
       });
+      setSavedFormData(formData);
       toast.success('Profile updated successfully.');
     } catch (error) {
       toast.error(error instanceof ApiClientError ? error.message : 'Failed to update profile.');
     }
     setLoading(false);
   };
+
+  const profileSaveRef = useRef(handleSave);
+  profileSaveRef.current = handleSave;
+
+  useEffect(() => {
+    setSaveBar(
+      profileHasChanges
+        ? { loading, disabled: isSaveDisabled, onSave: () => void profileSaveRef.current() }
+        : null,
+    );
+    return () => setSaveBar(null);
+  }, [isSaveDisabled, loading, profileHasChanges, setSaveBar]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -314,6 +377,9 @@ export const ProfileTab = () => {
           image: res.publicUrl,
           imagePublicId: res.publicId,
         }));
+        setSavedFormData((prev) =>
+          prev ? { ...prev, image: res.publicUrl, imagePublicId: res.publicId } : prev,
+        );
         toast.success('Profile picture updated.');
       }
     } catch (e) {
@@ -345,9 +411,19 @@ export const ProfileTab = () => {
             </div>
           )}
 
-          {/* Hover Overlay */}
-          <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+          {/* Upload overlay */}
+          <label
+            className={`absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 transition-opacity ${
+              isUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
+          >
+            <input
+              type="file"
+              className="hidden"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={isUploading}
+              onChange={handleImageUpload}
+            />
             {isUploading ? (
               <FiLoader className="animate-spin text-white" />
             ) : (
@@ -357,7 +433,9 @@ export const ProfileTab = () => {
         </div>
         <div>
           <h4 className="text-lg font-bold text-gray-900 dark:text-white">Profile Picture</h4>
-          <p className="text-sm text-gray-500 dark:text-gray-500">Supports JPG, PNG. Max 5MB.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            {isUploading ? 'Uploading your picture…' : 'JPG, PNG, or WebP. Maximum 5MB.'}
+          </p>
         </div>
       </div>
 
@@ -386,21 +464,6 @@ export const ProfileTab = () => {
           onChange={(v: string) => setFormData({ ...formData, about: v })}
           placeholder="Brief bio about yourself..."
         />
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <TextAreaGroup
-            label="Signature Style"
-            value={formData.signature}
-            onChange={(v: string) => setFormData({ ...formData, signature: v })}
-            placeholder="e.g. Rustic Italian with a modern twist"
-          />
-          <TextAreaGroup
-            label="My Mission"
-            value={formData.mission}
-            onChange={(v: string) => setFormData({ ...formData, mission: v })}
-            placeholder="e.g. To teach the world how to bake sourdough"
-          />
-        </div>
 
         {/* Socials */}
         <div className="pt-4">
@@ -448,10 +511,6 @@ export const ProfileTab = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex justify-end border-t border-gray-100 pt-6 dark:border-white/10">
-        <SaveButton onClick={handleSave} loading={loading} disabled={isSaveDisabled} />
-      </div>
     </div>
   );
 };
@@ -561,6 +620,7 @@ export const AccountTab = () => {
 export const PreferencesTab = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const setSaveBar = useSettingsSaveBar();
 
   // State
   const [settings, setSettings] = useState({
@@ -573,6 +633,7 @@ export const PreferencesTab = () => {
       screenAwake: false,
     },
   });
+  const [savedSettings, setSavedSettings] = useState<typeof settings | null>(null);
 
   // Load Data
   useEffect(() => {
@@ -580,7 +641,7 @@ export const PreferencesTab = () => {
       const data = await profileClient.me().catch(() => null);
       if (data?.user) {
         const appSettings = (data.user.appSettings as any) || {};
-        setSettings({
+        const nextSettings = {
           measurementSystem: data.user.measurementSystem || 'METRIC',
           language: data.user.language || 'English',
           timezone: data.user.timezone || '(GMT+00:00) UTC',
@@ -589,7 +650,11 @@ export const PreferencesTab = () => {
             autoplay: appSettings.autoplay ?? true,
             screenAwake: appSettings.screenAwake ?? false,
           },
-        });
+        };
+        setSettings(nextSettings);
+        setSavedSettings(nextSettings);
+      } else {
+        setSavedSettings(settings);
       }
       setFetching(false);
     };
@@ -600,6 +665,7 @@ export const PreferencesTab = () => {
     setLoading(true);
     try {
       await profileClient.updatePreferences(settings);
+      setSavedSettings(settings);
       toast.success('Preferences saved.');
     } catch (error) {
       toast.error(
@@ -608,6 +674,20 @@ export const PreferencesTab = () => {
     }
     setLoading(false);
   };
+
+  const preferencesHaveChanges = Boolean(
+    savedSettings && JSON.stringify(settings) !== JSON.stringify(savedSettings),
+  );
+
+  const preferencesSaveRef = useRef(handleSave);
+  preferencesSaveRef.current = handleSave;
+
+  useEffect(() => {
+    setSaveBar(
+      preferencesHaveChanges ? { loading, onSave: () => void preferencesSaveRef.current() } : null,
+    );
+    return () => setSaveBar(null);
+  }, [loading, preferencesHaveChanges, setSaveBar]);
 
   // Handlers
   const toggleSetting = (key: 'autoplay' | 'screenAwake') => {
@@ -741,9 +821,6 @@ export const PreferencesTab = () => {
         </div>
       </section>
 
-      <div className="flex justify-end border-t border-gray-100 pt-6 dark:border-white/10">
-        <SaveButton onClick={handleSave} loading={loading} />
-      </div>
     </div>
   );
 };
@@ -771,6 +848,7 @@ export const NotificationsTab = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [testingBrowserAlert, setTestingBrowserAlert] = useState(false);
+  const setSaveBar = useSettingsSaveBar();
 
   // State with Defaults
   const [notifs, setNotifs] = useState({
@@ -782,6 +860,7 @@ export const NotificationsTab = () => {
     email_activity_digest: false,
     push_activity: false,
   });
+  const [savedNotifs, setSavedNotifs] = useState<typeof notifs | null>(null);
 
   // 1. Fetch Data
   useEffect(() => {
@@ -789,10 +868,20 @@ export const NotificationsTab = () => {
       const data = await profileClient.me().catch(() => null);
       if (data?.user?.notificationPreferences) {
         // Merge with defaults in case new keys were added to the schema later
-        setNotifs((prev) => ({
-          ...prev,
+        const nextNotifs = {
+          in_app_follows: true,
+          in_app_likes: true,
+          in_app_comments: true,
+          in_app_reviews: true,
+          in_app_system: true,
+          email_activity_digest: false,
+          push_activity: false,
           ...(data.user.notificationPreferences as any),
-        }));
+        };
+        setNotifs(nextNotifs);
+        setSavedNotifs(nextNotifs);
+      } else {
+        setSavedNotifs(notifs);
       }
       setFetching(false);
     };
@@ -811,6 +900,7 @@ export const NotificationsTab = () => {
 
       if (!wantsBrowserAlerts) {
         await disableBrowserPush().catch(() => undefined);
+        setSavedNotifs(notifs);
         toast.success('Notification settings updated.');
         return;
       }
@@ -818,9 +908,12 @@ export const NotificationsTab = () => {
       try {
         await enableBrowserPush();
         await profileClient.updateNotifications({ ...notifs, push_activity: true });
+        setSavedNotifs(notifs);
         toast.success('Notification settings updated.');
       } catch (error) {
-        setNotifs((current) => ({ ...current, push_activity: false }));
+        const saved = { ...notifs, push_activity: false };
+        setNotifs(saved);
+        setSavedNotifs(saved);
         const reason = error instanceof Error ? error.message : 'The browser could not register.';
         toast.error(`Other settings were saved. Browser alerts were not enabled: ${reason}`);
       }
@@ -835,6 +928,20 @@ export const NotificationsTab = () => {
   const toggle = (key: keyof typeof notifs) => {
     setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const notificationsHaveChanges = Boolean(
+    savedNotifs && JSON.stringify(notifs) !== JSON.stringify(savedNotifs),
+  );
+
+  const notificationsSaveRef = useRef(handleSave);
+  notificationsSaveRef.current = handleSave;
+
+  useEffect(() => {
+    setSaveBar(
+      notificationsHaveChanges ? { loading, onSave: () => void notificationsSaveRef.current() } : null,
+    );
+    return () => setSaveBar(null);
+  }, [loading, notificationsHaveChanges, setSaveBar]);
 
   const handleBrowserAlertTest = async () => {
     setTestingBrowserAlert(true);
@@ -957,10 +1064,6 @@ export const NotificationsTab = () => {
         </div>
       </div>
 
-      {/* Save Footer */}
-      <div className="flex justify-end border-t border-gray-100 pt-6 dark:border-white/10">
-        <SaveButton onClick={handleSave} loading={loading} />
-      </div>
     </div>
   );
 };
@@ -1225,7 +1328,7 @@ export const DangerTab = () => {
 
   return (
     <div className="animate-fade-in space-y-8">
-      <Header title="Danger Zone" desc="Manage your data and account existence." />
+      <Header title="Account actions" desc="Sign out, download your data, or close your account." />
 
       <div className="space-y-4">
         {/* 1. LOGOUT */}
@@ -1315,7 +1418,7 @@ const NavButton = ({ id, label, icon: Icon, active, onClick, danger }: any) => (
   <button
     type="button"
     onClick={() => onClick(id)}
-    className={`group relative flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-2xl px-4 py-3.5 transition-colors duration-200 ${
+    className={`group relative flex shrink-0 cursor-pointer items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 transition-colors duration-200 md:w-full md:gap-4 md:py-3.5 ${
       active === id
         ? danger
           ? 'border border-red-200 bg-red-50 text-red-600 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400'
@@ -1423,15 +1526,9 @@ const InputGroup = ({
 
   return (
     <div className="w-full">
-      <div className="flex justify-between">
-        <label className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500">
-          {label}
-        </label>
-        {/* Status Text */}
-        {statusMessage && (
-          <span className="animate-pulse text-xs font-bold text-red-500">{statusMessage}</span>
-        )}
-      </div>
+      <label className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+        {label}
+      </label>
 
       <div className="group relative">
         {/* Prefix */}
@@ -1469,6 +1566,9 @@ const InputGroup = ({
           {status === 'invalid' && <FaTimesCircle className="text-red-500" />}
         </div>
       </div>
+      {statusMessage && (
+        <p className="mt-1 min-h-5 text-xs font-medium text-red-500">{statusMessage}</p>
+      )}
     </div>
   );
 };
@@ -1488,11 +1588,19 @@ const TextAreaGroup = ({ label, value, onChange, placeholder }: any) => (
   </div>
 );
 
-const SaveButton = ({ onClick, loading }: any) => (
+const SaveButton = ({
+  onClick,
+  loading,
+  disabled = false,
+}: {
+  onClick: () => void;
+  loading: boolean;
+  disabled?: boolean;
+}) => (
   <button
     type="button"
     onClick={onClick}
-    disabled={loading}
+    disabled={loading || disabled}
     className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-8 py-3 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] disabled:cursor-not-allowed disabled:opacity-70 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74]"
   >
     {loading ? (

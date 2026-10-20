@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar";
-import StoryFooter from "@/components/stories/StoryFooter";
+import Footer from "@/components/Footer";
 
 export default function StoriesLayout({
 	children,
@@ -8,7 +8,7 @@ export default function StoriesLayout({
 		<div className="flex min-h-screen flex-col bg-white dark:bg-[#0d1f1c]">
 			<Navbar />
 			<div className="flex-1">{children}</div>
-			<StoryFooter />
+			<Footer />
 		</div>
 	);
 }

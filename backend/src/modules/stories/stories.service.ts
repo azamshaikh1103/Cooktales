@@ -64,7 +64,11 @@ export class StoriesService {
     const page = query.page || 1;
     const limit = query.limit || 12;
     const skip = (page - 1) * limit;
-    const where: Prisma.StoryWhereInput = { status: StoryStatus.PUBLISHED, deletedAt: null };
+    const where: Prisma.StoryWhereInput = {
+      status: StoryStatus.PUBLISHED,
+      deletedAt: null,
+      slug: { not: null },
+    };
     if (query.ids) {
       const ids = query.ids.split(',').map((id) => id.trim()).filter(Boolean).slice(0, 50);
       where.id = { in: ids };

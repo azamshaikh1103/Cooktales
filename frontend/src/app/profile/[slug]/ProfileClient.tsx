@@ -11,7 +11,6 @@ import {
   MapPin,
   Pencil,
   LoaderCircle,
-  UserRound,
   X,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -188,28 +187,13 @@ export function ProfileClient({ user }: ProfileClientProps) {
       <Navbar />
       <main className="mx-auto w-full max-w-7xl px-5 pt-28 pb-20 lg:px-8">
         <section className="overflow-hidden rounded-[28px] border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d1f1c]">
-          <div className="relative h-44 bg-[#eef7f4] lg:h-56 dark:bg-[#10231f]">
-            {user.bannerImage ? (
-              <Image
-                src={user.bannerImage}
-                alt={`${user.name} banner`}
-                fill
-                priority
-                loader={imageLoader}
-                className="object-cover"
-              />
-            ) : (
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef7f4_0%,#f8faf9_52%,#e7f3ef_100%)] dark:bg-[linear-gradient(135deg,#10231f_0%,#0d1f1c_55%,#17352e_100%)]" />
-            )}
-          </div>
-
-          <div className="grid gap-8 px-6 py-7 lg:grid-cols-[1fr_340px] lg:px-9 lg:py-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end">
+          <div className="grid gap-8 px-6 py-8 lg:grid-cols-[1fr_340px] lg:px-9 lg:py-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center">
               <Avatar user={user} />
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-semibold tracking-normal text-[#101827] lg:text-5xl dark:text-white">
+                  <h1 className="text-3xl font-semibold tracking-normal text-[#101827] md:text-4xl dark:text-white">
                     {user.name}
                   </h1>
                   {user.isPro && (
@@ -221,7 +205,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 <p className="mt-2 text-base text-gray-500 dark:text-gray-400">
                   @{user.username || 'chef'}
                 </p>
-                <p className="mt-5 max-w-2xl text-base leading-7 text-gray-600 dark:text-gray-300">
+                <p className="mt-6 max-w-2xl text-base leading-7 text-gray-600 dark:text-gray-300">
                   {user.about || 'A CookTale creator sharing recipes, stories, and kitchen notes.'}
                 </p>
               </div>
@@ -342,7 +326,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
 
 function Avatar({ user }: { user: PublicProfile }) {
   return (
-    <div className="-mt-24 h-36 w-36 shrink-0 overflow-hidden rounded-[26px] border-4 border-white bg-[#f1f7f6] dark:border-[#0d1f1c] dark:bg-white/10">
+    <div className="h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white bg-[#f1f7f6] md:h-32 md:w-32 dark:border-[#0d1f1c] dark:bg-white/10">
       {user.image ? (
         <Image
           src={user.image}
@@ -585,10 +569,10 @@ function StoryList({ stories }: { stories: ProfileStory[] }) {
 
   return (
     <div className="space-y-3">
-      {stories.map((story) => (
+      {stories.filter((story) => Boolean(story.slug)).map((story) => (
         <Link
           key={story.id}
-          href={`/stories/${story.slug || story.id}`}
+          href={`/stories/${story.slug}`}
           className="grid cursor-pointer gap-4 rounded-2xl border border-gray-200 bg-white p-3 transition-colors hover:border-[#006C5E]/40 md:grid-cols-[160px_1fr] dark:border-white/10 dark:bg-[#0d1f1c] dark:hover:border-[#4ADE80]/40"
         >
           <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#f3f6f4] md:aspect-auto dark:bg-white/5">
@@ -751,12 +735,7 @@ function InfoPanel({ user }: { user: PublicProfile }) {
         Kitchen Details
       </h2>
       <div className="mt-5 space-y-4 text-sm text-gray-600 dark:text-gray-300">
-        <InfoRow icon={<UserRound />} text={user.signature || 'Creator'} />
         <InfoRow icon={<MapPin />} text={user.location || 'Global kitchen'} />
-        <InfoRow
-          icon={<Globe2 />}
-          text={user.mission || 'Sharing practical food ideas with the CookTale community.'}
-        />
       </div>
     </div>
   );
@@ -841,25 +820,6 @@ function AboutSection({ user }: { user: PublicProfile }) {
       <p className="mt-4 max-w-3xl text-base leading-8 text-gray-600 dark:text-gray-300">
         {user.about || 'This creator has not added a full kitchen story yet.'}
       </p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <AboutBlock
-          title="Signature"
-          body={user.signature || 'A personal cooking style is coming soon.'}
-        />
-        <AboutBlock
-          title="Mission"
-          body={user.mission || 'Making everyday cooking easier to share.'}
-        />
-      </div>
-    </div>
-  );
-}
-
-function AboutBlock({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-[#fafafa] p-5 dark:border-white/10 dark:bg-white/5">
-      <h3 className="text-sm font-semibold tracking-wide text-gray-400 uppercase">{title}</h3>
-      <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">{body}</p>
     </div>
   );
 }

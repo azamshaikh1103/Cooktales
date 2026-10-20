@@ -46,6 +46,10 @@ wait_for() {
   done
 }
 
+available_disk_kb() {
+  df -Pk / | awk 'NR == 2 { print $4 }'
+}
+
 # Never overwrite a server-side change unexpectedly. The private .env.production
 # file is ignored by Git and is therefore unaffected by this check.
 git_ec2 diff --quiet
@@ -64,6 +68,21 @@ git_ec2 checkout --detach "$commit"
 # Give the frontend image a new build identity for every approved commit. This
 # prevents Docker from reusing an older frontend image when source changes.
 export APP_REVISION="$commit"
+
+# A fresh frontend build needs working space. Only clear unused Docker build
+# cache and dangling images when the server is low on disk space; never remove
+# running containers, named volumes, or database data.
+minimum_disk_kb=3000000
+if [ "$(available_disk_kb)" -lt "$minimum_disk_kb" ]; then
+  echo "Low disk space detected; clearing unused Docker build cache."
+  docker builder prune --all --force
+  docker image prune --force
+fi
+
+if [ "$(available_disk_kb)" -lt "$minimum_disk_kb" ]; then
+  echo "Not enough free disk space for a safe frontend build." >&2
+  exit 1
+fi
 
 # Build before replacing the running application. Migrations are additive-only
 # and use Prisma's production-safe 'migrate deploy' command.

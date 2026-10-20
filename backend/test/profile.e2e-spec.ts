@@ -399,6 +399,7 @@ describe('Profile API', () => {
     await prisma.story.createMany({
       data: Array.from({ length: 8 }, (_, index) => ({
         title: `Story ${index}`,
+        slug: `pages-story-${index}`,
         shortDesc: 'Story',
         tags: [],
         authorId: creator.id,

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit, tag, or branch to deploy. Use main unless you have a specific approved commit.
+        description: Branch, tag, or commit on main to deploy. Use main unless you have a specific approved commit.
         required: true
         default: main
         type: string
@@ -26,15 +26,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: main
           fetch-depth: 0
 
       - name: Confirm this commit is on main
         id: release
+        env:
+          REQUESTED_REF: ${{ inputs.ref }}
         run: |
           set -eu
-          commit="$(git rev-parse HEAD)"
+          git fetch --tags origin
           git fetch origin main
+          commit="$(git rev-parse "${REQUESTED_REF}^{commit}")"
           git merge-base --is-ancestor "$commit" origin/main
           printf 'commit=%s\n' "$commit" >> "$GITHUB_OUTPUT"
 

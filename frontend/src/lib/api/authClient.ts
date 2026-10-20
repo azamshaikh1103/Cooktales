@@ -18,6 +18,7 @@ type AuthResponse = {
 };
 
 let accessToken: string | null = null;
+let refreshPromise: Promise<AuthResponse> | null = null;
 
 type ApiErrorPayload = {
   message?: string | string[];
@@ -56,6 +57,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return payload;
+}
+
+function refreshSession() {
+  if (refreshPromise) return refreshPromise;
+
+  const pendingRefresh = request<AuthResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+
+  refreshPromise = pendingRefresh;
+  void pendingRefresh.then(() => {
+    if (refreshPromise === pendingRefresh) refreshPromise = null;
+  }, () => {
+    if (refreshPromise === pendingRefresh) refreshPromise = null;
+  });
+
+  return pendingRefresh;
 }
 
 export const authClient = {
@@ -115,10 +134,7 @@ export const authClient = {
   },
 
   refresh() {
-    return request<AuthResponse>('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
+    return refreshSession();
   },
 
   logout() {

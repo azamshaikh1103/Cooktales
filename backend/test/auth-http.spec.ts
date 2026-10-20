@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import type { AppConfig } from '../src/config/env.validation';
 import { AuthController } from '../src/modules/auth/auth.controller';
 import {
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   createRefreshCookieClearOptions,
   createRefreshCookieOptions,
   REFRESH_COOKIE_PATH,
@@ -18,6 +19,7 @@ function createController(authServiceOverrides: Partial<AuthService> = {}) {
       user: { id: 'user-1' },
     }),
     logout: jest.fn().mockResolvedValue(undefined),
+    getGoogleAuthUrl: jest.fn().mockResolvedValue({ url: 'https://accounts.google.com/example' }),
     ...authServiceOverrides,
   } as unknown as AuthService;
   const config = {
@@ -127,12 +129,26 @@ describe('Auth HTTP safety', () => {
     const { controller } = createController({ handleGoogleCallback } as Partial<AuthService>);
     const response = {
       cookie: jest.fn(),
+      clearCookie: jest.fn(),
       redirect: jest.fn(),
     } as unknown as Response;
 
+    await controller.googleAuthUrl(
+      { headers: {}, cookies: {}, ip: '127.0.0.1' } as unknown as Request,
+      response,
+    );
+    const state = (response.cookie as unknown as jest.Mock).mock.calls.find(
+      ([name]) => name === GOOGLE_OAUTH_STATE_COOKIE_NAME,
+    )?.[1];
+
     await controller.googleCallback(
       'google-code',
-      { headers: {}, cookies: {}, ip: '127.0.0.1' } as unknown as Request,
+      state,
+      {
+        headers: {},
+        cookies: { [GOOGLE_OAUTH_STATE_COOKIE_NAME]: state },
+        ip: '127.0.0.1',
+      } as unknown as Request,
       response,
     );
 
@@ -144,5 +160,25 @@ describe('Auth HTTP safety', () => {
     expect(response.redirect).toHaveBeenCalledWith(
       'https://www.cooktale.example/auth/google/callback',
     );
+  });
+
+  it('rejects Google callbacks without the matching one-time state', async () => {
+    const handleGoogleCallback = jest.fn();
+    const { controller } = createController({ handleGoogleCallback } as Partial<AuthService>);
+    const response = { clearCookie: jest.fn() } as unknown as Response;
+
+    await expect(
+      controller.googleCallback(
+        'google-code',
+        'wrong-state',
+        {
+          headers: {},
+          cookies: { [GOOGLE_OAUTH_STATE_COOKIE_NAME]: 'expected-state' },
+        } as unknown as Request,
+        response,
+      ),
+    ).rejects.toThrow('Google sign-in could not be verified');
+
+    expect(handleGoogleCallback).not.toHaveBeenCalled();
   });
 });

@@ -281,7 +281,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async getGoogleAuthUrl(meta: RequestMeta) {
+  async getGoogleAuthUrl(meta: RequestMeta, state: string) {
     await this.rateLimit.checkGoogle(meta);
 
     const clientId = this.config.get('GOOGLE_CLIENT_ID', { infer: true });
@@ -298,6 +298,7 @@ export class AuthService {
       scope: 'openid email profile',
       access_type: 'offline',
       prompt: 'consent',
+      state,
     });
 
     return { url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` };

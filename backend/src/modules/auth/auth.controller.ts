@@ -1,4 +1,5 @@
 import {
+  UnauthorizedException,
   Body,
   Controller,
   Get,
@@ -10,13 +11,17 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import type { AppConfig } from '../../config/env.validation';
 import { AuthGuard } from './auth.guard';
 import {
+  createGoogleOAuthStateCookieClearOptions,
+  createGoogleOAuthStateCookieOptions,
   createRefreshCookieClearOptions,
   createRefreshCookieOptions,
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
   removeRefreshTokenFromResponse,
 } from './auth-http';
@@ -119,16 +124,26 @@ export class AuthController {
   }
 
   @Get('google')
-  googleAuthUrl(@Req() request: Request) {
-    return this.authService.getGoogleAuthUrl(this.getRequestMeta(request));
+  googleAuthUrl(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    const state = randomBytes(32).toString('base64url');
+    response.cookie(GOOGLE_OAUTH_STATE_COOKIE_NAME, state, this.getGoogleOAuthStateCookieOptions());
+    return this.authService.getGoogleAuthUrl(this.getRequestMeta(request), state);
   }
 
   @Get('google/callback')
   async googleCallback(
     @Query('code') code: string,
+    @Query('state') state: string,
     @Req() request: Request,
     @Res() response: Response,
   ) {
+    const expectedState = request.cookies?.[GOOGLE_OAUTH_STATE_COOKIE_NAME];
+    this.clearGoogleOAuthStateCookie(response);
+
+    if (!this.isGoogleOAuthStateMatch(state, expectedState)) {
+      throw new UnauthorizedException('Google sign-in could not be verified');
+    }
+
     const result = await this.authService.handleGoogleCallback(code, this.getRequestMeta(request));
     this.setRefreshCookie(response, result.refreshToken);
     return response.redirect(
@@ -150,11 +165,30 @@ export class AuthController {
     );
   }
 
+  private clearGoogleOAuthStateCookie(response: Response) {
+    response.clearCookie(
+      GOOGLE_OAUTH_STATE_COOKIE_NAME,
+      createGoogleOAuthStateCookieClearOptions({ secure: this.isProduction() }),
+    );
+  }
+
   private getRefreshCookieOptions() {
     return createRefreshCookieOptions({
       secure: this.isProduction(),
       ttlDays: this.config.get('JWT_REFRESH_TTL_DAYS', { infer: true }),
     });
+  }
+
+  private getGoogleOAuthStateCookieOptions() {
+    return createGoogleOAuthStateCookieOptions({ secure: this.isProduction() });
+  }
+
+  private isGoogleOAuthStateMatch(state: string | undefined, expectedState: unknown) {
+    if (!state || typeof expectedState !== 'string') return false;
+
+    const actual = Buffer.from(state);
+    const expected = Buffer.from(expectedState);
+    return actual.length === expected.length && timingSafeEqual(actual, expected);
   }
 
   private isProduction() {

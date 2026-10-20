@@ -32,7 +32,7 @@
     "seed:local-sample-discussions": "node --env-file=.env scripts/seed-local-sample-discussions.mjs",
     "test:infra:up": "docker compose -f ../docker-compose.yml --profile test up -d --wait postgres-test redis-test",
     "test:infra:down": "docker compose -f ../docker-compose.yml --profile test stop postgres-test redis-test",
-    "test:prepare": "DATABASE_URL=postgresql://cooktale_test:cooktale_test@127.0.0.1:5433/cooktale_test REDIS_URL=redis://127.0.0.1:6380/0 npx prisma migrate reset --force --skip-seed --skip-generate"
+    "test:prepare": "DATABASE_URL=${DATABASE_URL:-postgresql://cooktale_test:cooktale_test@127.0.0.1:5433/cooktale_test} REDIS_URL=${REDIS_URL:-redis://127.0.0.1:6380/0} npx prisma migrate reset --force --skip-seed --skip-generate"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",

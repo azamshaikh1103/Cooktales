@@ -3,8 +3,12 @@ process.env.APP_MODE = 'api';
 process.env.PORT = '4001';
 process.env.API_PREFIX = 'api';
 process.env.API_VERSION = '1';
-process.env.DATABASE_URL = 'postgresql://cooktale_test:cooktale_test@127.0.0.1:5433/cooktale_test';
-process.env.REDIS_URL = 'redis://127.0.0.1:6380/0';
+if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.includes('postgres-test')) {
+  process.env.DATABASE_URL = 'postgresql://cooktale_test:cooktale_test@127.0.0.1:5433/cooktale_test';
+}
+if (!process.env.REDIS_URL || !process.env.REDIS_URL.includes('redis-test')) {
+  process.env.REDIS_URL = 'redis://127.0.0.1:6380/0';
+}
 process.env.FRONTEND_URL = 'http://localhost:3001';
 process.env.CORS_ORIGINS = 'http://localhost:3001';
 process.env.AUTH_TRUSTED_ORIGINS = 'http://localhost:3001';

@@ -349,6 +349,10 @@ export class AuthService {
       picture?: string;
     };
 
+    if (!profile.email || !profile.email_verified) {
+      throw new UnauthorizedException('Google account email must be verified');
+    }
+
     const email = profile.email.toLowerCase().trim();
     const account = await this.prisma.oAuthAccount.findUnique({
       where: { provider_providerAccountId: { provider: 'google', providerAccountId: profile.sub } },

@@ -63,7 +63,7 @@ jobs:
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --comment "CookTale production deployment $COMMIT" \
-            --parameters "commands=[\"set -eu; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --cached --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale fetch --prune origin main; sudo -u ec2-user git -C /home/ec2-user/cooktale cat-file -e $COMMIT^{commit}; sudo -u ec2-user git -C /home/ec2-user/cooktale merge-base --is-ancestor $COMMIT origin/main; deploy_script=\$(mktemp); sudo -u ec2-user git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-production.sh > \$deploy_script; sh \$deploy_script $COMMIT; test \"\$(cat /home/ec2-user/cooktale/deploy/.state/current-deploy-commit)\" = \"$COMMIT\"; rm -f \$deploy_script\"]" \
+            --parameters "commands=[\"set -eu; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --cached --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale fetch --prune origin main; sudo -u ec2-user git -C /home/ec2-user/cooktale cat-file -e $COMMIT^{commit}; sudo -u ec2-user git -C /home/ec2-user/cooktale merge-base --is-ancestor $COMMIT origin/main; sudo -u ec2-user git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-production.sh > /tmp/cooktale-deploy-$COMMIT.sh; sh /tmp/cooktale-deploy-$COMMIT.sh $COMMIT; grep -Fx $COMMIT /home/ec2-user/cooktale/deploy/.state/current-deploy-commit; rm -f /tmp/cooktale-deploy-$COMMIT.sh\"]" \
             --query 'Command.CommandId' \
             --output text)"
 

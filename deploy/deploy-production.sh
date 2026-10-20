@@ -50,9 +50,21 @@ export APP_REVISION="$commit"
 # Build before replacing the running application. Migrations are additive-only
 # and use Prisma's production-safe 'migrate deploy' command.
 docker compose --env-file "$env_file" -f "$compose_file" build
+# The frontend is what users see. Rebuild it without cache so a changed route
+# cannot be hidden behind an older Docker image.
+docker compose --env-file "$env_file" -f "$compose_file" build --no-cache frontend
 docker compose --env-file "$env_file" -f "$compose_file" up -d postgres redis
 docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance run --rm backend-migrate
-docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans
+# Recreate every application container from the newly built images. Database
+# and Redis are deliberately excluded so deployment never clears their data.
+docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans --force-recreate \
+  backend backend-worker frontend caddy
+
+frontend_revision="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend cat /app/.build-revision)"
+if [ "$frontend_revision" != "$commit" ]; then
+  echo "Frontend image does not match the approved commit." >&2
+  exit 1
+fi
 
 # Confirm the actual API process is responding before calling the deployment a success.
 attempt=0

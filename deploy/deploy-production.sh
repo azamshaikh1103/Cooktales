@@ -102,7 +102,7 @@ docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans 
 
 wait_for "Frontend HTTP server" \
   docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
-  node -e "fetch('http://127.0.0.1:3000/auth/google/callback').then((response) => process.exit(response.status === 200 ? 0 : 1)).catch(() => process.exit(1))"
+  node -e "fetch('http://127.0.0.1:3000/auth/google/callback', { signal: AbortSignal.timeout(10000) }).then((response) => process.exit(response.status === 200 ? 0 : 1)).catch(() => process.exit(1))"
 
 wait_for "Caddy reverse proxy" \
   docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
@@ -115,7 +115,7 @@ if [ "$frontend_revision" != "$commit" ]; then
 fi
 
 frontend_callback_status="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
-  node -e "fetch('http://127.0.0.1:3000/auth/google/callback').then((response) => process.stdout.write(String(response.status))).catch(() => process.exit(1))")"
+  node -e "fetch('http://127.0.0.1:3000/auth/google/callback', { signal: AbortSignal.timeout(10000) }).then((response) => process.stdout.write(String(response.status))).catch(() => process.exit(1))")"
 if [ "$frontend_callback_status" != "200" ]; then
   echo "Frontend callback route is not available." >&2
   exit 1
@@ -124,12 +124,12 @@ fi
 # A version label proves only that the build received a commit argument. Prove
 # the new frontend actually renders that commit and the AdSense files too.
 frontend_homepage="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
-  node -e "fetch('http://127.0.0.1:3000/').then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
+  node -e "fetch('http://127.0.0.1:3000/', { signal: AbortSignal.timeout(10000) }).then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
 printf '%s' "$frontend_homepage" | grep -F "name=\"cooktale-build-revision\" content=\"$commit\"" >/dev/null
 printf '%s' "$frontend_homepage" | grep -F 'name="google-adsense-account" content="ca-pub-4957518824200533"' >/dev/null
 
 frontend_ads_txt="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
-  node -e "fetch('http://127.0.0.1:3000/ads.txt').then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
+  node -e "fetch('http://127.0.0.1:3000/ads.txt', { signal: AbortSignal.timeout(10000) }).then(async (response) => { process.stdout.write(await response.text()); process.exit(response.ok ? 0 : 1); }).catch(() => process.exit(1))")"
 printf '%s' "$frontend_ads_txt" | grep -Fx 'google.com, pub-4957518824200533, DIRECT, f08c47fec0942fa0' >/dev/null
 
 caddy_callback_status="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
@@ -147,7 +147,7 @@ printf '%s' "$caddy_homepage" | grep -F 'name="google-adsense-account" content="
 # Confirm the actual API process is responding before calling the deployment a success.
 attempt=0
 until docker compose --env-file "$env_file" -f "$compose_file" exec -T backend \
-  node -e "fetch('http://127.0.0.1:4000/api/v1/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"; do
+  node -e "fetch('http://127.0.0.1:4000/api/v1/health', { signal: AbortSignal.timeout(10000) }).then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"; do
   attempt=$((attempt + 1))
   if [ "$attempt" -ge 24 ]; then
     echo "Deployment did not pass the API health check." >&2

@@ -28,6 +28,24 @@ git_ec2() {
   sudo -u ec2-user git -C "$repo_dir" "$@"
 }
 
+# Containers can be created before their web processes are ready to accept a
+# request. Wait for a real response so a healthy deployment is not reported as
+# failed simply because the first probe was a fraction too early.
+wait_for() {
+  label="$1"
+  shift
+  attempt=0
+
+  until "$@"; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 24 ]; then
+      echo "$label did not become ready." >&2
+      return 1
+    fi
+    sleep 5
+  done
+}
+
 # Never overwrite a server-side change unexpectedly. The private .env.production
 # file is ignored by Git and is therefore unaffected by this check.
 git_ec2 diff --quiet
@@ -62,6 +80,14 @@ docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance r
 # and Redis are deliberately excluded so deployment never clears their data.
 docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans --force-recreate \
   backend backend-worker frontend caddy
+
+wait_for "Frontend HTTP server" \
+  docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
+  node -e "fetch('http://127.0.0.1:3000/auth/google/callback').then((response) => process.exit(response.status === 200 ? 0 : 1)).catch(() => process.exit(1))"
+
+wait_for "Caddy reverse proxy" \
+  docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
+  sh -c "wget -q -S -O /dev/null --header='Host: \$DOMAIN' http://127.0.0.1/auth/google/callback 2>&1 | awk '/HTTP\\// { status=\$2 } END { print status }' | grep -qx 200"
 
 frontend_revision="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend cat /app/.build-revision)"
 if [ "$frontend_revision" != "$commit" ]; then

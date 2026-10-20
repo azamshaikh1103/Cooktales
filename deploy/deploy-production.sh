@@ -66,6 +66,20 @@ if [ "$frontend_revision" != "$commit" ]; then
   exit 1
 fi
 
+frontend_callback_status="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
+  node -e "fetch('http://127.0.0.1:3000/auth/google/callback').then((response) => process.stdout.write(String(response.status))).catch(() => process.exit(1))")"
+if [ "$frontend_callback_status" != "200" ]; then
+  echo "Frontend callback route is not available." >&2
+  exit 1
+fi
+
+caddy_callback_status="$(docker compose --env-file "$env_file" -f "$compose_file" exec -T caddy \
+  sh -c "wget -q -S -O /dev/null --header='Host: \$DOMAIN' http://127.0.0.1/auth/google/callback 2>&1 | awk '/HTTP\\// { status=\$2 } END { print status }'")"
+if [ "$caddy_callback_status" != "200" ]; then
+  echo "Reverse proxy does not serve the frontend callback route." >&2
+  exit 1
+fi
+
 # Confirm the actual API process is responding before calling the deployment a success.
 attempt=0
 until docker compose --env-file "$env_file" -f "$compose_file" exec -T backend \

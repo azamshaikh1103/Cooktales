@@ -163,14 +163,19 @@ export default async function RootLayout({
 			suppressHydrationWarning
 			className={`${raleway.variable} ${montserrat.variable}`}
 		>
-			<meta name="application-name" content="CookTale" />
-			<meta property="og:site_name" content="CookTale" />
-			<meta
-				name="cooktale-build-revision"
-				content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
-			/>
-			<meta name="google-adsense-account" content="ca-pub-4957518824200533" />
 			<head>
+				<meta name="application-name" content="CookTale" />
+				<meta property="og:site_name" content="CookTale" />
+				<meta
+					name="cooktale-build-revision"
+					content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
+				/>
+				<meta name="google-adsense-account" content="ca-pub-6574614841664693" />
+				<script
+					async
+					src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6574614841664693"
+					crossOrigin="anonymous"
+				/>
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `

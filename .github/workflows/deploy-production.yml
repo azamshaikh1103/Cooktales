@@ -102,8 +102,8 @@ jobs:
           homepage="$(curl --silent --show-error --fail --retry 6 --retry-all-errors --retry-delay 5 \
             "https://cooktale.in/?release-check=$COMMIT")"
           printf '%s' "$homepage" | grep -F "name=\"cooktale-build-revision\" content=\"$COMMIT\"" >/dev/null
-          printf '%s' "$homepage" | grep -F 'name="google-adsense-account" content="ca-pub-4957518824200533"' >/dev/null
+          printf '%s' "$homepage" | grep -F 'name="google-adsense-account" content="ca-pub-6574614841664693"' >/dev/null
 
           ads_txt="$(curl --silent --show-error --fail --retry 6 --retry-all-errors --retry-delay 5 \
             "https://cooktale.in/ads.txt?release-check=$COMMIT")"
-          printf '%s' "$ads_txt" | grep -Fx 'google.com, pub-4957518824200533, DIRECT, f08c47fec0942fa0' >/dev/null
+          printf '%s' "$ads_txt" | grep -Fx 'google.com, pub-6574614841664693, DIRECT, f08c47fec0942fa0' >/dev/null

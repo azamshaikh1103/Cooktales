@@ -95,4 +95,45 @@ describe('Stories API', () => {
     expect(comment.body.comment.content).toBe('Great read.');
     await request(app.getHttpServer()).get(`/api/v1/stories/${story.id}/comments`).expect(200);
   });
+
+  it('lists only published stories from a requested author', async () => {
+    const author = await user('storylistingauthor');
+    const otherAuthor = await user('storylistingother');
+    await prisma.story.createMany({
+      data: [
+        {
+          authorId: author.created.id,
+          title: 'Author story one',
+          slug: `author-story-one-${Date.now()}`,
+          tags: ['food'],
+          status: StoryStatus.PUBLISHED,
+          publishedAt: new Date(),
+        },
+        {
+          authorId: author.created.id,
+          title: 'Author story two',
+          slug: `author-story-two-${Date.now()}`,
+          tags: ['food'],
+          status: StoryStatus.PUBLISHED,
+          publishedAt: new Date(),
+        },
+        {
+          authorId: otherAuthor.created.id,
+          title: 'Other author story',
+          slug: `other-author-story-${Date.now()}`,
+          tags: ['food'],
+          status: StoryStatus.PUBLISHED,
+          publishedAt: new Date(),
+        },
+      ],
+    });
+
+    const response = await request(app.getHttpServer())
+      .get(`/api/v1/stories?authorId=${author.created.id}&limit=4`)
+      .expect(200);
+
+    expect(response.body).toMatchObject({ total: 2, hasMore: false });
+    expect(response.body.stories).toHaveLength(2);
+    expect(response.body.stories.every((story: { author: { id: string } }) => story.author.id === author.created.id)).toBe(true);
+  });
 });

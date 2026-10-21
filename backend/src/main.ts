@@ -11,7 +11,10 @@ async function bootstrap() {
 
   configureApp(app, config);
 
-  await app.listen(config.get('PORT', { infer: true }));
+  await app.listen(
+    config.get('PORT', { infer: true }),
+    config.get('HOST', { infer: true }),
+  );
 }
 
 void bootstrap();

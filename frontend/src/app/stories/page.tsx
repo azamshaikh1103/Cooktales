@@ -1,3 +1,4 @@
+import { ArrowRight, PenLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StoryCoverImage } from "@/components/stories/StoryImage";
@@ -9,83 +10,175 @@ const API_URL =
 	process.env.NEXT_PUBLIC_API_URL ||
 	"http://localhost:4000/api/v1";
 
+const storyDateFormatter = new Intl.DateTimeFormat("en-US", {
+	month: "short",
+	day: "numeric",
+	year: "numeric",
+	timeZone: "UTC",
+});
+
 export const metadata: Metadata = {
 	title: "Food Stories",
-	description: "Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
+	description:
+		"Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
 	alternates: { canonical: "/stories" },
 	openGraph: {
 		title: "Food Stories | CookTale",
-		description: "Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
+		description:
+			"Practical food stories, kitchen notes, and cooking ideas from CookTale creators.",
 		url: "/stories",
 	},
 };
 
 async function getStories(): Promise<Story[]> {
-	const response = await fetch(`${API_URL}/stories?limit=12`, { cache: "no-store" });
+	const response = await fetch(`${API_URL}/stories?limit=12`, {
+		cache: "no-store",
+	});
 	if (!response.ok) return [];
 	return ((await response.json()) as { stories: Story[] }).stories;
 }
 
 export default async function StoriesPage() {
 	const stories = await getStories();
+	const freshStories = stories.slice(0, 3);
 	return (
-		<main className="mx-auto min-h-screen max-w-6xl px-6 py-28 dark:bg-[#0d1f1c]">
-			<div className="mb-10 flex items-end justify-between">
-				<div>
-					<p className="text-sm text-[#006c5e] dark:text-[#4ade80]">
-						CookTale stories
-					</p>
-					<h1 className="mt-2 text-4xl font-semibold text-slate-900 dark:text-white">
-						From the kitchen
-					</h1>
+		<main className="mx-auto min-h-screen w-full max-w-7xl px-5 py-16 sm:px-8 lg:px-10 lg:py-24">
+			<div className="pb-8">
+				<p className="text-sm font-medium text-[#006c5e] dark:text-[#4ade80]">
+					CookTale stories
+				</p>
+				<div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<h1 className="text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">
+							From the kitchen
+						</h1>
+						<p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+							Useful food ideas, small kitchen discoveries, and stories worth
+							saving for later.
+						</p>
+					</div>
+					<Link
+						href="/new-story"
+						className="inline-flex w-fit items-center gap-2 rounded-full bg-[#006c5e] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c5e] focus-visible:ring-offset-2 dark:bg-[#4ade80] dark:text-[#092019] dark:hover:bg-[#73e99d] dark:focus-visible:ring-[#4ade80] dark:focus-visible:ring-offset-[#0d1f1c]"
+					>
+						<PenLine className="h-4 w-4" aria-hidden="true" />
+						Write a story
+					</Link>
 				</div>
-				<Link
-					href="/new-story"
-					className="cursor-pointer rounded-md bg-[#006c5e] px-4 py-2 text-sm font-medium text-white dark:bg-[#4ade80] dark:text-[#092019]"
-				>
-					Write a story
-				</Link>
 			</div>
-			{stories.length === 0 ? (
-				<p className="text-gray-500">No stories have been published yet.</p>
-			) : (
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{stories.map((story) => (
+
+			<div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
+				<section aria-labelledby="latest-stories-heading">
+					<h2 id="latest-stories-heading" className="sr-only">
+						Latest stories
+					</h2>
+					{stories.length === 0 ? (
+						<div className="py-14 text-center">
+							<p className="text-lg font-medium text-slate-900 dark:text-white">
+								No stories published yet
+							</p>
+							<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+								The first kitchen story can start here.
+							</p>
+						</div>
+					) : (
+						<div>
+							{stories.map((story, index) => (
+								<Link
+									href={`/stories/${story.slug}`}
+									key={story.id}
+									className={`group grid gap-5 py-7 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:py-9 ${index > 0 ? "border-t border-slate-200 dark:border-white/10" : ""}`}
+								>
+									<div className="min-w-0 px-1 sm:px-0">
+										<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+											<span>{story.author?.name || "CookTale creator"}</span>
+											<span aria-hidden="true">·</span>
+											<span>
+												{story.publishedAt
+													? storyDateFormatter.format(
+															new Date(story.publishedAt),
+														)
+													: "New story"}
+											</span>
+										</div>
+										<h3 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-slate-950 transition-colors group-hover:text-[#006c5e] dark:text-white dark:group-hover:text-[#4ade80] sm:text-3xl">
+											{story.title}
+										</h3>
+										{story.shortDesc && (
+											<p className="mt-3 line-clamp-2 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+												{story.shortDesc}
+											</p>
+										)}
+										<div className="mt-4 flex items-center gap-2 text-sm font-medium text-[#006c5e] dark:text-[#4ade80]">
+											Read story{" "}
+											<ArrowRight
+												className="h-4 w-4 transition-transform group-hover:translate-x-1"
+												aria-hidden="true"
+											/>
+										</div>
+									</div>
+									<div className="relative order-first aspect-[16/10] overflow-hidden rounded-lg bg-slate-100 sm:order-last dark:bg-white/5">
+										{story.coverImage && (
+											<StoryCoverImage
+												src={story.coverImage}
+												alt=""
+												sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 176px"
+												className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+											/>
+										)}
+									</div>
+								</Link>
+							))}
+						</div>
+					)}
+				</section>
+
+				<aside
+					className="space-y-8 lg:sticky lg:top-28"
+					aria-label="Story recommendations"
+				>
+					<div className="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-white/[0.03]">
+						<p className="text-sm font-semibold text-slate-950 dark:text-white">
+							Have a kitchen story to share?
+						</p>
+						<p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+							Pass on a practical tip, a food memory, or a useful dinner idea.
+						</p>
 						<Link
-							href={`/stories/${story.slug}`}
-							key={story.id}
-							className="group overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/10 dark:bg-[#122923]"
+							href="/new-story"
+							className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#006c5e] hover:underline dark:text-[#4ade80]"
 						>
-							<div className="relative aspect-[16/9] bg-gray-100 dark:bg-white/5">
-								{story.coverImage && (
-									<StoryCoverImage
-										src={story.coverImage}
-										alt=""
-										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-										className="object-cover"
-									/>
-								)}
-							</div>
-							<div className="p-5">
-								<div className="mb-2 text-xs text-gray-500">
-									{story.publishedAt
-										? new Date(story.publishedAt).toLocaleDateString()
-										: ""}
-								</div>
-								<h2 className="text-xl font-medium text-slate-900 group-hover:text-[#006c5e] dark:text-white dark:group-hover:text-[#4ade80]">
-									{story.title}
-								</h2>
-								<p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
-									{story.shortDesc}
-								</p>
-								<p className="mt-4 text-sm text-gray-500">
-									{story.author?.name}
-								</p>
-							</div>
+							Start writing{" "}
+							<ArrowRight className="h-4 w-4" aria-hidden="true" />
 						</Link>
-					))}
-				</div>
-			)}
+					</div>
+
+					{freshStories.length > 0 && (
+						<div className="pt-2">
+							<h2 className="text-sm font-semibold text-slate-950 dark:text-white">
+								Fresh from CookTale
+							</h2>
+							<ul className="mt-4 space-y-5">
+								{freshStories.map((story) => (
+									<li key={story.id}>
+										<Link
+											href={`/stories/${story.slug}`}
+											className="group block"
+										>
+											<p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800 group-hover:text-[#006c5e] dark:text-slate-100 dark:group-hover:text-[#4ade80]">
+												{story.title}
+											</p>
+											<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+												{story.author?.name || "CookTale creator"}
+											</p>
+										</Link>
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+				</aside>
+			</div>
 		</main>
 	);
 }

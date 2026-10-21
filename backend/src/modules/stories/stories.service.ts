@@ -73,6 +73,7 @@ export class StoriesService {
       const ids = query.ids.split(',').map((id) => id.trim()).filter(Boolean).slice(0, 50);
       where.id = { in: ids };
     }
+    if (query.authorId) where.authorId = query.authorId;
     if (query.tag && query.tag !== 'All') where.tags = { has: query.tag.trim().toLowerCase() };
     if (query.search) {
       where.OR = [

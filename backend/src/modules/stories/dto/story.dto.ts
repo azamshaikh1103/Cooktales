@@ -165,6 +165,10 @@ export class ListStoriesQueryDto {
   tag?: string;
 
   @IsOptional()
+  @IsUUID()
+  authorId?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   search?: string;

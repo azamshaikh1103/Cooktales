@@ -218,7 +218,11 @@ export default async function StoryDetailPage({ params }: PageProps) {
 			</article>
 			<div className="px-6">
 				<StoryComments storyId={story.id} />
-				<RelatedStories storyId={story.id} tags={story.tags} />
+				<RelatedStories
+					storyId={story.id}
+					tags={story.tags}
+					author={story.author}
+				/>
 			</div>
 		</main>
 	);

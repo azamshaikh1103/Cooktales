@@ -2,6 +2,7 @@ import { ArrowRight, PenLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StoryCoverImage } from "@/components/stories/StoryImage";
+import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 import type { Story } from "@/lib/api/storyClient";
 
 const API_URL =
@@ -31,19 +32,23 @@ export const metadata: Metadata = {
 };
 
 async function getStories(): Promise<Story[]> {
-	const response = await fetch(`${API_URL}/stories?limit=12`, {
-		cache: "no-store",
-	});
-	if (!response.ok) return [];
-	return ((await response.json()) as { stories: Story[] }).stories;
+	try {
+		const response = await fetch(`${API_URL}/stories?limit=12`, {
+			cache: "no-store",
+		});
+		if (!response.ok) return [];
+		return ((await response.json()) as { stories: Story[] }).stories;
+	} catch {
+		return [];
+	}
 }
 
 export default async function StoriesPage() {
 	const stories = await getStories();
 	const freshStories = stories.slice(0, 3);
 	return (
-		<main className="mx-auto min-h-screen w-full max-w-7xl px-5 py-16 sm:px-8 lg:px-10 lg:py-24">
-			<div className="pb-8">
+		<main className="mx-auto min-h-screen w-full max-w-7xl px-5 pt-28 pb-16 sm:px-8 sm:pt-32 lg:px-16 lg:pt-28 lg:pb-24 xl:px-20">
+			<div className="border-b border-slate-200 pb-8 dark:border-white/10">
 				<p className="text-sm font-medium text-[#006c5e] dark:text-[#4ade80]">
 					CookTale stories
 				</p>
@@ -57,13 +62,10 @@ export default async function StoriesPage() {
 							saving for later.
 						</p>
 					</div>
-					<Link
-						href="/new-story"
-						className="inline-flex w-fit items-center gap-2 rounded-full bg-[#006c5e] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c5e] focus-visible:ring-offset-2 dark:bg-[#4ade80] dark:text-[#092019] dark:hover:bg-[#73e99d] dark:focus-visible:ring-[#4ade80] dark:focus-visible:ring-offset-[#0d1f1c]"
-					>
+					<PrimaryActionLink href="/new-story">
 						<PenLine className="h-4 w-4" aria-hidden="true" />
 						Write a story
-					</Link>
+					</PrimaryActionLink>
 				</div>
 			</div>
 
@@ -73,7 +75,7 @@ export default async function StoriesPage() {
 						Latest stories
 					</h2>
 					{stories.length === 0 ? (
-						<div className="py-14 text-center">
+						<div className="border-y border-slate-200 py-14 text-center dark:border-white/10">
 							<p className="text-lg font-medium text-slate-900 dark:text-white">
 								No stories published yet
 							</p>
@@ -82,12 +84,12 @@ export default async function StoriesPage() {
 							</p>
 						</div>
 					) : (
-						<div>
-							{stories.map((story, index) => (
+						<div className="border-t border-slate-200 dark:border-white/10">
+							{stories.map((story) => (
 								<Link
 									href={`/stories/${story.slug}`}
 									key={story.id}
-									className={`group grid gap-5 py-7 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:py-9 ${index > 0 ? "border-t border-slate-200 dark:border-white/10" : ""}`}
+									className="group grid gap-5 border-b border-slate-200 py-7 transition-colors hover:bg-slate-50/70 dark:border-white/10 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:py-9"
 								>
 									<div className="min-w-0 px-1 sm:px-0">
 										<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
@@ -123,7 +125,7 @@ export default async function StoriesPage() {
 												src={story.coverImage}
 												alt=""
 												sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 176px"
-												className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+												className="object-cover"
 											/>
 										)}
 									</div>
@@ -154,7 +156,7 @@ export default async function StoriesPage() {
 					</div>
 
 					{freshStories.length > 0 && (
-						<div className="pt-2">
+						<div className="border-t border-slate-200 pt-6 dark:border-white/10">
 							<h2 className="text-sm font-semibold text-slate-950 dark:text-white">
 								Fresh from CookTale
 							</h2>

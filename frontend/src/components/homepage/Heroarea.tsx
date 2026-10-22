@@ -1,9 +1,10 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 
 const slides = [
 	{
@@ -28,10 +29,17 @@ const slides = [
 
 export default function Heroarea() {
 	const [active, setActive] = useState(0);
+	const [direction, setDirection] = useState(1);
+	const reduceMotion = useReducedMotion();
 	const slide = slides[active];
-	const previous = () =>
-		setActive((current) => (current - 1 + slides.length) % slides.length);
-	const next = () => setActive((current) => (current + 1) % slides.length);
+	const changeSlide = (nextDirection: 1 | -1) => {
+		setDirection(nextDirection);
+		setActive(
+			(current) => (current + nextDirection + slides.length) % slides.length,
+		);
+	};
+	const previous = () => changeSlide(-1);
+	const next = () => changeSlide(1);
 
 	useEffect(() => {
 		const timer = window.setInterval(next, 6000);
@@ -39,39 +47,75 @@ export default function Heroarea() {
 	}, []);
 
 	return (
-		<section className="bg-[#f7faf8] px-6 pt-24 pb-10 dark:bg-[#081b18] lg:px-24 lg:pt-24 lg:pb-12">
-			<div className="grid min-h-[35rem] overflow-hidden rounded-4xl border border-[#006c5e]/20 bg-[#edf5f0] dark:border-white/10 dark:bg-[#0c211d] lg:grid-cols-2">
-				<div className="relative order-first min-h-72 lg:order-last lg:min-h-full">
-					<Image
-						src="/Pizza_yalehb_png.webp"
-						alt="Fresh pizza from CookTale"
-						fill
-						priority
-						sizes="(max-width: 1024px) 100vw, 50vw"
-						className="object-cover"
-					/>
+		<section className="bg-[#f7faf8] px-6 pt-24 pb-10 dark:bg-[#0d1f1c] lg:px-24 lg:pt-24 lg:pb-12">
+			<div className="grid overflow-hidden rounded-3xl border border-[#006c5e]/20 bg-white dark:border-white/10 dark:bg-[#152a26] lg:min-h-[35rem] lg:grid-cols-[46%_54%]">
+				<div className="relative order-first aspect-[54/46] bg-[#e2eee7] p-4 dark:bg-[#152a26] lg:order-last lg:aspect-auto lg:min-h-full lg:p-6">
+					<div className="relative h-full overflow-hidden rounded-2xl">
+						<Image
+							src="/story-covers/weeknight-dinners.png"
+							alt="Home cook preparing a weeknight dinner"
+							fill
+							priority
+							sizes="(max-width: 1024px) 100vw, 50vw"
+							className="object-cover"
+						/>
+					</div>
 				</div>
 
-				<div className="flex flex-col justify-between px-8 py-10 lg:px-14 lg:py-14">
-					<div className="max-w-xl">
-						<p className="text-sm font-semibold text-[#006c5e] dark:text-[#4ade80]">
-							{slide.kicker}
-						</p>
-						<h1 className="mt-4 text-4xl font-semibold leading-tight text-[#10231f] dark:text-white md:text-5xl">
-							{slide.title}
-						</h1>
-						<p className="mt-5 text-base leading-7 text-[#465852] dark:text-white/70 md:text-lg">
-							{slide.detail}
-						</p>
-						<Link
+				<div className="flex min-h-full flex-col px-8 py-10 lg:px-14 lg:py-14">
+					<div>
+						<div className="relative min-h-[22rem] overflow-hidden sm:min-h-[19rem] lg:min-h-64">
+							<AnimatePresence
+								initial={false}
+								mode="popLayout"
+								custom={direction}
+							>
+								<motion.div
+									key={slide.title}
+									custom={direction}
+									initial={reduceMotion ? false : "enter"}
+									animate="center"
+									exit="exit"
+									variants={{
+										enter: (slideDirection: number) => ({
+											x: slideDirection > 0 ? 44 : -44,
+											opacity: 0,
+										}),
+										center: { x: 0, opacity: 1 },
+										exit: (slideDirection: number) => ({
+											x: slideDirection > 0 ? -44 : 44,
+											opacity: 0,
+										}),
+									}}
+									transition={
+										reduceMotion
+											? { duration: 0 }
+											: { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
+									}
+									className="absolute inset-0 max-w-xl"
+								>
+									<p className="text-sm font-semibold text-[#006c5e] dark:text-[#4ade80]">
+										{slide.kicker}
+									</p>
+									<h1 className="mt-4 text-4xl font-semibold leading-tight text-[#10231f] dark:text-white md:text-5xl">
+										{slide.title}
+									</h1>
+									<p className="mt-5 text-base leading-7 text-[#465852] dark:text-white/70 md:text-lg">
+										{slide.detail}
+									</p>
+								</motion.div>
+							</AnimatePresence>
+						</div>
+						<PrimaryActionLink
 							href="/recipe"
-							className="mt-7 inline-flex cursor-pointer rounded-md bg-[#006c5e] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#00554a] dark:bg-[#4ade80] dark:text-[#08201b] dark:hover:bg-[#35cc69]"
+							variant="secondary"
+							className="mt-6 h-10 px-4 py-0 lg:mt-7"
 						>
 							Explore recipes
-						</Link>
+						</PrimaryActionLink>
 					</div>
 
-					<div className="flex items-center gap-3">
+					<div className="mt-8 flex items-center gap-3 lg:mt-auto lg:pt-8">
 						<button
 							type="button"
 							onClick={previous}

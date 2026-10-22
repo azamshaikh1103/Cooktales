@@ -151,8 +151,7 @@ export default function RecipePageClient({
 		<div className="flex min-h-screen flex-col bg-[#fafafa] text-gray-900 transition-colors duration-500 dark:bg-[#0d1f1c] dark:text-white">
 			<Navbar />
 
-			{/* --- STICKY FILTER BAR --- */}
-			<div className="relative top-13 lg:top-16 z-30 border-b border-gray-200 bg-[#fafafa]/90 px-4 py-2 backdrop-blur-xl transition-colors lg:px-24 dark:border-white/10 dark:bg-[#0d1f1c]/90">
+			<div className="mt-16 border-b border-gray-200 bg-[#fafafa] px-4 py-2 transition-colors lg:px-24 dark:border-white/10 dark:bg-[#0d1f1c]">
 				<div className="no-scrollbar flex items-center gap-3 overflow-x-auto">
 					<div className="mr-2 shrink-0 text-gray-400 dark:text-gray-500">
 						<FaSearch />
@@ -174,7 +173,7 @@ export default function RecipePageClient({
 				</div>
 			</div>
 
-			<main className="container mx-auto px-4 py-12 lg:px-24 mt-12">
+			<main className="container mx-auto px-4 pt-8 pb-12 sm:pt-10 lg:px-24 lg:py-12">
 				{/* Promotional Banner */}
 				<div className="group relative mb-16 cursor-pointer overflow-hidden rounded-[2.5rem] bg-[#006C5E] text-white shadow-2xl shadow-[#006C5E]/20 dark:border dark:border-white/10 dark:shadow-none">
 					<div
@@ -246,7 +245,7 @@ export default function RecipePageClient({
 					</div>
 
 					{isLoading && recipes.length === 0 ? (
-						<div className="columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3">
+						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
 							{RECIPE_SKELETONS.map((key) => (
 								<div
 									key={key}
@@ -261,7 +260,7 @@ export default function RecipePageClient({
 							<p className="text-sm">Try selecting a different category.</p>
 						</div>
 					) : (
-						<div className="columns-1 gap-6 space-y-6 md:columns-2 lg:columns-3">
+						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
 							{recipes.map((recipe) => (
 								<RecipeMasonryCard key={recipe.id} recipe={recipe} />
 							))}
@@ -289,48 +288,40 @@ export default function RecipePageClient({
 
 // --- SUB COMPONENT ---
 const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
-	const [hovered, setHovered] = useState(false);
-
 	const href = `/recipe/${recipe.slug}`;
 
 	return (
 		<Link
 			href={href}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}
-			className="group relative mb-6 flex cursor-pointer break-inside-avoid flex-col overflow-hidden rounded-3xl bg-white dark:bg-[#152a26] md:block"
+			className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
 		>
-			<Image
-				src={recipe.mainImage}
-				alt={recipe.name}
-				width={600}
-				height={800}
-				className="aspect-[4/3] h-auto w-full object-cover transition-transform duration-700 group-hover:scale-105 md:aspect-auto"
-				loader={imageLoader}
-			/>
+			<div className="relative aspect-[4/3] w-full bg-gray-100 dark:bg-white/5">
+				<Image
+					src={recipe.mainImage}
+					alt={recipe.name}
+					fill
+					sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+					className="object-cover"
+					loader={imageLoader}
+				/>
+			</div>
 
-			<div
-				className={`relative flex flex-col bg-white px-5 py-5 dark:bg-[#152a26] md:absolute md:inset-x-0 md:bottom-0 md:justify-end md:bg-linear-to-t md:from-black/90 md:via-black/50 md:to-transparent md:px-6 md:pt-20 md:pb-6 ${hovered ? "md:h-full" : "md:h-1/2"}`}
-			>
+			<div className="flex flex-1 flex-col p-5">
 				{recipe.ratingCount > 0 && recipe.ratings != null && (
-					<div
-						className={`mb-3 flex self-start transition-all duration-300 md:absolute md:top-4 md:right-4 md:mb-0 md:items-end ${hovered ? "md:translate-y-0 md:opacity-100" : "md:-translate-y-4 md:opacity-0"}`}
-					>
-						<span className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-900 dark:bg-white/90 dark:text-black md:bg-white/90">
+					<div className="mb-3 flex">
+						<span className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-900 dark:bg-white/10 dark:text-white">
 							<FaStar className="text-yellow-400" />{" "}
 							{formatters.rating(recipe.ratings)}
 						</span>
 					</div>
 				)}
 
-				<h3 className="mb-2 line-clamp-2 text-xl leading-tight font-black text-gray-900 dark:text-white md:text-white md:drop-shadow-md">
+				<h3 className="line-clamp-2 text-xl leading-tight font-black text-gray-900 dark:text-white">
 					{recipe.name}
 				</h3>
 
-				<div
-					className={`overflow-hidden transition-all duration-500 ${hovered ? "md:max-h-40 md:opacity-100" : "md:max-h-0 md:opacity-0"}`}
-				>
-					<div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold tracking-wider text-gray-500 uppercase md:text-gray-300">
+				<div className="mt-4">
+					<div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-300">
 						{recipe.totalTimeReq && (
 							<span className="flex items-center gap-1">
 								<FaClock /> {recipe.totalTimeReq}m
@@ -349,8 +340,8 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 					</div>
 
 					{recipe.author && (
-						<div className="flex items-center gap-3 border-t border-gray-200 pt-4 dark:border-white/20 md:border-white/20">
-							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-300 bg-gray-100 dark:border-white/50 dark:bg-white/10 md:border-white/50 md:bg-white/10">
+						<div className="mt-4 flex items-center gap-3 border-t border-gray-200 pt-4 dark:border-white/20">
+							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-300 bg-gray-100 dark:border-white/50 dark:bg-white/10">
 								{recipe.author.image && (
 									<Image
 										src={recipe.author.image}
@@ -361,7 +352,7 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 									/>
 								)}
 							</div>
-							<span className="text-sm font-medium text-gray-700 dark:text-white md:text-white">
+							<span className="text-sm font-medium text-gray-700 dark:text-white">
 								by {recipe.author.name}
 							</span>
 						</div>

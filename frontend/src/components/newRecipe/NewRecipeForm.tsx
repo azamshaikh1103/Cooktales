@@ -33,11 +33,7 @@ import {
 	TagEditor,
 } from "./RecipeComponents";
 
-const LOCAL_DRAFT_KEY = "cooktale:new-recipe-draft";
-const SERVER_SAVE_DELAY_MS = 2500;
-
-const getDraftStorageKey = (userId: string, recipeId?: string) =>
-	`${LOCAL_DRAFT_KEY}:${userId}:${recipeId || "new"}`;
+const SERVER_SAVE_DELAY_MS = 3000;
 
 const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 	const urls = [server.mainImage, ...(server.moreImages || [])].filter(
@@ -88,7 +84,7 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 	};
 };
 
-type SaveStatus = "idle" | "local" | "creating" | "saving" | "saved" | "error";
+type SaveStatus = "idle" | "creating" | "saving" | "saved" | "error";
 type GuideKey =
 	| "cover"
 	| "title"
@@ -320,7 +316,7 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 const getSaveLabel = (status: SaveStatus, lastSavedAt: string | null) => {
 	if (status === "creating") return "Creating draft...";
 	if (status === "saving") return "Saving to CookTale...";
-	if (status === "error") return "Saved locally. Server save failed.";
+	if (status === "error") return "Could not save. Please try again.";
 	if (status === "saved" && lastSavedAt) {
 		return `Saved to CookTale at ${new Date(lastSavedAt).toLocaleTimeString(
 			[],
@@ -330,7 +326,6 @@ const getSaveLabel = (status: SaveStatus, lastSavedAt: string | null) => {
 			},
 		)}`;
 	}
-	if (status === "local") return "Local backup saved. Syncing shortly...";
 	return "Draft ready";
 };
 
@@ -385,7 +380,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const { uploadFile } = useCloudinaryUpload();
 	const isPublishingRef = useRef(false);
 	const initialRecipeRef = useRef<NewRecipe | null>(null);
-	const hasLoadedLocalDraftRef = useRef(false);
+	const hasLoadedDraftRef = useRef(false);
 	const isCreatingDraftRef = useRef(false);
 	const lastServerPayloadRef = useRef<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
@@ -422,26 +417,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 	useEffect(() => {
 		if (status !== "authenticated" || !authUser?.id) return;
-		if (hasLoadedLocalDraftRef.current) return;
+		if (hasLoadedDraftRef.current) return;
 		let cancelled = false;
-		const storageKey = getDraftStorageKey(authUser.id, recipeId);
 
 		const resolveDraft = async () => {
-			let localRecipe: NewRecipe | null = null;
-			let localSavedAt: string | null = null;
-			try {
-				const saved = window.localStorage.getItem(storageKey);
-				if (saved) {
-					const parsed = JSON.parse(saved) as
-						| NewRecipe
-						| { savedAt: string; recipe: NewRecipe };
-					localRecipe = "recipe" in parsed ? parsed.recipe : parsed;
-					localSavedAt = "recipe" in parsed ? parsed.savedAt : null;
-				}
-			} catch {
-				window.localStorage.removeItem(storageKey);
-			}
-
 			let serverRecipe: RecipeResponse["recipe"] | null = null;
 			if (recipeId) {
 				serverRecipe = await recipeClient
@@ -453,15 +432,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						setDraftLoadError(
 							"This recipe could not be found or you do not own it.",
 						);
-						hasLoadedLocalDraftRef.current = true;
+						hasLoadedDraftRef.current = true;
 					}
 					return;
 				}
-			} else if (localRecipe?.draftId) {
-				serverRecipe = await recipeClient
-					.getManage(localRecipe.draftId)
-					.then((result) => result.recipe)
-					.catch(() => null);
 			} else {
 				const latest = await recipeClient
 					.listMine("DRAFT", 1, 1)
@@ -475,32 +449,15 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			}
 
 			if (cancelled) return;
-			const serverSavedAt =
-				serverRecipe?.updatedAt || serverRecipe?.lastEditedAt || null;
-			const localMatchesRecipe = !recipeId || localRecipe?.draftId === recipeId;
-			const useServer =
-				serverRecipe &&
-				(!localRecipe ||
-					!localMatchesRecipe ||
-					!localSavedAt ||
-					Boolean(
-						serverSavedAt && new Date(serverSavedAt) > new Date(localSavedAt),
-					));
 			const resolved =
-				useServer && serverRecipe
+				serverRecipe
 					? recipeFromServer(serverRecipe)
-					: localRecipe
-						? {
-								...localRecipe,
-								clientDraftId: localRecipe.clientDraftId || crypto.randomUUID(),
-								version: localRecipe.version || serverRecipe?.version || null,
-							}
-						: {
-								...(initialRecipeRef.current as NewRecipe),
-								clientDraftId: crypto.randomUUID(),
-							};
+					: {
+							...(initialRecipeRef.current as NewRecipe),
+							clientDraftId: crypto.randomUUID(),
+						};
 			dispatch(setNewRecipeData([resolved]));
-			hasLoadedLocalDraftRef.current = true;
+			hasLoadedDraftRef.current = true;
 		};
 
 		void resolveDraft();
@@ -510,69 +467,48 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	}, [authUser?.id, dispatch, recipeId, status]);
 
 	useEffect(() => {
-		if (
-			!hasLoadedLocalDraftRef.current ||
-			status !== "authenticated" ||
-			!authUser?.id
-		)
-			return;
-
-		const timeout = window.setTimeout(() => {
-			try {
-				window.localStorage.setItem(
-					getDraftStorageKey(authUser.id, recipeId),
-					JSON.stringify({ savedAt: new Date().toISOString(), recipe }),
-				);
-				setSaveStatus((current) =>
-					current === "saving" || current === "creating" ? current : "local",
-				);
-			} catch {
-				// Storage can fail when base64 previews become too large. Publishing still uses Cloudinary URLs.
-			}
-		}, 500);
-
-		return () => window.clearTimeout(timeout);
-	}, [authUser?.id, recipe, recipeId, status]);
-
-	useEffect(() => {
 		if (status !== "authenticated") return;
-		if (!hasLoadedLocalDraftRef.current) return;
+		if (!hasLoadedDraftRef.current) return;
 		if (recipe.draftId) return;
 		if (isCreatingDraftRef.current) return;
 		if (!hasMeaningfulRecipeContent(recipe)) return;
 
-		isCreatingDraftRef.current = true;
-		setSaveStatus("creating");
+		const timeout = window.setTimeout(() => {
+			isCreatingDraftRef.current = true;
+			setSaveStatus("creating");
 
-		recipeClient
-			.createDraft({
-				name: recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
-				clientDraftId: recipe.clientDraftId || undefined,
-			})
-			.then((response) => {
-				dispatch(
-					updateRecipeDraftMeta({
-						index: 0,
-						draftId: response.recipe.id,
-						clientDraftId:
-							response.recipe.clientDraftId || recipe.clientDraftId,
-						version: response.recipe.version,
-						serverUpdatedAt:
-							response.recipe.updatedAt ||
-							response.recipe.lastEditedAt ||
-							new Date().toISOString(),
-					}),
-				);
-				setLastServerSavedAt(new Date().toISOString());
-				setSaveStatus("saved");
-			})
-			.catch((error) => {
-				console.error("Draft creation failed:", error);
-				setSaveStatus("error");
-			})
-			.finally(() => {
-				isCreatingDraftRef.current = false;
-			});
+			recipeClient
+				.createDraft({
+					name: recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
+					clientDraftId: recipe.clientDraftId || undefined,
+				})
+				.then((response) => {
+					dispatch(
+						updateRecipeDraftMeta({
+							index: 0,
+							draftId: response.recipe.id,
+							clientDraftId:
+								response.recipe.clientDraftId || recipe.clientDraftId,
+							version: response.recipe.version,
+							serverUpdatedAt:
+								response.recipe.updatedAt ||
+								response.recipe.lastEditedAt ||
+								new Date().toISOString(),
+						}),
+					);
+					setLastServerSavedAt(new Date().toISOString());
+					setSaveStatus("saved");
+				})
+				.catch((error) => {
+					console.error("Draft creation failed:", error);
+					setSaveStatus("error");
+				})
+				.finally(() => {
+					isCreatingDraftRef.current = false;
+				});
+		}, SERVER_SAVE_DELAY_MS);
+
+		return () => window.clearTimeout(timeout);
 	}, [dispatch, recipe, status]);
 
 	useEffect(() => {
@@ -607,18 +543,14 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				})
 				.catch(async (error) => {
 					console.error("Recipe autosave failed:", error);
-					if (error?.statusCode === 409 && authUser?.id) {
-						window.localStorage.setItem(
-							`${getDraftStorageKey(authUser.id, recipeId)}:conflict:${Date.now()}`,
-							JSON.stringify({ savedAt: new Date().toISOString(), recipe }),
-						);
+					if (error?.statusCode === 409) {
 						const latest = await recipeClient
 							.getManage(recipe.draftId as string)
 							.catch(() => null);
 						if (latest)
 							dispatch(setNewRecipeData([recipeFromServer(latest.recipe)]));
 						toast.error(
-							"A newer edit was found. We loaded it and kept your local copy.",
+							"A newer edit was found. We loaded the latest version.",
 						);
 					}
 					if (error?.statusCode === 404 || error?.statusCode === 403) {
@@ -637,7 +569,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		}, SERVER_SAVE_DELAY_MS);
 
 		return () => window.clearTimeout(timeout);
-	}, [authUser?.id, dispatch, recipe, recipeId, status]);
+	}, [dispatch, recipe, status]);
 
 	const handleImageUpload = async (file: File, isMain: boolean = false) => {
 		setIsUploading(true);
@@ -737,11 +669,6 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				const published = await recipeClient.publish(draftId);
 
 				toast.success("Recipe published!", { id: loadingId });
-				if (authUser?.id) {
-					window.localStorage.removeItem(
-						getDraftStorageKey(authUser.id, recipeId),
-					);
-				}
 				dispatch(resetRecipeData());
 				router.push(`/recipe/${published.recipe.slug || published.recipe.id}`);
 			} catch (error) {
@@ -861,7 +788,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						type="button"
 						onClick={handlePublish}
 						disabled={isPublishingRef.current || isUploading}
-						className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74]"
+						className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006C5E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74] dark:focus-visible:ring-[#4ADE80] dark:focus-visible:ring-offset-[#0d1f1c]"
 					>
 						{isPublishingRef.current ? (
 							<BiLoaderAlt className="animate-spin" />

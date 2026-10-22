@@ -43,6 +43,7 @@ export interface Recipe {
 	name: string;
 	mainImage: string;
 	ratings: number | null;
+	ratingCount: number;
 	totalTimeReq: number | null;
 	yield: number | null;
 	diet: string | null;
@@ -297,39 +298,39 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 			href={href}
 			onMouseEnter={() => setHovered(true)}
 			onMouseLeave={() => setHovered(false)}
-			className="group relative mb-6 cursor-pointer break-inside-avoid overflow-hidden rounded-3xl bg-gray-100 dark:bg-[#152a26]"
+			className="group relative mb-6 flex cursor-pointer break-inside-avoid flex-col overflow-hidden rounded-3xl bg-white dark:bg-[#152a26] md:block"
 		>
 			<Image
 				src={recipe.mainImage}
 				alt={recipe.name}
 				width={600}
 				height={800}
-				className="h-auto w-full object-cover transition-transform duration-700 group-hover:scale-105"
+				className="aspect-[4/3] h-auto w-full object-cover transition-transform duration-700 group-hover:scale-105 md:aspect-auto"
 				loader={imageLoader}
 			/>
 
 			<div
-				className={`absolute inset-x-0 bottom-0 flex flex-col justify-end bg-linear-to-t from-black/90 via-black/50 to-transparent px-6 pt-20 pb-6 transition-all duration-500 ${hovered ? "h-full" : "h-1/2"}`}
+				className={`relative flex flex-col bg-white px-5 py-5 dark:bg-[#152a26] md:absolute md:inset-x-0 md:bottom-0 md:justify-end md:bg-linear-to-t md:from-black/90 md:via-black/50 md:to-transparent md:px-6 md:pt-20 md:pb-6 ${hovered ? "md:h-full" : "md:h-1/2"}`}
 			>
-				<div
-					className={`absolute top-4 right-4 flex flex-col items-end gap-2 transition-all duration-300 ${hovered ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"}`}
-				>
-					{recipe.ratings && (
-						<span className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-black shadow-sm backdrop-blur-md">
+				{recipe.ratingCount > 0 && recipe.ratings != null && (
+					<div
+						className={`mb-3 flex self-start transition-all duration-300 md:absolute md:top-4 md:right-4 md:mb-0 md:items-end ${hovered ? "md:translate-y-0 md:opacity-100" : "md:-translate-y-4 md:opacity-0"}`}
+					>
+						<span className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-900 dark:bg-white/90 dark:text-black md:bg-white/90">
 							<FaStar className="text-yellow-400" />{" "}
 							{formatters.rating(recipe.ratings)}
 						</span>
-					)}
-				</div>
+					</div>
+				)}
 
-				<h3 className="mb-2 text-xl leading-tight font-black text-white drop-shadow-md">
+				<h3 className="mb-2 line-clamp-2 text-xl leading-tight font-black text-gray-900 dark:text-white md:text-white md:drop-shadow-md">
 					{recipe.name}
 				</h3>
 
 				<div
-					className={`overflow-hidden transition-all duration-500 ${hovered ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+					className={`overflow-hidden transition-all duration-500 ${hovered ? "md:max-h-40 md:opacity-100" : "md:max-h-0 md:opacity-0"}`}
 				>
-					<div className="mb-4 flex gap-4 text-xs font-bold tracking-wider text-gray-300 uppercase">
+					<div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold tracking-wider text-gray-500 uppercase md:text-gray-300">
 						{recipe.totalTimeReq && (
 							<span className="flex items-center gap-1">
 								<FaClock /> {recipe.totalTimeReq}m
@@ -348,8 +349,8 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 					</div>
 
 					{recipe.author && (
-						<div className="flex items-center gap-3 border-t border-white/20 pt-4">
-							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-white/50 bg-white/10">
+						<div className="flex items-center gap-3 border-t border-gray-200 pt-4 dark:border-white/20 md:border-white/20">
+							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-300 bg-gray-100 dark:border-white/50 dark:bg-white/10 md:border-white/50 md:bg-white/10">
 								{recipe.author.image && (
 									<Image
 										src={recipe.author.image}
@@ -360,7 +361,7 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 									/>
 								)}
 							</div>
-							<span className="text-sm font-medium text-white">
+							<span className="text-sm font-medium text-gray-700 dark:text-white md:text-white">
 								by {recipe.author.name}
 							</span>
 						</div>

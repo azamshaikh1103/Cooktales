@@ -113,12 +113,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				changeFrequency: "weekly" as const,
 				priority: 0.8,
 			},
-			{
-				url: `${baseUrl}/cook/${recipe.slug}`,
-				lastModified: new Date(recipe.updatedAt),
-				changeFrequency: "weekly" as const,
-				priority: 0.7,
-			},
 		];
 	});
 

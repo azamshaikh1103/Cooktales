@@ -1,11 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { FaLeaf, FaRegClock, FaStar, FaUserFriends } from 'react-icons/fa';
 import { formatters } from '@/lib/formatters';
 import imageLoader from '@/lib/loader';
-import Link from 'next/link';
 
 interface Recipe {
   id: string;
@@ -15,6 +14,7 @@ interface Recipe {
   yield: number | null;
   diet: string | null;
   ratings: number | null;
+  ratingCount?: number | null;
   mainImage: string | null;
   author?: AuthorType;
 }
@@ -31,18 +31,15 @@ interface AuthorType {
 }
 
 export const BasicCard = ({ recipe }: RecipeCardProps) => {
-  const router = useRouter();
-  const handleClick = () => {
-    router.push(`/recipe/${recipe.slug}`);
-  };
+  const hasRating = (recipe.ratingCount ?? 0) > 0;
 
   return (
-    <div
-      onClick={handleClick}
-      className={`z-20 flex cursor-pointer flex-col items-start justify-center rounded-4xl border border-gray-200 bg-white transition-colors hover:border-[#006C5E]/50 hover:bg-[#f7f7f7] lg:w-[450px] dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ADE80]/40 dark:hover:bg-[#1a332e]`}
+    <Link
+      href={`/recipe/${recipe.slug}`}
+      className={`z-20 flex cursor-pointer flex-col items-start justify-center overflow-hidden rounded-4xl border border-gray-200 bg-white transition-colors hover:border-[#006C5E]/50 hover:bg-[#f7f7f7] lg:w-[450px] dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ADE80]/40 dark:hover:bg-[#1a332e]`}
     >
       {/* Image Container */}
-      <div className="relative m-2 flex h-40 w-[calc(100%-16px)] items-center overflow-hidden rounded-md bg-gray-200 lg:m-4 lg:h-[220px] lg:w-[416px] dark:bg-white/5">
+      <div className="relative m-2 flex h-40 w-[calc(100%_-_1rem)] items-center overflow-hidden rounded-3xl bg-gray-200 lg:m-4 lg:h-[220px] lg:w-[calc(100%_-_2rem)] dark:bg-white/5">
         {recipe.mainImage && (
           <Image
             src={recipe?.mainImage}
@@ -94,7 +91,7 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
           </div>
 
           {/* Rating Badge */}
-          {recipe.ratings && (
+          {hasRating && recipe.ratings != null && (
             <div className="flex items-center justify-center gap-2 rounded-full bg-[#006C5E] px-3 py-1.5 text-xs font-bold text-white transition-colors dark:bg-[#4ADE80] dark:text-[#0d1f1c]">
               <FaStar />
               <span>{formatters.rating(recipe.ratings)}</span>
@@ -102,12 +99,13 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
 export const RecipeCard = ({ recipe }: RecipeCardProps) => {
   const href = `/recipe/${recipe.slug}`;
+  const hasRating = (recipe.ratingCount ?? 0) > 0;
 
   return (
     <Link href={href} className="group relative block h-full w-[280px] shrink-0 md:w-[350px]">
@@ -130,14 +128,12 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
           )}
 
           {/* Rating Badge */}
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-gray-800 dark:bg-[#0d1f1c]/90 dark:text-white">
-            <FaStar className="text-xs text-yellow-400" />
-            <span className="text-xs font-bold">
-              {typeof formatters?.rating === 'function'
-                ? formatters.rating(recipe.ratings)
-                : recipe.ratings}
-            </span>
-          </div>
+          {hasRating && recipe.ratings != null && (
+            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-gray-800 dark:bg-[#0d1f1c]/90 dark:text-white">
+              <FaStar className="text-xs text-yellow-400" />
+              <span className="text-xs font-bold">{formatters.rating(recipe.ratings)}</span>
+            </div>
+          )}
 
           {/* Diet Badge */}
           {recipe.diet && (

@@ -6,6 +6,12 @@ export const dynamic = "force-dynamic";
 export const metadata = {
 	title: "Recipes | CookTale",
 	description: "Explore thousands of community-tested recipes.",
+	alternates: { canonical: "/recipe" },
+	openGraph: {
+		title: "Recipes | CookTale",
+		description: "Explore thousands of community-tested recipes.",
+		url: "/recipe",
+	},
 };
 
 export default async function RecipesPage() {

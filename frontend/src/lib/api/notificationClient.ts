@@ -1,4 +1,4 @@
-import { ApiClientError, getAccessToken } from "./authClient";
+import { ApiClientError, authenticatedFetch } from "./authClient";
 
 const API_URL =
 	typeof window === "undefined"
@@ -38,14 +38,12 @@ export type CookTaleNotification = {
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	const token = getAccessToken();
-	const response = await fetch(`${API_URL}${path}`, {
+	const response = await authenticatedFetch(`${API_URL}${path}`, {
 		...init,
 		credentials: "include",
 		headers: {
 			Accept: "application/json",
 			...(init?.body ? { "Content-Type": "application/json" } : {}),
-			...(token ? { Authorization: `Bearer ${token}` } : {}),
 			...init?.headers,
 		},
 	});

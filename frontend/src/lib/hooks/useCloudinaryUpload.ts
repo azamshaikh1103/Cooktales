@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ApiClientError, getAccessToken } from '@/lib/api/authClient';
+import { ApiClientError, authenticatedFetch } from '@/lib/api/authClient';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -93,13 +93,11 @@ function validateUploadFile(file: File, resourceType: MediaResourceType) {
 }
 
 async function requestSignedUpload(input: Omit<CloudinaryUploadInput, 'file'>) {
-  const token = getAccessToken();
-  const response = await fetch(`${API_URL}/media/sign-upload`, {
+  const response = await authenticatedFetch(`${API_URL}/media/sign-upload`, {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(input),
   });
@@ -117,13 +115,11 @@ async function requestSignedUpload(input: Omit<CloudinaryUploadInput, 'file'>) {
 }
 
 async function confirmUpload(upload: CloudinaryUploadResult) {
-  const token = getAccessToken();
-  const response = await fetch(`${API_URL}/media/confirm-upload`, {
+  const response = await authenticatedFetch(`${API_URL}/media/confirm-upload`, {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
       publicId: upload.publicId,
@@ -147,13 +143,11 @@ export function useCloudinaryUpload() {
   const [error, setError] = useState<string | null>(null);
 
   const deleteAsset = async ({ publicId, resourceType = 'image' }: DeleteCloudinaryAssetInput) => {
-    const token = getAccessToken();
-    const response = await fetch(`${API_URL}/media/asset`, {
+    const response = await authenticatedFetch(`${API_URL}/media/asset`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ publicId, resourceType }),
     });

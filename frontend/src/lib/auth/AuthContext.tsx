@@ -11,6 +11,7 @@ import {
 import {
 	authClient,
 	clearPersistedAuth,
+	getAccessToken,
 	persistAuthResponse,
 	setAccessToken,
 	type AuthUser,
@@ -53,6 +54,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		void bootstrap();
 	}, [bootstrap]);
+
+	useEffect(() => {
+		const syncToken = () => {
+			const token = getAccessToken();
+			setAccessTokenState(token);
+			if (!token) {
+				setUser(null);
+				setStatus("unauthenticated");
+			}
+		};
+
+		window.addEventListener("cooktale-auth-changed", syncToken);
+		return () => window.removeEventListener("cooktale-auth-changed", syncToken);
+	}, []);
 
 	const setAuthenticated = useCallback(
 		(input: { user?: AuthUser; accessToken?: string }) => {

@@ -1,15 +1,11 @@
-import { ApiClientError, getAccessToken } from './authClient';
+import { ApiClientError, authenticatedFetch } from './authClient';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 type ApiErrorPayload = { message?: string | string[]; error?: string };
 
 async function request<T>(path: string): Promise<T> {
-  const token = getAccessToken();
-  const response = await fetch(`${API_URL}${path}`, {
-    credentials: 'include',
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
+  const response = await authenticatedFetch(`${API_URL}${path}`);
   const payload = (await response.json().catch(() => ({}))) as T & ApiErrorPayload;
   if (!response.ok) {
     const message = Array.isArray(payload.message)

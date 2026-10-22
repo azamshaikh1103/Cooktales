@@ -1,4 +1,4 @@
-import { ApiClientError, getAccessToken } from './authClient';
+import { ApiClientError, authenticatedFetch } from './authClient';
 
 const API_URL = typeof window === 'undefined'
   ? process.env.SERVER_API_URL || process.env.NEXT_SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'
@@ -7,8 +7,7 @@ const API_URL = typeof window === 'undefined'
 type ApiError = { message?: string | string[]; error?: string };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getAccessToken();
-  const response = await fetch(`${API_URL}${path}`, { ...init, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } });
+  const response = await authenticatedFetch(`${API_URL}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } });
   const body = (await response.json().catch(() => ({}))) as T & ApiError;
   if (!response.ok) {
     const message = Array.isArray(body.message) ? body.message[0] : body.message || body.error || 'Something went wrong';

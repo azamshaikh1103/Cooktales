@@ -161,6 +161,30 @@ export function getAccessToken() {
   return accessToken;
 }
 
+export async function authenticatedFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) {
+  const send = (token: string | null) => {
+    const headers = new Headers(init?.headers);
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    return fetch(input, { ...init, credentials: 'include', headers });
+  };
+
+  const response = await send(accessToken);
+  if (response.status !== 401 || !accessToken) return response;
+
+  try {
+    const refreshed = await refreshSession();
+    persistAuthResponse(refreshed);
+    return refreshed.accessToken ? await send(refreshed.accessToken) : response;
+  } catch {
+    clearPersistedAuth();
+    return response;
+  }
+}
+
 export function clearPersistedAuth() {
   accessToken = null;
   if (typeof window !== 'undefined') {

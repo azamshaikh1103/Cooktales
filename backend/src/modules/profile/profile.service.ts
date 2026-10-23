@@ -36,6 +36,25 @@ export class ProfileService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  async listPublicProfiles(query: ProfilePageQueryDto) {
+    const where: Prisma.UserWhereInput = {
+      username: { not: null },
+      status: AccountStatus.ACTIVE,
+      deletedAt: null,
+    };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        select: { username: true, updatedAt: true },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+    return this.paginated(items, total, query);
+  }
+
   async getPublicProfile(handle: string) {
     const resolved = await this.resolveProfile(handle);
     const profile = await this.prisma.user.findUnique({

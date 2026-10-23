@@ -28,16 +28,16 @@ export class CommunityService {
   ) {}
 
   async snapshot() {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [topDiscussions, activeChallenge, topChefs, topRecipesToday, totalChefs, totalDiscussions] = await this.prisma.$transaction([
+    const [topDiscussions, activeChallenge, topChefs, totalRecipes, totalStories, totalChefs, totalDiscussions] = await this.prisma.$transaction([
       this.prisma.discussion.findMany({ take: 5, orderBy: [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }], include: { author: { select: userSelect }, _count: { select: { comments: true, likes: true } } } }),
       this.prisma.challenge.findFirst({ where: { isActive: true, endDate: { gt: new Date() } }, orderBy: { endDate: 'asc' }, include: { _count: { select: { entries: true } } } }),
       this.prisma.user.findMany({ take: 5, orderBy: [{ points: 'desc' }, { createdAt: 'asc' }], select: userSelect }),
-      this.prisma.recipe.count({ where: { createdAt: { gte: yesterday } } }),
+      this.prisma.recipe.count({ where: { status: 'PUBLISHED', deletedAt: null } }),
+      this.prisma.story.count({ where: { status: 'PUBLISHED', deletedAt: null } }),
       this.prisma.user.count({ where: { deletedAt: null } }),
       this.prisma.discussion.count(),
     ]);
-    return { topDiscussions, activeChallenge, topChefs, topRecipesToday, totalChefs, totalDiscussions };
+    return { topDiscussions, activeChallenge, topChefs, totalRecipes, totalStories, totalChefs, totalDiscussions };
   }
 
   async listDiscussions(query: ListDiscussionsQueryDto) {

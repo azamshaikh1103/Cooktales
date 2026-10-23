@@ -4,6 +4,7 @@ import { communityClient } from '@/lib/api/communityClient';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import AdUnit from '@/components/AdUnit';
 import CommentSection from '../CommentSection';
 import RichContent from '../RichContent';
 import imageLoader from '@/lib/loader';
@@ -35,11 +36,11 @@ export default async function DiscussionPage({ params }: PageProps) {
         <div className="mb-12 flex gap-6">
           {/* Vote Rail */}
           <div className="hidden w-10 shrink-0 flex-col items-center gap-2 md:flex">
-            <button className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#006C5E] dark:hover:bg-white/10 dark:hover:text-[#4ADE80]">
+            <button type="button" className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#006C5E] dark:hover:bg-white/10 dark:hover:text-[#4ADE80]">
               <FaArrowUp />
             </button>
             <span className="text-lg font-black">{discussion._count.likes}</span>
-            <button className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-500 dark:hover:bg-white/10">
+            <button type="button" className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-500 dark:hover:bg-white/10">
               <FaArrowDown />
             </button>
           </div>
@@ -76,6 +77,12 @@ export default async function DiscussionPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        <AdUnit
+          type="banner"
+          slot="community-thread-inline"
+          className="mx-auto mb-12 max-w-3xl"
+        />
 
         {/* Comments */}
         <CommentSection

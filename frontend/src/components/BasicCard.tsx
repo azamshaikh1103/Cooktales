@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { FaLeaf, FaRegClock, FaStar, FaUserFriends } from 'react-icons/fa';
 import { formatters } from '@/lib/formatters';
 import imageLoader from '@/lib/loader';
@@ -32,30 +33,36 @@ interface AuthorType {
 
 export const BasicCard = ({ recipe }: RecipeCardProps) => {
   const hasRating = (recipe.ratingCount ?? 0) > 0;
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <Link
       href={`/recipe/${recipe.slug}`}
-      className={`z-20 flex cursor-pointer flex-col items-start justify-center overflow-hidden rounded-4xl border border-gray-200 bg-white transition-colors hover:border-[#006C5E]/50 hover:bg-[#f7f7f7] lg:w-[450px] dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ADE80]/40 dark:hover:bg-[#1a332e]`}
+      className="group flex w-[280px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006C5E]/50 sm:w-[300px] lg:w-[320px] dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ADE80]/40"
     >
       {/* Image Container */}
-      <div className="relative m-2 flex h-40 w-[calc(100%_-_1rem)] items-center overflow-hidden rounded-3xl bg-gray-200 lg:m-4 lg:h-[220px] lg:w-[calc(100%_-_2rem)] dark:bg-white/5">
-        {recipe.mainImage && (
+      <div className="relative m-3 aspect-[4/3] w-[calc(100%_-_1.5rem)] overflow-hidden rounded-xl bg-slate-100 dark:bg-white/[0.06]">
+        {recipe.mainImage && !imageFailed ? (
           <Image
-            src={recipe?.mainImage}
+            src={recipe.mainImage}
             fill
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 300px"
             style={{ objectFit: 'cover' }}
             alt={recipe.name}
             loader={imageLoader}
             className="object-cover"
+            onError={() => setImageFailed(true)}
           />
+        ) : (
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Recipe photo coming soon
+          </div>
         )}
       </div>
 
       <div className="w-full px-2 pb-4 lg:px-5">
         {/* Title */}
-        <div className="mb-2 truncate font-bold text-[#5A5A5A] lg:text-2xl dark:text-gray-100">
+        <div className="mb-2 line-clamp-2 text-lg font-semibold leading-snug text-[#263632] dark:text-gray-100">
           {recipe.name}
         </div>
 

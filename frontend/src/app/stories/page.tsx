@@ -1,6 +1,7 @@
 import { ArrowRight, PenLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import AdUnit from "@/components/AdUnit";
 import { StoryCoverImage } from "@/components/stories/StoryImage";
 import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 import type { Story } from "@/lib/api/storyClient";
@@ -9,7 +10,7 @@ const API_URL =
 	process.env.SERVER_API_URL ||
 	process.env.NEXT_SERVER_API_URL ||
 	process.env.NEXT_PUBLIC_API_URL ||
-	"http://localhost:4000/api/v1";
+	"http://127.0.0.1:4000/api/v1";
 
 const storyDateFormatter = new Intl.DateTimeFormat("en-US", {
 	month: "short",
@@ -75,7 +76,7 @@ export default async function StoriesPage() {
 						Latest stories
 					</h2>
 					{stories.length === 0 ? (
-						<div className="border-y border-slate-200 py-14 text-center dark:border-white/10">
+						<div className="py-14 text-center">
 							<p className="text-lg font-medium text-slate-900 dark:text-white">
 								No stories published yet
 							</p>
@@ -84,14 +85,16 @@ export default async function StoriesPage() {
 							</p>
 						</div>
 					) : (
-						<div className="border-t border-slate-200 dark:border-white/10">
-							{stories.map((story) => (
+						<div>
+							{stories.map((story, index) => (
+								<article key={story.id}>
 								<Link
 									href={`/stories/${story.slug}`}
-									key={story.id}
-									className="group grid gap-5 border-b border-slate-200 py-7 transition-colors hover:bg-slate-50/70 dark:border-white/10 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:py-9"
+									className={`group grid gap-5 px-2 py-7 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:px-3 sm:py-9 ${
+										index > 0 ? "border-t border-slate-200 dark:border-white/10" : ""
+									}`}
 								>
-									<div className="min-w-0 px-1 sm:px-0">
+									<div className="min-w-0">
 										<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
 											<span>{story.author?.name || "CookTale creator"}</span>
 											<span aria-hidden="true">·</span>
@@ -119,17 +122,25 @@ export default async function StoriesPage() {
 											/>
 										</div>
 									</div>
-									<div className="relative order-first aspect-[16/10] overflow-hidden rounded-lg bg-slate-100 sm:order-last dark:bg-white/5">
-										{story.coverImage && (
+									{story.coverImage && (
+										<div className="relative order-first aspect-[16/10] overflow-hidden rounded-lg sm:order-last">
 											<StoryCoverImage
 												src={story.coverImage}
 												alt=""
 												sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 176px"
 												className="object-cover"
 											/>
-										)}
-									</div>
+										</div>
+									)}
 								</Link>
+								{index > 0 && (index + 1) % 12 === 0 && (
+									<AdUnit
+										type="banner"
+										slot="stories-list-inline"
+										className="mx-2 sm:mx-3"
+									/>
+								)}
+								</article>
 							))}
 						</div>
 					)}

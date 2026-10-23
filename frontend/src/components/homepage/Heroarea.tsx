@@ -42,14 +42,17 @@ export default function Heroarea() {
 	const next = () => changeSlide(1);
 
 	useEffect(() => {
-		const timer = window.setInterval(next, 6000);
+		const timer = window.setInterval(() => {
+			setDirection(1);
+			setActive((current) => (current + 1) % slides.length);
+		}, 6000);
 		return () => window.clearInterval(timer);
 	}, []);
 
 	return (
-		<section className="bg-[#f7faf8] px-6 pt-24 pb-10 dark:bg-[#0d1f1c] lg:px-24 lg:pt-24 lg:pb-12">
+		<section className="bg-white px-6 pt-24 pb-10 dark:bg-[#0d1f1c] lg:px-24 lg:pt-24 lg:pb-12">
 			<div className="grid overflow-hidden rounded-3xl border border-[#006c5e]/20 bg-white dark:border-white/10 dark:bg-[#152a26] lg:min-h-[35rem] lg:grid-cols-[46%_54%]">
-				<div className="relative order-first aspect-[54/46] bg-[#e2eee7] p-4 dark:bg-[#152a26] lg:order-last lg:aspect-auto lg:min-h-full lg:p-6">
+				<div className="relative order-first aspect-[54/46] bg-white p-4 dark:bg-[#152a26] lg:order-last lg:aspect-auto lg:min-h-full lg:p-6">
 					<div className="relative h-full overflow-hidden rounded-2xl">
 						<Image
 							src="/story-covers/weeknight-dinners.png"
@@ -124,10 +127,10 @@ export default function Heroarea() {
 						>
 							<ChevronLeft size={19} />
 						</button>
-						<div
-							className="flex gap-1.5"
-							aria-label={`Slide ${active + 1} of ${slides.length}`}
-						>
+						<p className="sr-only" aria-live="polite">
+							Slide {active + 1} of {slides.length}
+						</p>
+						<div className="flex gap-1.5" aria-hidden="true">
 							{slides.map((item, index) => (
 								<span
 									key={item.title}

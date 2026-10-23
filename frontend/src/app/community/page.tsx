@@ -1,8 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaFire, FaTrophy, FaCommentDots, FaHashtag, FaMedal, FaArrowRight } from 'react-icons/fa';
+import { FaFire, FaTrophy, FaCommentDots, FaMedal } from 'react-icons/fa';
 import { MdVerified, MdForum, MdOutlineTimer, MdAccountCircle } from 'react-icons/md';
-import { BsStars } from 'react-icons/bs';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import imageLoader from "@/lib/loader";
@@ -10,17 +9,17 @@ import { communityClient } from '@/lib/api/communityClient';
 
 // Helper for "2h ago" format
 function timeAgo(date: Date | string) {
-  const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
   let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + 'y ago';
+  if (interval > 1) return `${Math.floor(interval)}y ago`;
   interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + 'mo ago';
+  if (interval > 1) return `${Math.floor(interval)}mo ago`;
   interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + 'd ago';
+  if (interval > 1) return `${Math.floor(interval)}d ago`;
   interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + 'h ago';
+  if (interval > 1) return `${Math.floor(interval)}h ago`;
   interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + 'm ago';
+  if (interval > 1) return `${Math.floor(interval)}m ago`;
   return 'Just now';
 }
 
@@ -29,16 +28,17 @@ export default async function CommunityPage() {
     topDiscussions,
     activeChallenge,
     topChefs,
-    topRecipesToday,
+    totalRecipes,
+    totalStories,
     totalChefs,
     totalDiscussions,
   } = await communityClient.snapshot().catch(() => ({
-    topDiscussions: [], activeChallenge: null, topChefs: [], topRecipesToday: 0, totalChefs: 0, totalDiscussions: 0,
+    topDiscussions: [], activeChallenge: null, topChefs: [], totalRecipes: 0, totalStories: 0, totalChefs: 0, totalDiscussions: 0,
   }));
 
   const daysLeft = activeChallenge
     ? Math.ceil(
-        (new Date(activeChallenge.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+        (new Date(activeChallenge.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       )
     : 0;
 
@@ -46,61 +46,50 @@ export default async function CommunityPage() {
     <div className="flex min-h-screen flex-col bg-[#fafafa] text-gray-900 transition-colors duration-500 dark:bg-[#0d1f1c] dark:text-white">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
-      <div className="relative overflow-hidden border-b border-gray-100 bg-white pt-32 pb-20 dark:border-white/5 dark:bg-[#0d1f1c]">
-        {/* Background Decor */}
-        <div className="pointer-events-none absolute top-0 right-0 p-10 opacity-[0.03] select-none">
-          <span className="text-[12rem] font-black text-gray-900 dark:text-white">TRIBE</span>
-        </div>
-
-        <div className="relative z-10 container mx-auto px-6 lg:px-24">
-          <div className="flex flex-col items-center justify-between gap-10 lg:flex-row">
+      <div className="border-b border-gray-200 bg-white pt-28 pb-14 dark:border-white/10 dark:bg-[#0d1f1c] sm:pt-32 sm:pb-20">
+        <div className="container mx-auto px-6 lg:px-24">
+          <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-center">
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#006C5E]/10 px-4 py-1.5 text-xs font-bold tracking-widest text-[#006C5E] uppercase dark:bg-[#006C5E]/20 dark:text-[#4ADE80]">
-                <BsStars /> The Kitchen Table
+              <div className="mb-5 inline-flex items-center rounded-full bg-[#006C5E]/10 px-3 py-1 text-sm font-semibold text-[#006C5E] dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]">
+                CookTale community
               </div>
-              <h1 className="mb-6 text-4xl leading-tight font-black text-gray-900 lg:text-6xl dark:text-white">
-                Connect with <br />
-                <span className="text-[#006C5E] dark:text-[#4ADE80]">Passionate Chefs.</span>
+              <h1 className="mb-5 text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl dark:text-white">
+                Cook, ask, and share <span className="text-[#006C5E] dark:text-[#4ADE80]">together.</span>
               </h1>
-              <p className="text-lg leading-relaxed text-gray-500 dark:text-gray-500">
-                Join the conversation, climb the leaderboards, and participate in weekly challenges.
-                CookTale is built by you.
+              <p className="max-w-xl text-base leading-7 text-gray-600 dark:text-gray-300 sm:text-lg">
+                Practical cooking questions, useful answers, and friendly challenges from people who cook at home.
               </p>
 
-              <div className="mt-8 flex gap-4">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 rounded-xl bg-[#006C5E] px-8 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-[#005a4e] dark:shadow-[#006C5E]/20"
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/community/discussion"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#006C5E] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#62e891]"
                 >
-                  <MdForum className="text-xl" /> Join Discussion
-                </button>
-                <button
-                  type="button"
-                  className="rounded-xl border border-gray-200 bg-white px-8 py-4 font-bold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
+                  <MdForum className="text-lg" /> Join a discussion
+                </Link>
+                <Link
+                  href="/community-guidelines"
+                  className="rounded-full border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-[#006C5E]/40 hover:text-[#006C5E] dark:border-white/15 dark:text-gray-200 dark:hover:border-[#4ADE80]/50 dark:hover:text-[#4ADE80]"
                 >
-                  View Guidelines
-                </button>
+                  Community guidelines
+                </Link>
               </div>
             </div>
 
             {/* Community Stat Card */}
             <div className="relative hidden lg:block">
-              <div className="absolute -inset-4 animate-pulse rounded-4xl bg-linear-to-r from-[#006C5E] to-green-400 opacity-20 blur-xl" />
-              <div className="relative w-80 rounded-4xl border border-gray-100 bg-white p-8 shadow-xl dark:border-white/10 dark:bg-[#152a26]">
-                <div className="mb-6 flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-500 uppercase dark:text-gray-500">
-                    Live Now
-                  </span>
-                  <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
-                  </span>
-                </div>
-                <div className="space-y-6">
-                  <StatRow label="Active Chefs" value={totalChefs.toString()} />
-                  <StatRow label="New Recipes" value={topRecipesToday.toString()} sub="Today" />
-                  <StatRow label="Discussions" value={totalDiscussions.toString()} />
+								<div className="w-80 rounded-3xl border border-[#006C5E]/20 bg-white p-1 shadow-[0_18px_45px_-30px_rgba(0,108,94,0.55)] dark:border-[#4ADE80]/20 dark:bg-[#152a26]">
+									<div className="rounded-[1.3rem] bg-[#f1f7f6] p-6 dark:bg-[#112220]">
+										<div className="flex items-center gap-2">
+											<span className="h-2 w-2 rounded-full bg-[#006C5E] dark:bg-[#4ADE80]" aria-hidden="true" />
+											<p className="text-sm font-medium tracking-wide text-[#42615a] dark:text-[#b7d2c8]">CookTale so far</p>
+										</div>
+										<div className="mt-5 grid grid-cols-2 gap-2">
+                  <StatRow label="People" value={totalChefs.toLocaleString()} />
+                  <StatRow label="Recipes" value={totalRecipes.toLocaleString()} />
+                  <StatRow label="Stories" value={totalStories.toLocaleString()} />
+                  <StatRow label="Discussions" value={totalDiscussions.toLocaleString()} />
+										</div>
                 </div>
               </div>
             </div>
@@ -291,18 +280,9 @@ export default async function CommunityPage() {
 }
 
 // --- HELPER ---
-const StatRow = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
-  <div className="flex items-end justify-between border-b border-gray-50 pb-2 last:border-0 dark:border-white/5">
-    <span className="text-sm font-medium text-gray-500 dark:text-gray-500">{label}</span>
-    <div className="text-right">
-      <span className="block text-xl leading-none font-black text-gray-900 dark:text-white">
-        {value}
-      </span>
-      {sub && (
-        <span className="text-[10px] font-bold tracking-wide text-green-500 uppercase dark:text-[#4ADE80]">
-          {sub}
-        </span>
-      )}
-    </div>
+const StatRow = ({ label, value }: { label: string; value: string }) => (
+	<div className="rounded-xl bg-white px-4 py-4 shadow-sm dark:bg-[#152a26]">
+		<span className="block font-raleway text-2xl font-semibold tracking-tight text-[#18342e] dark:text-white">{value}</span>
+		<span className="mt-1 block text-sm text-[#58736b] dark:text-[#a9c1b9]">{label}</span>
   </div>
 );

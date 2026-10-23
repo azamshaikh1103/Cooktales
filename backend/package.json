@@ -29,6 +29,7 @@
     "seed:local-story-covers": "node --env-file=.env scripts/populate-local-story-covers.mjs",
     "seed:local-recipe-images": "node --env-file=.env scripts/populate-local-recipe-images.mjs",
     "seed:local-sample-content": "node --env-file=.env scripts/seed-local-sample-content.mjs",
+    "seed:local-ui-preview": "node --env-file=.env scripts/seed-local-ui-preview.mjs",
     "seed:local-sample-discussions": "node --env-file=.env scripts/seed-local-sample-discussions.mjs",
     "test:infra:up": "docker compose -f ../docker-compose.yml --profile test up -d --wait postgres-test redis-test",
     "test:infra:down": "docker compose -f ../docker-compose.yml --profile test stop postgres-test redis-test",

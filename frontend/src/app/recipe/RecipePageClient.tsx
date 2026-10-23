@@ -245,11 +245,11 @@ export default function RecipePageClient({
 					</div>
 
 					{isLoading && recipes.length === 0 ? (
-						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+						<div className="columns-1 gap-6 sm:columns-2 xl:columns-3">
 							{RECIPE_SKELETONS.map((key) => (
 								<div
 									key={key}
-									className="h-80 animate-pulse break-inside-avoid rounded-3xl bg-gray-200 dark:bg-white/5"
+									className="mb-6 h-80 animate-pulse break-inside-avoid rounded-2xl bg-gray-200 dark:bg-white/5"
 								/>
 							))}
 						</div>
@@ -260,7 +260,7 @@ export default function RecipePageClient({
 							<p className="text-sm">Try selecting a different category.</p>
 						</div>
 					) : (
-						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+						<div className="columns-1 gap-6 sm:columns-2 xl:columns-3">
 							{recipes.map((recipe) => (
 								<RecipeMasonryCard key={recipe.id} recipe={recipe} />
 							))}
@@ -293,18 +293,20 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 	return (
 		<Link
 			href={href}
-			className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
+			className="group mb-6 inline-flex w-full break-inside-avoid flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
 		>
-			<div className="relative aspect-[4/3] w-full bg-gray-100 dark:bg-white/5">
-				<Image
-					src={recipe.mainImage}
-					alt={recipe.name}
-					fill
-					sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
-					className="object-cover"
-					loader={imageLoader}
-				/>
-			</div>
+			{recipe.mainImage && (
+				<div className="relative aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900/50">
+					<Image
+						src={recipe.mainImage}
+						alt={recipe.name}
+						fill
+						sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+						className="object-cover"
+						loader={imageLoader}
+					/>
+				</div>
+			)}
 
 			<div className="flex flex-1 flex-col p-5">
 				{recipe.ratingCount > 0 && recipe.ratings != null && (

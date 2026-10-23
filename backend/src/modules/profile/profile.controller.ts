@@ -31,6 +31,11 @@ import { ProfileService } from './profile.service';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
+  @Get('profiles')
+  listPublicProfiles(@Query() query: ProfilePageQueryDto) {
+    return this.profileService.listPublicProfiles(query);
+  }
+
   @Get('profiles/:handle')
   getPublicProfile(@Param('handle') handle: string) {
     return this.profileService.getPublicProfile(handle);

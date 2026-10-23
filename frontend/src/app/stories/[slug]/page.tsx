@@ -20,7 +20,7 @@ const API_URL =
 	process.env.SERVER_API_URL ||
 	process.env.NEXT_SERVER_API_URL ||
 	process.env.NEXT_PUBLIC_API_URL ||
-	"http://localhost:4000/api/v1";
+	"http://127.0.0.1:4000/api/v1";
 const SITE_URL = process.env.FRONTEND_URL || "https://cooktale.in";
 
 async function getStory(slug: string): Promise<Story | null> {
@@ -131,10 +131,9 @@ export default async function StoryDetailPage({ params }: PageProps) {
 		image: story.coverImage ? [story.coverImage] : undefined,
 		publisher: { "@type": "Organization", name: "CookTale", url: SITE_URL },
 	};
-	const midStoryAdIndex =
-		story.content && story.content.length >= 8
-			? Math.floor(story.content.length / 2)
-			: -1;
+	const inlineAdIndex = story.content?.length
+		? Math.min(2, story.content.length - 1)
+		: -1;
 
 	return (
 		<main className="min-h-screen bg-white pb-24 dark:bg-[#0d1f1c]">
@@ -220,7 +219,7 @@ export default async function StoryDetailPage({ params }: PageProps) {
 					{story.content?.map((block, index) => (
 						<Fragment key={block.id}>
 							<StoryBlock block={block} />
-							{index === midStoryAdIndex && (
+							{index === inlineAdIndex && (
 								<AdUnit type="banner" slot="stories-inline" className="my-10" />
 							)}
 						</Fragment>

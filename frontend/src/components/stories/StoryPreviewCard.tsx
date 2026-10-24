@@ -35,11 +35,11 @@ export function StoryPreviewCard({
 			href={`/stories/${story.slug}`}
 			className={`group grid gap-5 rounded-xl px-2 py-7 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.03] ${
 				compact
-					? "sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-5 sm:px-3"
+					? "sm:grid-cols-[14rem_minmax(0,1fr)] sm:gap-6 sm:px-3"
 					: "sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:px-3 sm:py-9"
 			}`}
 		>
-			<div className="min-w-0">
+			<div className={`min-w-0 ${compact ? "sm:self-center" : ""}`}>
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
 					<span>{story.author?.name || "CookTale"}</span>
 					{date && (
@@ -67,7 +67,11 @@ export function StoryPreviewCard({
 					</div>
 				)}
 			</div>
-			<div className="relative order-first aspect-[16/10] overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5 sm:order-last">
+			<div
+				className={`relative order-first aspect-[16/10] overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5 ${
+					compact ? "sm:order-first" : "sm:order-last"
+				}`}
+			>
 				{story.coverImage ? (
 					<StoryCoverImage
 						src={story.coverImage}

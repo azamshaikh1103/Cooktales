@@ -417,7 +417,7 @@ export const RecipeDetailClient = ({
 					<button
 						type="button"
 						onClick={() => router.push(`/cook/${recipe.slug}`)}
-						className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#006C5E] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
+						className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#006C5E] px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
 					>
 						<FaFire /> Start cooking
 					</button>

@@ -369,7 +369,7 @@ function PrepScreen({
 						type="button"
 						onClick={onStart}
 						disabled={!canStart}
-						className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#06715f] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] disabled:cursor-not-allowed disabled:bg-[#b7c8c0] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa] dark:disabled:bg-[#315242]"
+						className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#06715f] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] disabled:cursor-not-allowed disabled:bg-[#b7c8c0] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa] dark:disabled:bg-[#315242]"
 					>
 						Start cooking <ArrowRight size={17} />
 					</button>
@@ -393,7 +393,7 @@ function Checklist({
 	onToggle: (id: string) => void;
 }) {
 	return (
-		<section className="border border-[#dce8e1] bg-white p-5 dark:border-white/10 dark:bg-[#0b211b]">
+		<section className="rounded-2xl border border-[#dce8e1] bg-white p-5 dark:border-white/10 dark:bg-[#0b211b]">
 			<div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#285346] dark:text-[#a7d9bf]">
 				{icon}
 				<h3>{title}</h3>
@@ -407,11 +407,11 @@ function Checklist({
 								<button
 									type="button"
 									onClick={() => onToggle(item.id)}
-									className="group flex w-full cursor-pointer items-start gap-3 border border-transparent px-3 py-3 text-left transition-colors hover:border-[#cfe2d7] hover:bg-[#f4f9f6] dark:hover:border-white/10 dark:hover:bg-white/5"
+									className="group flex w-full cursor-pointer items-start gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:border-[#cfe2d7] hover:bg-[#f4f9f6] dark:hover:border-white/10 dark:hover:bg-white/5"
 									aria-pressed={isChecked}
 								>
 									<span
-										className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border ${isChecked ? "border-[#06715f] bg-[#06715f] text-white dark:border-[#51de96] dark:bg-[#51de96] dark:text-[#092016]" : "border-[#97aea3] text-transparent dark:border-[#769287]"}`}
+										className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${isChecked ? "border-[#06715f] bg-[#06715f] text-white dark:border-[#51de96] dark:bg-[#51de96] dark:text-[#092016]" : "border-[#97aea3] text-transparent dark:border-[#769287]"}`}
 									>
 										<Check size={14} strokeWidth={3} />
 									</span>
@@ -500,7 +500,7 @@ function StepScreen({
 						</p>
 					)}
 					{hasTimer && (
-						<div className="mt-9 max-w-md border border-[#dce8e1] bg-white p-5 dark:border-white/10 dark:bg-[#0b211b]">
+						<div className="mt-9 max-w-md rounded-2xl border border-[#dce8e1] bg-white p-5 dark:border-white/10 dark:bg-[#0b211b]">
 							<div className="flex items-start justify-between gap-5">
 								<div>
 									<div className="flex items-center gap-2 text-sm font-medium text-[#52685e] dark:text-[#a5b9af]">
@@ -526,7 +526,7 @@ function StepScreen({
 									<button
 										type="button"
 										onClick={onResetTimer}
-										className="inline-flex h-10 w-10 cursor-pointer items-center justify-center border border-[#dce8e1] text-[#426056] transition-colors hover:bg-[#edf4f0] dark:border-white/10 dark:text-[#b3c9bf] dark:hover:bg-white/10"
+										className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dce8e1] text-[#426056] transition-colors hover:bg-[#edf4f0] dark:border-white/10 dark:text-[#b3c9bf] dark:hover:bg-white/10"
 										aria-label="Reset timer"
 										title="Reset timer"
 									>
@@ -535,7 +535,7 @@ function StepScreen({
 									<button
 										type="button"
 										onClick={onToggleTimer}
-										className="inline-flex h-10 w-10 cursor-pointer items-center justify-center bg-[#06715f] text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
+										className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#06715f] text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
 										aria-label={isTimerPaused ? "Start timer" : "Pause timer"}
 										title={isTimerPaused ? "Start timer" : "Pause timer"}
 									>
@@ -554,7 +554,7 @@ function StepScreen({
 					<button
 						type="button"
 						onClick={onBack}
-						className="inline-flex h-11 w-11 cursor-pointer items-center justify-center border border-[#dce8e1] text-[#426056] transition-colors hover:bg-[#edf4f0] dark:border-white/10 dark:text-[#b3c9bf] dark:hover:bg-white/10"
+						className="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-[#dce8e1] text-[#426056] transition-colors hover:bg-[#edf4f0] dark:border-white/10 dark:text-[#b3c9bf] dark:hover:bg-white/10"
 						aria-label="Previous step"
 						title="Previous step"
 					>
@@ -563,7 +563,7 @@ function StepScreen({
 					<button
 						type="button"
 						onClick={onNext}
-						className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 bg-[#06715f] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
+						className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-[#06715f] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
 					>
 						{isFinalStep ? "Finish cooking" : "Next step"}{" "}
 						<ArrowRight size={17} />
@@ -598,14 +598,14 @@ function CompleteScreen({
 				<button
 					type="button"
 					onClick={onExit}
-					className="cursor-pointer border border-[#cfe2d7] px-5 py-3 text-sm font-semibold text-[#174234] transition-colors hover:bg-[#edf4f0] dark:border-white/15 dark:text-[#d9eee2] dark:hover:bg-white/10"
+					className="cursor-pointer rounded-full border border-[#cfe2d7] px-5 py-3 text-sm font-semibold text-[#174234] transition-colors hover:bg-[#edf4f0] dark:border-white/15 dark:text-[#d9eee2] dark:hover:bg-white/10"
 				>
 					Back to recipe
 				</button>
 				<button
 					type="button"
 					onClick={onShare}
-					className="cursor-pointer bg-[#06715f] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
+					className="cursor-pointer rounded-full bg-[#06715f] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#045c4d] dark:bg-[#51de96] dark:text-[#092016] dark:hover:bg-[#77e7aa]"
 				>
 					Share a story
 				</button>

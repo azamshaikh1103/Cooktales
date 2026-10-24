@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaClock, FaLeaf, FaSearch, FaStar, FaUtensils } from "react-icons/fa";
-import { BasicCard } from "@/components/BasicCard";
+import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
@@ -221,10 +221,10 @@ export default function RecipePageClient({
 								</p>
 							</div>
 						</div>
-						<div className="no-scrollbar -mx-4 flex gap-6 overflow-x-auto px-4 pb-8 lg:mx-0 lg:px-0">
+						<div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:gap-6 md:px-0">
 							{popularRecipes.map((recipe) => (
-								<div key={recipe.id} className="min-w-[280px] md:min-w-[320px]">
-									<BasicCard recipe={recipe} />
+								<div key={recipe.id} className="snap-start">
+									<RecipeCard recipe={recipe} />
 								</div>
 							))}
 						</div>
@@ -245,11 +245,11 @@ export default function RecipePageClient({
 					</div>
 
 					{isLoading && recipes.length === 0 ? (
-						<div className="columns-1 gap-6 sm:columns-2 xl:columns-3">
+						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
 							{RECIPE_SKELETONS.map((key) => (
 								<div
 									key={key}
-									className="mb-6 h-80 animate-pulse break-inside-avoid rounded-2xl bg-gray-200 dark:bg-white/5"
+									className="h-80 animate-pulse rounded-2xl bg-gray-200 dark:bg-white/5"
 								/>
 							))}
 						</div>
@@ -260,7 +260,7 @@ export default function RecipePageClient({
 							<p className="text-sm">Try selecting a different category.</p>
 						</div>
 					) : (
-						<div className="columns-1 gap-6 sm:columns-2 xl:columns-3">
+						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
 							{recipes.map((recipe) => (
 								<RecipeMasonryCard key={recipe.id} recipe={recipe} />
 							))}
@@ -293,7 +293,7 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 	return (
 		<Link
 			href={href}
-			className="group mb-6 inline-flex w-full break-inside-avoid flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
+			className="group inline-flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
 		>
 			{recipe.mainImage && (
 				<div className="relative aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900/50">

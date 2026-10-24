@@ -2,7 +2,7 @@ import { ArrowRight, PenLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
-import { StoryCoverImage } from "@/components/stories/StoryImage";
+import { StoryPreviewCard } from "@/components/stories/StoryPreviewCard";
 import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 import type { Story } from "@/lib/api/storyClient";
 
@@ -11,13 +11,6 @@ const API_URL =
 	process.env.NEXT_SERVER_API_URL ||
 	process.env.NEXT_PUBLIC_API_URL ||
 	"http://127.0.0.1:4000/api/v1";
-
-const storyDateFormatter = new Intl.DateTimeFormat("en-US", {
-	month: "short",
-	day: "numeric",
-	year: "numeric",
-	timeZone: "UTC",
-});
 
 export const metadata: Metadata = {
 	title: "Food Stories",
@@ -88,58 +81,14 @@ export default async function StoriesPage() {
 						<div>
 							{stories.map((story, index) => (
 								<article key={story.id}>
-								<Link
-									href={`/stories/${story.slug}`}
-									className={`group grid gap-5 px-2 py-7 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-8 sm:px-3 sm:py-9 ${
-										index > 0 ? "border-t border-slate-200 dark:border-white/10" : ""
-									}`}
-								>
-									<div className="min-w-0">
-										<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-											<span>{story.author?.name || "CookTale creator"}</span>
-											<span aria-hidden="true">·</span>
-											<span>
-												{story.publishedAt
-													? storyDateFormatter.format(
-															new Date(story.publishedAt),
-														)
-													: "New story"}
-											</span>
-										</div>
-										<h3 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-slate-950 transition-colors group-hover:text-[#006c5e] dark:text-white dark:group-hover:text-[#4ade80] sm:text-3xl">
-											{story.title}
-										</h3>
-										{story.shortDesc && (
-											<p className="mt-3 line-clamp-2 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-												{story.shortDesc}
-											</p>
-										)}
-										<div className="mt-4 flex items-center gap-2 text-sm font-medium text-[#006c5e] dark:text-[#4ade80]">
-											Read story{" "}
-											<ArrowRight
-												className="h-4 w-4 transition-transform group-hover:translate-x-1"
-												aria-hidden="true"
-											/>
-										</div>
-									</div>
-									{story.coverImage && (
-										<div className="relative order-first aspect-[16/10] overflow-hidden rounded-lg sm:order-last">
-											<StoryCoverImage
-												src={story.coverImage}
-												alt=""
-												sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 176px"
-												className="object-cover"
-											/>
-										</div>
+									<StoryPreviewCard story={story} />
+									{index > 0 && (index + 1) % 12 === 0 && (
+										<AdUnit
+											type="banner"
+											slot="stories-list-inline"
+											className="mx-2 sm:mx-3"
+										/>
 									)}
-								</Link>
-								{index > 0 && (index + 1) % 12 === 0 && (
-									<AdUnit
-										type="banner"
-										slot="stories-list-inline"
-										className="mx-2 sm:mx-3"
-									/>
-								)}
 								</article>
 							))}
 						</div>

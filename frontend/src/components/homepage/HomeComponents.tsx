@@ -2,7 +2,7 @@ import RecipeCarousel from "./RecipeCarousel";
 
 const SeasonalPick = ({ recipes }: { recipes: any[] }) => (
 	<RecipeCarousel
-		title="Seasonal Pick"
+		title="Seasonal Picks"
 		subtitle="Fresh summer recipes to brighten your table"
 		recipes={recipes}
 	/>
@@ -10,7 +10,7 @@ const SeasonalPick = ({ recipes }: { recipes: any[] }) => (
 
 const TodaysPick = ({ recipes }: { recipes: any[] }) => (
 	<RecipeCarousel
-		title="Today's Pick"
+		title="Today's Picks"
 		subtitle="Trending dishes loved by our community"
 		recipes={recipes}
 	/>

@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { FollowButton } from '@/components/FollowBtn';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import { StoryPreviewCard } from '@/components/stories/StoryPreviewCard';
 import {
   type ProfileStory,
   type ProfileBookmark,
@@ -567,39 +568,13 @@ function RecipeTile({ recipe }: { recipe: ProfileRecipe }) {
 function StoryList({ stories }: { stories: ProfileStory[] }) {
   if (!stories.length) return <EmptyState type="stories" />;
 
-  return (
-    <div className="space-y-3">
-      {stories.filter((story) => Boolean(story.slug)).map((story) => (
-        <Link
-          key={story.id}
-          href={`/stories/${story.slug}`}
-          className="grid cursor-pointer gap-4 rounded-2xl border border-gray-200 bg-white p-3 transition-colors hover:border-[#006C5E]/40 md:grid-cols-[160px_1fr] dark:border-white/10 dark:bg-[#0d1f1c] dark:hover:border-[#4ADE80]/40"
-        >
-          <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-[#f3f6f4] md:aspect-auto dark:bg-white/5">
-            {story.coverImage ? (
-              <Image
-                src={story.coverImage}
-                alt={story.title}
-                fill
-                loader={imageLoader}
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-400">
-                <FileText className="h-7 w-7" />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col justify-center">
-            <h3 className="text-lg font-semibold text-[#101827] dark:text-white">{story.title}</h3>
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
-              {story.shortDesc || 'A CookTale kitchen story.'}
-            </p>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
+	return (
+		<div className="divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10">
+			{stories.filter((story) => Boolean(story.slug)).map((story) => (
+				<StoryPreviewCard key={story.id} story={story} />
+			))}
+		</div>
+	);
 }
 
 function SavedGrid({

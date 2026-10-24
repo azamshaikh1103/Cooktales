@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { StoryCoverImage } from "@/components/stories/StoryImage";
+import { StoryPreviewCard } from "@/components/stories/StoryPreviewCard";
 import { type Story, storyClient } from "@/lib/api/storyClient";
 
 type StoryCollectionProps = {
@@ -35,27 +35,10 @@ function StoryCollection({
 					See more
 				</Link>
 			</div>
-			<ul className="mt-5 grid gap-x-6 gap-y-7 sm:grid-cols-2">
+			<ul className="mt-5 divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10">
 				{stories.map((story) => (
 					<li key={story.id}>
-						<Link href={`/stories/${story.slug}`} className="group block">
-							<div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5">
-								{story.coverImage && (
-									<StoryCoverImage
-										src={story.coverImage}
-										alt=""
-										sizes="(max-width: 640px) 100vw, 384px"
-										className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-									/>
-								)}
-							</div>
-							<p className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-slate-900 group-hover:text-[#006c5e] dark:text-white dark:group-hover:text-[#4ade80]">
-								{story.title}
-							</p>
-							<p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-								{story.author?.name || "CookTale creator"}
-							</p>
-						</Link>
+						<StoryPreviewCard story={story} compact />
 					</li>
 				))}
 			</ul>
@@ -110,7 +93,7 @@ export default function RelatedStories({
 	return (
 		<div className="mx-auto mt-16 max-w-3xl space-y-14">
 			<StoryCollection
-				title="More to read"
+				title="Recommended for you"
 				stories={recommendations}
 				seeMoreHref={recommendationHref}
 			/>

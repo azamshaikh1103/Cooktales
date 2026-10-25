@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, RecipeStatus, StoryStatus } from '@prisma/client';
+import { RecipeStatus, StoryStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { StudioAnalyticsQueryDto } from './dto/analytics-query.dto';
 import { CreatePayoutMethodDto } from './dto/payout-method.dto';
@@ -32,7 +32,15 @@ export class StudioService {
         availableUsd: wallet.availableUsd.toString(),
         lifetimeEarnedUsd: wallet.lifetimeEarnedUsd.toString(),
       },
-      payoutMethods: wallet.payoutMethods.map(({ encryptedDestination, ...method }) => method),
+      payoutMethods: wallet.payoutMethods.map((method) => ({
+        id: method.id,
+        method: method.method,
+        legalName: method.legalName,
+        country: method.country,
+        maskedDestination: method.maskedDestination,
+        isPrimary: method.isPrimary,
+        createdAt: method.createdAt,
+      })),
       earnings: wallet.earnings.map((earning) => ({
         ...earning,
         amountUsd: earning.amountUsd.toString(),
@@ -81,8 +89,17 @@ export class StudioService {
         },
       });
     });
-    const { encryptedDestination, ...output } = method;
-    return { payoutMethod: output };
+    return {
+      payoutMethod: {
+        id: method.id,
+        method: method.method,
+        legalName: method.legalName,
+        country: method.country,
+        maskedDestination: method.maskedDestination,
+        isPrimary: method.isPrimary,
+        createdAt: method.createdAt,
+      },
+    };
   }
 
   async setPrimaryPayoutMethod(userId: string, id: string) {

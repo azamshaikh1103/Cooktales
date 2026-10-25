@@ -297,6 +297,7 @@ model Recipe {
   calories           Int?
   diet               diet?
   cuisine            String           @default("NA")
+  recipeCategory     String           @default("UNCATEGORIZED")
   difficulty         difficulty?
   ratings            Float            @default(0.0)
   ratingCount        Int              @default(0)
@@ -337,6 +338,7 @@ model Recipe {
   @@unique([authorId, clientDraftId])
   @@index([authorId, status])
   @@index([status, publishedAt])
+  @@index([status, recipeCategory, publishedAt])
   @@index([deletedAt])
   @@index([popularityScore])
 }

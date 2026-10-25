@@ -5,6 +5,7 @@ import Image from "next/image";
 import { BiChevronDown, BiPlus, BiTrash } from "react-icons/bi";
 import { FaClock, FaFire, FaUserFriends } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
+import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 import type { NewRecipe } from "@/lib/Slices/NewRecipeData";
 
 // ... (Interfaces remain same) ...
@@ -29,6 +30,7 @@ interface MetaDetailsEditorProps {
 	calories: number | null;
 	difficulty: NewRecipe["difficulty"];
 	cuisine: string;
+	recipeCategory: NewRecipe["recipeCategory"];
 	diet: NewRecipe["diet"];
 	onChange: <K extends keyof NewRecipe>(field: K, value: NewRecipe[K]) => void;
 	onGuide?: (key: string) => void;
@@ -200,6 +202,7 @@ export const MetaDetailsEditor = ({
 	difficulty,
 	diet,
 	cuisine,
+	recipeCategory,
 	onChange,
 	onGuide,
 }: MetaDetailsEditorProps) => (
@@ -273,6 +276,22 @@ export const MetaDetailsEditor = ({
 				{ value: "British", label: "British" },
 				{ value: "American", label: "American" },
 				{ value: "Other", label: "Other" },
+			]}
+		/>
+		<CustomSelect
+			label="Category"
+			value={recipeCategory}
+			guideKey="category"
+			onGuide={onGuide}
+			onChange={(val: string) =>
+				onChange("recipeCategory", val ? (val as NewRecipe["recipeCategory"]) : null)
+			}
+			options={[
+				{ value: "", label: "Select" },
+				...RECIPE_CATEGORIES.map((category) => ({
+					value: category,
+					label: category,
+				})),
 			]}
 		/>
 		<CustomSelect

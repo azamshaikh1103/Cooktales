@@ -26,6 +26,26 @@ import {
   diet,
 } from '@prisma/client';
 
+export const RECIPE_CATEGORIES = [
+  'Breakfast & Brunch',
+  'Appetizer',
+  'Main Course',
+  'Side Dish',
+  'Soup',
+  'Salad',
+  'Sandwich & Wrap',
+  'Pasta & Noodles',
+  'Pizza & Flatbread',
+  'Rice & Grains',
+  'Snack',
+  'Dessert',
+  'Baked Good',
+  'Drink',
+  'Sauce & Condiment',
+  'Preserve & Pantry',
+  'Other',
+] as const;
+
 const nullableTrim = ({ value }: { value: unknown }) => {
   if (value === null || value === undefined) return value;
   if (typeof value !== 'string') return value;
@@ -221,6 +241,12 @@ export class UpdateRecipeDto {
   @IsString()
   @MaxLength(60)
   cuisine?: string;
+
+  @IsOptional()
+  @Transform(nullableTrim)
+  @IsString()
+  @IsIn(RECIPE_CATEGORIES)
+  recipeCategory?: (typeof RECIPE_CATEGORIES)[number] | null;
 
   @IsOptional()
   @IsEnum(difficulty)

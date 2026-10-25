@@ -104,6 +104,10 @@ describe('Recipe CRUD API', () => {
 
     expect(second.body.recipe.id).toBe(first.body.recipe.id);
     expect(second.body.recipe.version).toBe(1);
+    expect(second.body.recipe.recipeCategory).toBeNull();
+    expect(
+      await prisma.recipe.findUniqueOrThrow({ where: { id: first.body.recipe.id }, select: { recipeCategory: true } }),
+    ).toEqual({ recipeCategory: 'UNCATEGORIZED' });
     expect(await prisma.recipe.count({ where: { authorId: user.id } })).toBe(1);
   });
 
@@ -136,6 +140,7 @@ describe('Recipe CRUD API', () => {
     const payload = {
       expectedVersion: 1,
       name: 'Updated draft',
+      recipeCategory: 'Main Course',
       ingredients: [{ name: 'Second' }, { name: 'First' }],
       equipments: [{ name: 'Pan' }, { name: 'Spoon' }],
       steps: [
@@ -144,12 +149,18 @@ describe('Recipe CRUD API', () => {
       ],
       faqs: [{ question: 'Can I store it?', answer: 'Yes, refrigerate it safely.' }],
     };
+    await request(app.getHttpServer())
+      .patch(`/api/v1/recipes/${draft.id}`)
+      .set(auth(token))
+      .send({ expectedVersion: 1, recipeCategory: 'Not a category' })
+      .expect(400);
     const updated = await request(app.getHttpServer())
       .patch(`/api/v1/recipes/${draft.id}`)
       .set(auth(token))
       .send(payload)
       .expect(200);
     expect(updated.body.recipe.version).toBe(2);
+    expect(updated.body.recipe.recipeCategory).toBe('Main Course');
     expect(updated.body.recipe.ingredients.map((item: { name: string }) => item.name)).toEqual([
       'Second',
       'First',
@@ -189,12 +200,26 @@ describe('Recipe CRUD API', () => {
         steps: { create: { name: 'Cook', detail: 'Cook it.', position: 0 } },
       },
     });
+    await request(app.getHttpServer())
+      .post(`/api/v1/recipes/${draft.id}/publish`)
+      .set(auth(token))
+      .send({})
+      .expect(400);
+
+    await prisma.recipe.update({
+      where: { id: draft.id },
+      data: { recipeCategory: 'Main Course' },
+    });
     const published = await request(app.getHttpServer())
       .post(`/api/v1/recipes/${draft.id}/publish`)
       .set(auth(token))
       .send({})
       .expect(200);
-    expect(published.body.recipe).toMatchObject({ status: RecipeStatus.PUBLISHED, version: 2 });
+    expect(published.body.recipe).toMatchObject({
+      status: RecipeStatus.PUBLISHED,
+      recipeCategory: 'Main Course',
+      version: 2,
+    });
     await request(app.getHttpServer())
       .get(`/api/v1/recipes/${published.body.recipe.slug}`)
       .expect(200);

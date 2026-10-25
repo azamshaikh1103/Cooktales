@@ -5,32 +5,64 @@ import {
   FaTimes,
   FaTwitter,
   FaFacebookF,
+  FaPinterestP,
+  FaShareAlt,
   FaWhatsapp,
   FaLinkedinIn,
   FaRedditAlien,
   FaLink,
   FaCheck,
 } from 'react-icons/fa';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import Image from 'next/image';
+import imageLoader from '@/lib/loader';
 
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   url: string;
   title: string;
+  description?: string | null;
+  image?: string | null;
+  primaryAction?: { label: string; onClick: () => void };
 }
 
-export default function ShareModal({ isOpen, onClose, url, title }: ShareModalProps) {
+export default function ShareModal({
+  isOpen,
+  onClose,
+  url,
+  title,
+  description,
+  image,
+  primaryAction,
+}: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const [nativeShare, setNativeShare] = useState<Navigator['share']>();
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
+  const encodedDescription = encodeURIComponent(description || title);
+
+  useEffect(() => {
+    setNativeShare(() => navigator.share?.bind(navigator));
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
     setCopied(true);
     toast.success('Link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleNativeShare = async () => {
+    if (!nativeShare) return;
+    try {
+      await nativeShare({ title, text: description || title, url });
+    } catch (error) {
+      if ((error as DOMException).name !== 'AbortError') {
+        toast.error('Could not open sharing options.');
+      }
+    }
   };
 
   // Social Links Config
@@ -46,6 +78,12 @@ export default function ShareModal({ isOpen, onClose, url, title }: ShareModalPr
       label: 'X / Twitter',
       color: 'bg-black dark:bg-white dark:text-black',
       link: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    },
+    {
+      icon: <FaPinterestP />,
+      label: 'Pinterest',
+      color: 'bg-[#E60023]',
+      link: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodeURIComponent(image || '')}&description=${encodedDescription}`,
     },
     {
       icon: <FaFacebookF />,
@@ -90,6 +128,7 @@ export default function ShareModal({ isOpen, onClose, url, title }: ShareModalPr
                 Share this Recipe
               </h3>
               <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
               >
@@ -97,8 +136,34 @@ export default function ShareModal({ isOpen, onClose, url, title }: ShareModalPr
               </button>
             </div>
 
+            {image && (
+              <div className="mb-6 overflow-hidden rounded-2xl bg-gray-100 dark:bg-white/5">
+                <div className="relative aspect-[16/9]">
+                  <Image src={image} alt={title} fill loader={imageLoader} className="object-cover" />
+                </div>
+                <div className="p-4">
+                  <h4 className="line-clamp-1 font-bold text-gray-900 dark:text-white">{title}</h4>
+                  {description && (
+                    <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Social Grid */}
             <div className="mb-8 grid grid-cols-3 gap-4">
+              {nativeShare && (
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="group flex flex-col items-center gap-3"
+                >
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#006C5E] text-2xl text-white shadow-lg transition-transform group-hover:scale-110">
+                    <FaShareAlt />
+                  </span>
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">More apps</span>
+                </button>
+              )}
               {socials.map((s) => (
                 <a
                   key={s.label}
@@ -126,17 +191,27 @@ export default function ShareModal({ isOpen, onClose, url, title }: ShareModalPr
               </div>
               <div className="min-w-0 flex-1">
                 <p className="mb-0.5 text-xs font-bold tracking-wider text-gray-400 uppercase">
-                  Page Link
+                  Share this recipe with your loved ones
                 </p>
                 <p className="truncate font-mono text-sm text-gray-900 dark:text-white">{url}</p>
               </div>
               <button
+                type="button"
                 onClick={handleCopy}
                 className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${copied ? 'bg-green-500 text-white' : 'bg-black text-white dark:bg-white dark:text-black'}`}
               >
                 {copied ? <FaCheck /> : 'Copy'}
               </button>
             </div>
+            {primaryAction && (
+              <button
+                type="button"
+                onClick={primaryAction.onClick}
+                className="mt-4 w-full rounded-xl bg-[#006C5E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#00584d] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#22c55e]"
+              >
+                {primaryAction.label}
+              </button>
+            )}
           </motion.div>
         </div>
       )}

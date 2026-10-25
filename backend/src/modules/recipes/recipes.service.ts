@@ -92,6 +92,8 @@ const recipeInclude = {
   },
 } satisfies Prisma.RecipeInclude;
 
+const UNCATEGORIZED_RECIPE_CATEGORY = 'UNCATEGORIZED';
+
 const commentAuthorSelect = {
   id: true,
   name: true,
@@ -1000,6 +1002,9 @@ export class RecipesService {
     if (!recipe.totalTimeReq || recipe.totalTimeReq < 1) {
       throw new BadRequestException('Total time is required');
     }
+    if (!recipe.recipeCategory || recipe.recipeCategory === UNCATEGORIZED_RECIPE_CATEGORY) {
+      throw new BadRequestException('Recipe category is required');
+    }
     if (!recipe.ingredients.length) throw new BadRequestException('Add at least one ingredient');
     if (!recipe.steps.length) throw new BadRequestException('Add at least one step');
   }
@@ -1016,6 +1021,9 @@ export class RecipesService {
     if (dto.calories !== undefined) data.calories = dto.calories;
     if (dto.diet !== undefined) data.diet = dto.diet;
     if (dto.cuisine !== undefined) data.cuisine = dto.cuisine?.trim() || 'NA';
+    if (dto.recipeCategory !== undefined) {
+      data.recipeCategory = dto.recipeCategory || UNCATEGORIZED_RECIPE_CATEGORY;
+    }
     if (dto.difficulty !== undefined) data.difficulty = dto.difficulty;
     if (dto.tipsAndTricks !== undefined) data.tipsAndTricks = dto.tipsAndTricks?.trim() || null;
     if (dto.storingFreezing !== undefined)
@@ -1170,7 +1178,11 @@ export class RecipesService {
   }
 
   private serializeRecipe<T>(input: T): T {
-    return JSON.parse(JSON.stringify(input)) as T;
+    const output = JSON.parse(JSON.stringify(input)) as T & { recipeCategory?: string | null };
+    if (output?.recipeCategory === UNCATEGORIZED_RECIPE_CATEGORY) {
+      output.recipeCategory = null;
+    }
+    return output;
   }
 
   private serializeComment<T extends { status: CommentStatus; content: string; replies?: unknown[] }>(
@@ -1203,6 +1215,7 @@ export class RecipesService {
       calories: true,
       diet: true,
       cuisine: true,
+      recipeCategory: true,
       difficulty: true,
       ratings: true,
       ratingCount: true,
@@ -1240,6 +1253,7 @@ export class RecipesService {
       calories: true,
       diet: true,
       cuisine: true,
+      recipeCategory: true,
       difficulty: true,
       tipsAndTricks: true,
       storingFreezing: true,

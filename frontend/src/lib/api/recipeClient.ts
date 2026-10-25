@@ -1,4 +1,5 @@
 import { ApiClientError, authenticatedFetch } from "./authClient";
+import type { RecipeCategory } from "@/lib/recipeCategories";
 
 const API_URL =
 	typeof window === "undefined"
@@ -89,6 +90,7 @@ export type UpdateRecipeInput = {
 		| "Carnivore"
 		| null;
 	cuisine?: string;
+	recipeCategory?: RecipeCategory | null;
 	difficulty?: "Easy" | "Medium" | "Hard" | "Expert" | null;
 	tipsAndTricks?: string | null;
 	storingFreezing?: string | null;
@@ -117,6 +119,7 @@ export type RecipeResponse = {
 		calories?: number | null;
 		diet?: UpdateRecipeInput["diet"];
 		cuisine?: string | null;
+		recipeCategory?: UpdateRecipeInput["recipeCategory"];
 		difficulty?: UpdateRecipeInput["difficulty"];
 		tipsAndTricks?: string | null;
 		storingFreezing?: string | null;

@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { RecipeCategory } from "@/lib/recipeCategories";
 
 type RegionalName = {
 	region: string;
@@ -67,6 +68,7 @@ export interface NewRecipe {
 		| "Carnivore"
 		| null;
 	cuisine: string;
+	recipeCategory: RecipeCategory | null;
 	difficulty: "Easy" | "Medium" | "Hard" | "Expert" | null;
 	equipments: Equipment[];
 	ingredients: Ingredient[];
@@ -98,6 +100,7 @@ const initialState: NewRecipeDataState = {
 			calories: null,
 			diet: null,
 			cuisine: "NA",
+			recipeCategory: null,
 			difficulty: null,
 			equipments: [],
 			ingredients: [],

@@ -1,5 +1,6 @@
 // lib/validations/recipe.ts
 import { z } from "zod";
+import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 
 const RegionalNameSchema = z.object({
 	region: z.string(),
@@ -48,6 +49,8 @@ const RecipeMediaSchema = z.object({
 	format: z.string().max(20).optional(),
 });
 
+const RecipeCategorySchema = z.enum(RECIPE_CATEGORIES);
+
 export const RecipePublishSchema = z.object({
 	expectedVersion: z.number().int().positive().optional(),
 	name: z
@@ -66,6 +69,7 @@ export const RecipePublishSchema = z.object({
 		.enum(["Vegan", "Vegetarian", "Pescatarian", "Omnivore", "Carnivore"])
 		.nullable(),
 	cuisine: z.string().trim().max(60).default("NA"),
+	recipeCategory: RecipeCategorySchema,
 	difficulty: z.enum(["Easy", "Medium", "Hard", "Expert"]).nullable(),
 	equipments: z.array(EquipmentSchema).max(40).default([]),
 	ingredients: z

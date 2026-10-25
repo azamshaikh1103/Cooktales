@@ -26,6 +26,7 @@ import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
 import { setTab } from "@/lib/Slices/tabSlice";
 import type { RootState } from "@/lib/store";
 import { RecipePublishSchema } from "@/lib/validations/recipe";
+import ShareModal from "@/components/popUps/ShareModal";
 import {
 	BasicInfoEditor,
 	FAQEditor,
@@ -80,6 +81,7 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 		calories: server.calories || null,
 		diet: server.diet || null,
 		cuisine: server.cuisine || "NA",
+		recipeCategory: server.recipeCategory || null,
 		difficulty: server.difficulty || null,
 		equipments: (server.equipments || []).map((item) => ({
 			name: item.name,
@@ -111,6 +113,12 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 };
 
 type SaveStatus = "idle" | "creating" | "saving" | "saved" | "error";
+type PublishedRecipe = {
+	slug: string;
+	title: string;
+	description: string | null;
+	image: string | null;
+};
 type GuideKey =
 	| "cover"
 	| "title"
@@ -122,6 +130,7 @@ type GuideKey =
 	| "calories"
 	| "difficulty"
 	| "cuisine"
+	| "category"
 	| "diet"
 	| "ingredients"
 	| "equipment"
@@ -201,6 +210,12 @@ const RECIPE_FIELD_GUIDES: Record<
 		body: "Cuisine helps browsing and filtering. Choose the closest fit; use Other only when nothing fits.",
 		tips: ["Discovery", "Filtering", "Closest fit"],
 	},
+	category: {
+		eyebrow: "Recipe category",
+		title: "Choose the recipe's main course or meal type",
+		body: "Pick the one category readers would expect to browse. This is required before publishing and helps Google understand the recipe.",
+		tips: ["One main category", "Not cuisine", "Not diet"],
+	},
 	diet: {
 		eyebrow: "Diet",
 		title: "Choose the diet people can rely on",
@@ -275,7 +290,6 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 	const name = recipe.name?.trim();
 
 	return {
-		expectedVersion: recipe.version || undefined,
 		...(name && name.length >= 3 ? { name } : {}),
 		about: recipe.about?.trim() || null,
 		...(recipe.imageUrls?.[0]
@@ -290,6 +304,7 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 		calories: recipe.calories || null,
 		diet: recipe.diet || null,
 		cuisine: recipe.cuisine || "NA",
+		recipeCategory: recipe.recipeCategory || null,
 		difficulty: recipe.difficulty || null,
 		tipsAndTricks: recipe.tipsAndTricks?.trim() || null,
 		storingFreezing: recipe.storingFreezing?.trim() || null,
@@ -339,19 +354,11 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 	};
 };
 
-const getSaveLabel = (status: SaveStatus, lastSavedAt: string | null) => {
+const getSaveLabel = (status: SaveStatus) => {
 	if (status === "creating") return "Creating draft...";
-	if (status === "saving") return "Saving to CookTale...";
+	if (status === "saving") return "Saving...";
 	if (status === "error") return "Could not save. Please try again.";
-	if (status === "saved" && lastSavedAt) {
-		return `Saved to CookTale at ${new Date(lastSavedAt).toLocaleTimeString(
-			[],
-			{
-				hour: "2-digit",
-				minute: "2-digit",
-			},
-		)}`;
-	}
+	if (status === "saved") return "Saved";
 	return "Draft ready";
 };
 
@@ -408,10 +415,13 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const initialRecipeRef = useRef<NewRecipe | null>(null);
 	const hasLoadedDraftRef = useRef(false);
 	const isCreatingDraftRef = useRef(false);
-	const lastServerPayloadRef = useRef<string | null>(null);
+	const isSavingRef = useRef(false);
 	const [isUploading, setIsUploading] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
 	const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-	const [lastServerSavedAt, setLastServerSavedAt] = useState<string | null>(
+	const [publishedRecipe, setPublishedRecipe] =
+		useState<PublishedRecipe | null>(null);
+	const [lastSavedPayload, setLastSavedPayload] = useState<string | null>(
 		null,
 	);
 	const [activeGuideKey, setActiveGuideKey] = useState<GuideKey>("cover");
@@ -522,7 +532,6 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 								new Date().toISOString(),
 						}),
 					);
-					setLastServerSavedAt(new Date().toISOString());
 					setSaveStatus("saved");
 				})
 				.catch((error) => {
@@ -545,19 +554,25 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 		const payload = normalizeRecipePayload(recipe);
 		const payloadKey = JSON.stringify(payload);
-		if (lastServerPayloadRef.current === payloadKey) return;
+		if (lastSavedPayload === payloadKey) return;
+		if (isSaving || isSavingRef.current) return;
 
 		const timeout = window.setTimeout(() => {
+			if (isSavingRef.current) return;
+			isSavingRef.current = true;
+			setIsSaving(true);
 			setSaveStatus("saving");
 			recipeClient
-				.update(recipe.draftId as string, payload)
+				.update(recipe.draftId as string, {
+					...payload,
+					expectedVersion: recipe.version || undefined,
+				})
 				.then((response) => {
-					lastServerPayloadRef.current = payloadKey;
+					setLastSavedPayload(payloadKey);
 					const savedAt =
 						response.recipe.updatedAt ||
 						response.recipe.lastEditedAt ||
 						new Date().toISOString();
-					setLastServerSavedAt(savedAt);
 					setSaveStatus("saved");
 					dispatch(
 						updateRecipeDraftMeta({
@@ -569,6 +584,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				})
 				.catch(async (error) => {
 					console.error("Recipe autosave failed:", error);
+					setLastSavedPayload(payloadKey);
 					if (error?.statusCode === 409) {
 						const latest = await recipeClient
 							.getManage(recipe.draftId as string)
@@ -580,7 +596,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						);
 					}
 					if (error?.statusCode === 404 || error?.statusCode === 403) {
-						lastServerPayloadRef.current = null;
+						setLastSavedPayload(null);
 						dispatch(
 							updateRecipeDraftMeta({
 								index: 0,
@@ -591,11 +607,15 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						);
 					}
 					setSaveStatus("error");
+				})
+				.finally(() => {
+					isSavingRef.current = false;
+					setIsSaving(false);
 				});
 		}, SERVER_SAVE_DELAY_MS);
 
 		return () => window.clearTimeout(timeout);
-	}, [dispatch, recipe, status]);
+	}, [dispatch, isSaving, lastSavedPayload, recipe, status]);
 
 	const handleImageUpload = async (file: File, isMain: boolean = false) => {
 		setIsUploading(true);
@@ -652,6 +672,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		if (!recipe.steps?.length)
 			return toast.error("Tell us how to cook it (Add steps).");
 		if (!recipe.totalTimeReq) return toast.error("Add total time required.");
+		if (!recipe.recipeCategory) return toast.error("Choose a recipe category.");
 
 		isPublishingRef.current = true;
 		const loadingId = toast.loading("Publishing your recipe...");
@@ -695,8 +716,12 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				const published = await recipeClient.publish(draftId);
 
 				toast.success("Recipe published!", { id: loadingId });
-				dispatch(resetRecipeData());
-				router.push(`/recipe/${published.recipe.slug || published.recipe.id}`);
+				setPublishedRecipe({
+					slug: published.recipe.slug || published.recipe.id,
+					title: published.recipe.name,
+					description: published.recipe.about || null,
+					image: published.recipe.mainImage || null,
+				});
 			} catch (error) {
 				if (draftId && createdDuringPublish) {
 					await recipeClient.delete(draftId).catch(() => null);
@@ -714,6 +739,12 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		} finally {
 			isPublishingRef.current = false;
 		}
+	};
+
+	const leavePublishedRecipe = () => {
+		if (!publishedRecipe) return;
+		dispatch(resetRecipeData());
+		router.push(`/recipe/${publishedRecipe.slug}`);
 	};
 
 	if (status === "loading") {
@@ -787,6 +818,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	}
 
 	return (
+		<>
 		<div className="min-h-screen bg-[#fafafa] pb-32 transition-colors duration-500 dark:bg-[#0d1f1c]">
 			{/* HEADER */}
 			<div className="relative top-16 z-20 border-b border-gray-200 bg-white/90 px-6 py-4 backdrop-blur-md transition-colors dark:border-white/5 dark:bg-[#0d1f1c]/90">
@@ -805,7 +837,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 								{recipe.name || "Untitled Recipe"}
 							</h1>
 							<p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-500">
-								{getSaveLabel(saveStatus, lastServerSavedAt)}
+								{getSaveLabel(saveStatus)}
 							</p>
 						</div>
 					</div>
@@ -889,6 +921,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 							difficulty={recipe.difficulty}
 							diet={recipe.diet}
 							cuisine={recipe.cuisine}
+							recipeCategory={recipe.recipeCategory}
 							onChange={updateField}
 							onGuide={handleGuide}
 						/>
@@ -989,5 +1022,15 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				<RecipeFieldGuide guide={RECIPE_FIELD_GUIDES[activeGuideKey]} />
 			</div>
 		</div>
+		<ShareModal
+			isOpen={Boolean(publishedRecipe)}
+			onClose={leavePublishedRecipe}
+			url={`https://cooktale.in/recipe/${publishedRecipe?.slug || ""}`}
+			title={publishedRecipe?.title || ""}
+			description={publishedRecipe?.description}
+			image={publishedRecipe?.image}
+			primaryAction={{ label: "View recipe", onClick: leavePublishedRecipe }}
+		/>
+		</>
 	);
 }

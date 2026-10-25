@@ -41,6 +41,7 @@ export default async function RecipeDetailPage({ params }: PageProps) {
     keywords: recipe.tags?.join(', '),
     recipeYield: recipe.yield ? `${recipe.yield} servings` : undefined,
     recipeCuisine: recipe.cuisine !== 'NA' ? recipe.cuisine : undefined,
+    recipeCategory: recipe.recipeCategory || undefined,
     nutrition: recipe.calories
       ? { '@type': 'NutritionInformation', calories: `${recipe.calories} calories` }
       : undefined,

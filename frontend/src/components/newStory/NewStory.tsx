@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, LoaderCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ const initialBlock = (): StoryEditorBlock => ({ id: crypto.randomUUID(), type: '
 export default function NewStory() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const { uploadFile, uploading } = useCloudinaryUpload();
   const [draft, setDraft] = useState<Story | null>(null);
   const [title, setTitle] = useState('');
@@ -26,15 +26,17 @@ export default function NewStory() {
   const [content, setContent] = useState<StoryEditorBlock[]>([initialBlock()]);
   const [syncState, setSyncState] = useState<'starting' | 'saved' | 'saving' | 'error'>('starting');
   const [isPublishing, setIsPublishing] = useState(false);
-  const clientDraftId = useRef(typeof crypto !== 'undefined' ? crypto.randomUUID() : `story-${Date.now()}`).current;
+  const clientDraftId = useRef<string | null>(null);
   const skipFirstSave = useRef(true);
   const existingDraftId = searchParams.get('draft');
+  const draftStorageKey = user ? `cooktale:unfinished-story:${user.id}` : null;
 
   useEffect(() => {
     if (status !== 'authenticated') return;
     let active = true;
-    if (existingDraftId) {
-      void storyClient.getOwner(existingDraftId).then(({ story }) => {
+    const savedDraftId = existingDraftId || (draftStorageKey ? window.localStorage.getItem(draftStorageKey) : null);
+    if (savedDraftId) {
+      void storyClient.getOwner(savedDraftId).then(({ story }) => {
         if (!active) return;
         const mediaByPublicId = new Map((story.media || []).map((media) => [media.publicId, media]));
         setDraft(story);
@@ -71,22 +73,29 @@ export default function NewStory() {
         setSyncState('saved');
       }).catch((error) => {
         if (!active) return;
+        if (!existingDraftId && draftStorageKey) window.localStorage.removeItem(draftStorageKey);
         setSyncState('error');
         toast.error(error instanceof Error ? error.message : 'Could not load this story draft');
       });
       return () => { active = false; };
     }
-    void storyClient.createDraft(clientDraftId).then(({ story }) => {
-      if (!active) return;
-      setDraft(story);
-      setSyncState('saved');
-    }).catch((error) => {
-      if (!active) return;
-      setSyncState('error');
-      toast.error(error instanceof Error ? error.message : 'Could not start the story draft');
-    });
+    setSyncState('saved');
     return () => { active = false; };
-  }, [clientDraftId, existingDraftId, status]);
+  }, [draftStorageKey, existingDraftId, status]);
+
+  const ensureDraft = useCallback(async () => {
+    if (draft) return draft;
+    if (!draftStorageKey) throw new Error('Sign in before starting a story.');
+    const id = clientDraftId.current || crypto.randomUUID();
+    clientDraftId.current = id;
+    setSyncState('starting');
+    const { story } = await storyClient.createDraft(id, title.trim() || undefined);
+    window.localStorage.setItem(draftStorageKey, story.id);
+    skipFirstSave.current = false;
+    setDraft(story);
+    setSyncState('saved');
+    return story;
+  }, [draft, draftStorageKey, title]);
 
   const asApiContent = (): StoryBlockInput[] => content.map((block) => ({
     type: block.type,
@@ -111,6 +120,19 @@ export default function NewStory() {
   });
 
   useEffect(() => {
+    if (draft || existingDraftId || status !== 'authenticated') return;
+    const hasStarted = Boolean(title.trim() || description.trim() || tags.length || content.some((block) => block.value.trim() || block.media));
+    if (!hasStarted) return;
+    const timer = window.setTimeout(() => {
+      void ensureDraft().catch((error) => {
+        setSyncState('error');
+        toast.error(error instanceof Error ? error.message : 'Could not start this story draft');
+      });
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [content, description, draft, ensureDraft, existingDraftId, status, tags, title]);
+
+  useEffect(() => {
     if (!draft) return;
     if (skipFirstSave.current) { skipFirstSave.current = false; return; }
     const timer = window.setTimeout(() => {
@@ -126,26 +148,27 @@ export default function NewStory() {
   }, [title, description, cover, tags, content, draft?.id]);
 
   const handleCoverUpload = async (file: File) => {
-    if (!draft) return toast.error('Preparing your draft. Try again in a moment.');
-    const result = await uploadFile({ file, context: 'STORY_COVER', entityId: draft.id });
+    const activeDraft = draft || await ensureDraft();
+    const result = await uploadFile({ file, context: 'STORY_COVER', entityId: activeDraft.id });
     if (!result) toast.error('Cover upload failed');
     else setCover(result);
   };
   const handleBlockUpload = async (file: File, type: 'image' | 'video') => {
-    if (!draft) { toast.error('Preparing your draft. Try again in a moment.'); return null; }
-    const result = await uploadFile({ file, context: 'STORY_CONTENT', entityId: draft.id, resourceType: type });
+    const activeDraft = draft || await ensureDraft();
+    const result = await uploadFile({ file, context: 'STORY_CONTENT', entityId: activeDraft.id, resourceType: type });
     if (!result) toast.error('Upload failed');
     return result;
   };
   const handlePublish = async () => {
-    if (!draft) return;
     if (!title.trim() || !activeCover || !content.some((block) => block.type === 'divider' || block.value.trim())) {
       return toast.error('Add a title, cover image, and story content before publishing.');
     }
     setIsPublishing(true);
     try {
-      const { story: latest } = await storyClient.update(draft.id, storyPayload(draft.version));
+      const activeDraft = draft || await ensureDraft();
+      const { story: latest } = await storyClient.update(activeDraft.id, storyPayload(activeDraft.version));
       const { story } = await storyClient.publish(latest.id);
+      if (draftStorageKey) window.localStorage.removeItem(draftStorageKey);
       toast.success('Story published');
       router.push(`/stories/${story.slug}`);
     } catch (error) {

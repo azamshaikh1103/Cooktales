@@ -41,7 +41,11 @@ export default function ShareModal({
   const [nativeShare, setNativeShare] = useState<Navigator['share']>();
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
-  const encodedDescription = encodeURIComponent(description || title);
+  const shareDescription = description?.trim();
+  const encodedDescription = encodeURIComponent(shareDescription || title);
+  const encodedShareText = encodeURIComponent(
+    shareDescription ? `${title} — ${shareDescription.slice(0, 160)}` : title,
+  );
 
   useEffect(() => {
     setNativeShare(() => navigator.share?.bind(navigator));
@@ -57,7 +61,7 @@ export default function ShareModal({
   const handleNativeShare = async () => {
     if (!nativeShare) return;
     try {
-      await nativeShare({ title, text: description || title, url });
+      await nativeShare({ title, text: shareDescription || title, url });
     } catch (error) {
       if ((error as DOMException).name !== 'AbortError') {
         toast.error('Could not open sharing options.');
@@ -65,19 +69,20 @@ export default function ShareModal({
     }
   };
 
-  // Social Links Config
   const socials = [
     {
       icon: <FaWhatsapp />,
       label: 'WhatsApp',
       color: 'bg-[#25D366]',
-      link: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`,
+      link: `https://api.whatsapp.com/send?text=${encodeURIComponent(
+        [title, shareDescription, url].filter(Boolean).join('\n\n'),
+      )}`,
     },
     {
       icon: <FaTwitter />,
       label: 'X / Twitter',
       color: 'bg-black dark:bg-white dark:text-black',
-      link: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+      link: `https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedUrl}`,
     },
     {
       icon: <FaPinterestP />,
@@ -150,15 +155,14 @@ export default function ShareModal({
               </div>
             )}
 
-            {/* Social Grid */}
-            <div className="mb-8 grid grid-cols-3 gap-4">
+            <div className="no-scrollbar mb-8 flex gap-4 overflow-x-auto pb-2">
               {nativeShare && (
                 <button
                   type="button"
                   onClick={handleNativeShare}
-                  className="group flex flex-col items-center gap-3"
+                  className="flex shrink-0 cursor-pointer flex-col items-center gap-3"
                 >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#006C5E] text-2xl text-white shadow-lg transition-transform group-hover:scale-110">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#006C5E] text-2xl text-white shadow-lg">
                     <FaShareAlt />
                   </span>
                   <span className="text-xs font-bold text-gray-500 dark:text-gray-400">More apps</span>
@@ -170,10 +174,10 @@ export default function ShareModal({
                   href={s.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col items-center gap-3"
+                  className="flex shrink-0 cursor-pointer flex-col items-center gap-3"
                 >
                   <div
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl text-white shadow-lg transition-transform group-hover:scale-110 ${s.color}`}
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl text-white shadow-lg ${s.color}`}
                   >
                     {s.icon}
                   </div>
@@ -198,7 +202,7 @@ export default function ShareModal({
               <button
                 type="button"
                 onClick={handleCopy}
-                className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${copied ? 'bg-green-500 text-white' : 'bg-black text-white dark:bg-white dark:text-black'}`}
+                className={`cursor-pointer rounded-lg px-4 py-2 text-xs font-bold transition-all ${copied ? 'bg-green-500 text-white' : 'bg-black text-white dark:bg-white dark:text-black'}`}
               >
                 {copied ? <FaCheck /> : 'Copy'}
               </button>
@@ -207,7 +211,7 @@ export default function ShareModal({
               <button
                 type="button"
                 onClick={primaryAction.onClick}
-                className="mt-4 w-full rounded-xl bg-[#006C5E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#00584d] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#22c55e]"
+                className="mt-4 w-full cursor-pointer rounded-xl bg-[#006C5E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#00584d] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#22c55e]"
               >
                 {primaryAction.label}
               </button>

@@ -10,6 +10,7 @@
 # Local deployment output and backups
 deploy/backups/
 deploy/.state/
+.local/
 
 # Docker override files created only on a server
 docker-compose.override.yml

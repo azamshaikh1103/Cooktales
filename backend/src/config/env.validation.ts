@@ -167,6 +167,7 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
   CLOUDINARY_ROOT_FOLDER: z.string().min(1).default('cooktale'),
+  CREATOR_PAYOUT_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i).optional(),
   MEDIA_PENDING_UPLOAD_TTL_HOURS: z.coerce.number().int().positive().default(24),
   MEDIA_CLEANUP_INTERVAL_MINUTES: z.coerce.number().int().positive().default(15),
   PROFILE_USERNAME_CHANGE_COOLDOWN_DAYS: z.coerce.number().int().positive().default(30),

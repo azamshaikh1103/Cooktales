@@ -87,6 +87,9 @@ fi
 # Build before replacing the running application. Migrations are additive-only
 # and use Prisma's production-safe 'migrate deploy' command.
 docker compose --env-file "$env_file" -f "$compose_file" build
+# The migration service is behind a Compose profile, so the default build above
+# skips it. Build it explicitly or it can run an older Prisma migration image.
+docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance build backend-migrate
 # The frontend is what users see. Rebuild it without cache so a changed route
 # cannot be hidden behind an older Docker image.
 docker compose --env-file "$env_file" -f "$compose_file" build --no-cache frontend

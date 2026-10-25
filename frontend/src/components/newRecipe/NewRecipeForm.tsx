@@ -354,10 +354,10 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 	};
 };
 
-const getSaveLabel = (status: SaveStatus) => {
+const getSaveLabel = (status: SaveStatus, error?: string | null) => {
 	if (status === "creating") return "Creating draft...";
 	if (status === "saving") return "Saving...";
-	if (status === "error") return "Could not save. Please try again.";
+	if (status === "error") return error || "Could not save. Please try again.";
 	if (status === "saved") return "Saved";
 	return "Draft ready";
 };
@@ -419,6 +419,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const [isUploading, setIsUploading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+	const [saveError, setSaveError] = useState<string | null>(null);
 	const [publishedRecipe, setPublishedRecipe] =
 		useState<PublishedRecipe | null>(null);
 	const [lastSavedPayload, setLastSavedPayload] = useState<string | null>(
@@ -512,6 +513,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		const timeout = window.setTimeout(() => {
 			isCreatingDraftRef.current = true;
 			setSaveStatus("creating");
+			setSaveError(null);
 
 			recipeClient
 				.createDraft({
@@ -536,7 +538,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				})
 				.catch((error) => {
 					console.error("Draft creation failed:", error);
+				const message = error instanceof Error ? error.message : "Could not create a draft.";
+				setSaveError(message);
 					setSaveStatus("error");
+				toast.error(message);
 				})
 				.finally(() => {
 					isCreatingDraftRef.current = false;
@@ -562,6 +567,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			isSavingRef.current = true;
 			setIsSaving(true);
 			setSaveStatus("saving");
+			setSaveError(null);
 			recipeClient
 				.update(recipe.draftId as string, {
 					...payload,
@@ -585,6 +591,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				.catch(async (error) => {
 					console.error("Recipe autosave failed:", error);
 					setLastSavedPayload(payloadKey);
+					const message =
+						error instanceof Error ? error.message : "Could not save this recipe.";
 					if (error?.statusCode === 409) {
 						const latest = await recipeClient
 							.getManage(recipe.draftId as string)
@@ -606,6 +614,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 							}),
 						);
 					}
+					if (error?.statusCode !== 409) toast.error(message);
+					setSaveError(message);
 					setSaveStatus("error");
 				})
 				.finally(() => {
@@ -837,7 +847,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 								{recipe.name || "Untitled Recipe"}
 							</h1>
 							<p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-500">
-								{getSaveLabel(saveStatus)}
+								{getSaveLabel(saveStatus, saveError)}
 							</p>
 						</div>
 					</div>

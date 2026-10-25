@@ -80,7 +80,7 @@ export const RecipePublishSchema = z.object({
 	tipsAndTricks: z.string().trim().max(1500).nullable(),
 	storingFreezing: z.string().trim().max(1500).nullable(),
 	faqs: z.array(FAQSchema).max(20).default([]),
-	tags: z.array(z.string().trim().min(1).max(30)).max(12).default([]),
+	tags: z.array(z.string().trim().min(1).max(80)).max(12).default([]),
 	media: z.array(RecipeMediaSchema).max(30).default([]),
 });
 

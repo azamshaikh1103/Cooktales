@@ -194,6 +194,7 @@ export class RecipesService {
 
     if (query.tag && query.tag !== 'All') where.tags = { has: query.tag };
     if (query.cuisine) where.cuisine = query.cuisine;
+    if (query.recipeCategory) where.recipeCategory = query.recipeCategory;
     if (query.diet) where.diet = query.diet;
     if (query.difficulty) where.difficulty = query.difficulty;
     if (query.search) {

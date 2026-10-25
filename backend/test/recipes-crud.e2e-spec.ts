@@ -132,6 +132,46 @@ describe('Recipe CRUD API', () => {
     await request(app.getHttpServer()).get(`/api/v1/recipes/${draft.id}`).expect(404);
   });
 
+  it('filters public recipes by recipe category', async () => {
+    const { user } = await createUser('categoryfilter');
+    const suffix = Date.now();
+    const appetizer = await prisma.recipe.create({
+      data: {
+        name: 'Category filter appetizer',
+        slug: `category-filter-appetizer-${suffix}`,
+        authorId: user.id,
+        status: RecipeStatus.PUBLISHED,
+        publishedAt: new Date(),
+        recipeCategory: 'Appetizer',
+        tags: [],
+        moreImages: [],
+      },
+    });
+    const dessert = await prisma.recipe.create({
+      data: {
+        name: 'Category filter dessert',
+        slug: `category-filter-dessert-${suffix}`,
+        authorId: user.id,
+        status: RecipeStatus.PUBLISHED,
+        publishedAt: new Date(),
+        recipeCategory: 'Dessert',
+        tags: [],
+        moreImages: [],
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/recipes?recipeCategory=Appetizer')
+      .expect(200);
+
+    expect(response.body.recipes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: appetizer.id, recipeCategory: 'Appetizer' })]),
+    );
+    expect(response.body.recipes).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: dessert.id })]),
+    );
+  });
+
   it('updates nested data in order and rejects a stale tab without partial writes', async () => {
     const { user, token } = await createUser('version');
     const draft = await prisma.recipe.create({

@@ -738,11 +738,21 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 };
 
 export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
+	const maxTagLength = 80;
+	const maxTags = 12;
 	const inputRef = useRef<HTMLInputElement>(null);
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && e.currentTarget.value.trim()) {
 			e.preventDefault();
 			const newTag = e.currentTarget.value.trim();
+			if (newTag.length > maxTagLength) {
+				toast.error(`Tags can be up to ${maxTagLength} characters. This one has ${newTag.length}.`);
+				return;
+			}
+			if (tags.length >= maxTags) {
+				toast.error(`You can add up to ${maxTags} tags.`);
+				return;
+			}
 			if (!tags.includes(newTag)) onChange([...tags, newTag]);
 			e.currentTarget.value = "";
 		}
@@ -754,6 +764,9 @@ export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
 			<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
 				Tags
 			</h3>
+			<p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+				Up to {maxTags} useful search terms, {maxTagLength} characters each.
+			</p>
 			<div className="mb-3 flex flex-wrap gap-2">
 				{tags.map((tag, i) => (
 					<span

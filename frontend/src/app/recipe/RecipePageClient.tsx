@@ -3,31 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaClock, FaLeaf, FaSearch, FaStar, FaUtensils } from "react-icons/fa";
+import { FaClock, FaLeaf, FaStar, FaUtensils } from "react-icons/fa";
 import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
 import { formatters } from "@/lib/formatters";
 import imageLoader from "@/lib/loader";
+import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 
-const RECIPE_CATEGORIES = [
-	"All",
-	"Breakfast",
-	"Snacks",
-	"Rice",
-	"Cakes",
-	"Chicken",
-	"Vegetarian",
-	"Non-Vegetarian",
-	"Lunch",
-	"Sweets",
-	"Drinks",
-	"Egg",
-	"Seafood",
-	"Instant Pot",
-	"Kids",
-];
+const RECIPE_CATEGORY_FILTERS = ["All", ...RECIPE_CATEGORIES] as const;
 const RECIPE_SKELETONS = [
 	"recipe-1",
 	"recipe-2",
@@ -89,7 +74,7 @@ export default function RecipePageClient({
 				const response = await getAllRecipesAction({
 					page: pageNum,
 					limit: 12,
-					tag: category,
+					recipeCategory: category,
 					sortBy: "latest",
 				});
 
@@ -153,10 +138,7 @@ export default function RecipePageClient({
 
 			<div className="mt-16 border-b border-gray-200 bg-[#fafafa] px-4 py-2 transition-colors lg:px-24 dark:border-white/10 dark:bg-[#0d1f1c]">
 				<div className="no-scrollbar flex items-center gap-3 overflow-x-auto">
-					<div className="mr-2 shrink-0 text-gray-400 dark:text-gray-500">
-						<FaSearch />
-					</div>
-					{RECIPE_CATEGORIES.map((category) => (
+					{RECIPE_CATEGORY_FILTERS.map((category) => (
 						<button
 							type="button"
 							key={category}

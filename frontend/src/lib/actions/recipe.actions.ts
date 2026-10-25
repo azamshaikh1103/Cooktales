@@ -5,6 +5,7 @@ type FetchRecipeParams = {
 	page?: number;
 	limit?: number;
 	tag?: string;
+	recipeCategory?: string;
 	sortBy?: string;
 };
 
@@ -12,6 +13,7 @@ export async function getAllRecipesAction({
 	page = 1,
 	limit = 9,
 	tag,
+	recipeCategory,
 	sortBy,
 }: FetchRecipeParams) {
 	try {
@@ -26,6 +28,8 @@ export async function getAllRecipesAction({
 			sortBy: sortBy === "popular" || sortBy === "rating" ? sortBy : "latest",
 		});
 		if (tag && tag !== "All") query.set("tag", tag);
+		if (recipeCategory && recipeCategory !== "All")
+			query.set("recipeCategory", recipeCategory);
 		const response = await fetch(`${apiUrl}/recipes?${query.toString()}`, {
 			cache: "no-store",
 		});

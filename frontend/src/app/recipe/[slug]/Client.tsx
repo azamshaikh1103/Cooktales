@@ -354,6 +354,11 @@ export const RecipeDetailClient = ({
 								{recipe.cuisine}
 							</span>
 						)}
+						{recipe.recipeCategory && (
+							<span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold tracking-wider text-purple-600 uppercase dark:bg-purple-500/10 dark:text-purple-400">
+								{recipe.recipeCategory}
+							</span>
+						)}
 						{recipe.difficulty && (
 							<span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold tracking-wider text-blue-600 uppercase dark:bg-blue-500/10 dark:text-blue-400">
 								{recipe.difficulty}

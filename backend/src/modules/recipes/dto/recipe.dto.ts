@@ -268,7 +268,7 @@ export class UpdateRecipeDto {
   @IsArray()
   @ArrayMaxSize(12)
   @IsString({ each: true })
-  @MaxLength(30, { each: true })
+  @MaxLength(80, { each: true })
   tags?: string[];
 
   @IsOptional()
@@ -349,6 +349,10 @@ export class ListRecipesQueryDto {
   @IsString()
   @MaxLength(60)
   cuisine?: string;
+
+  @IsOptional()
+  @IsIn(RECIPE_CATEGORIES)
+  recipeCategory?: (typeof RECIPE_CATEGORIES)[number];
 
   @IsOptional()
   @IsEnum(diet)

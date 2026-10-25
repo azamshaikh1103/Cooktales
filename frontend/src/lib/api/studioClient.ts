@@ -17,15 +17,34 @@ async function request<T>(path: string): Promise<T> {
 }
 
 export type StudioDashboard = {
-  stats: { points: number; recipes: number; followers: number; totalViews: number; totalLikes: number };
+  stats: {
+    points: number;
+    recipes: number;
+    stories: number;
+    followers: number;
+    totalViews: number;
+    totalLikes: number;
+  };
   latestRecipe: {
     id: string;
     slug: string | null;
     name: string;
+    mainImage: string;
     views: number;
     likes: number;
     totalTimeReq: number | null;
     calories: number | null;
+    createdAt: string;
+  } | null;
+  latestStory: {
+    id: string;
+    slug: string | null;
+    title: string;
+    coverImage: string | null;
+    views: number;
+    likes: number;
+    shortDesc: string;
+    createdAt: string;
   } | null;
 };
 

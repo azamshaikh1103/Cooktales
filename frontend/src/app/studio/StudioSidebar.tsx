@@ -1,97 +1,69 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  MdDashboard,
-  MdAnalytics,
-  MdRestaurantMenu,
-  MdAttachMoney,
-  MdArrowBack,
-} from 'react-icons/md';
-import Image from 'next/image';
+import { MdAnalytics, MdAttachMoney, MdDashboard, MdRestaurantMenu } from 'react-icons/md';
 
-export default function StudioSidebar({ user }: { user: any }) {
+const navigation = [
+  { href: '/studio', icon: <MdDashboard />, label: 'Overview' },
+  { href: '/studio/content', icon: <MdRestaurantMenu />, label: 'Content' },
+  { href: '/studio/analytics', icon: <MdAnalytics />, label: 'Analytics' },
+  { href: '/studio/earnings', icon: <MdAttachMoney />, label: 'Monetization' },
+];
+
+export default function StudioSidebar({
+  user,
+}: {
+  user: { name?: string | null; username?: string | null; image?: string | null };
+}) {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
-
   return (
-    <aside className="sticky top-0 z-50 hidden h-screen w-72 flex-col border-r border-gray-200 bg-white transition-colors duration-500 lg:flex dark:border-white/5 dark:bg-[#0d1f1c]">
-      {/* Brand */}
-      <div className="flex items-center gap-3 p-8">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#006C5E] font-black text-white shadow-lg shadow-[#006C5E]/20">
-          C
+    <section className="mb-8 overflow-hidden rounded-[28px] border border-gray-200 bg-white dark:border-white/10 dark:bg-[#0d1f1c]">
+      <div className="flex flex-col gap-5 px-6 py-7 sm:flex-row sm:items-center sm:justify-between lg:px-9">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.16em] text-[#006C5E] uppercase dark:text-[#4ADE80]">
+            Creator Studio
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold text-[#101827] sm:text-3xl dark:text-white">
+            Your CookTale kitchen
+          </h1>
         </div>
-        <span className="text-xl font-black tracking-tight text-gray-900 dark:text-white">
-          Studio
-        </span>
-        {user.isPro && (
-          <span className="ml-auto rounded border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 uppercase">
-            Pro
-          </span>
-        )}
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-1 px-4">
-        <NavItem
-          href="/studio"
-          icon={<MdDashboard />}
-          label="Overview"
-          active={isActive('/studio')}
-        />
-        <NavItem
-          href="/studio/content"
-          icon={<MdRestaurantMenu />}
-          label="Content"
-          active={isActive('/studio/content')}
-        />
-        <NavItem
-          href="/studio/analytics"
-          icon={<MdAnalytics />}
-          label="Analytics"
-          active={isActive('/studio/analytics')}
-        />
-        <NavItem
-          href="/studio/earnings"
-          icon={<MdAttachMoney />}
-          label="Monetization"
-          active={isActive('/studio/earnings')}
-        />
-      </nav>
-
-      {/* User Footer */}
-      <div className="border-t border-gray-100 p-4 dark:border-white/5">
         <Link
           href={`/profile/${user.username}`}
-          className="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+          className="flex items-center gap-3 self-start rounded-2xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-[#006C5E]/40 hover:text-[#006C5E] sm:self-auto dark:border-white/10 dark:text-gray-200 dark:hover:border-[#4ADE80]/40 dark:hover:text-[#4ADE80]"
         >
-          <div className="h-10 w-10 overflow-hidden rounded-full border border-gray-100 bg-gray-200 dark:border-transparent dark:bg-white/10">
-            {user.image && <Image src={user.image} width={40} height={40} alt="" />}
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-[#f1f7f6] dark:bg-white/10">
+            {user.image ? <Image src={user.image} width={32} height={32} alt="" /> : null}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-gray-900 dark:text-white">{user.name}</p>
-            <p className="flex items-center gap-1 text-xs text-gray-500 transition-colors group-hover:text-[#006C5E] dark:text-gray-400 dark:group-hover:text-[#4ADE80]">
-              <MdArrowBack /> Back to CookTale
-            </p>
-          </div>
+          <span className="max-w-36 truncate">{user.name || 'My profile'}</span>
         </Link>
       </div>
-    </aside>
+
+      <nav
+        className="flex gap-2 overflow-x-auto border-t border-gray-200 px-4 py-3 dark:border-white/10"
+        aria-label="Creator Studio navigation"
+      >
+        {navigation.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                active
+                  ? 'bg-[#006C5E] text-white dark:bg-[#4ADE80] dark:text-[#0d1f1c]'
+                  : 'text-gray-500 hover:bg-[#f1f7f6] hover:text-[#006C5E] dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-[#4ADE80]'
+              }`}
+            >
+              <span className="text-base">{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </section>
   );
 }
-
-const NavItem = ({ href, icon, label, active }: any) => (
-  <Link
-    href={href}
-    className={`flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all ${
-      active
-        ? 'bg-[#006C5E]/10 text-[#006C5E] dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]'
-        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white'
-    }`}
-  >
-    <span className="text-xl">{icon}</span>
-    {label}
-  </Link>
-);

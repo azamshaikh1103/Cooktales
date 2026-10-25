@@ -129,6 +129,8 @@ export type StoryListParams = {
 	ids?: string;
 };
 
+export type StoryStatus = Story["status"];
+
 export const storyClient = {
 	createDraft(clientDraftId: string, title?: string) {
 		return request<{ story: Story }>("/stories/drafts", {
@@ -148,6 +150,20 @@ export const storyClient = {
 			{ method: "POST", body: "{}" },
 		);
 	},
+	delete(id: string) {
+		return request<{ message: string }>(`/stories/${encodeURIComponent(id)}`, {
+			method: "DELETE",
+		});
+	},
+	restore(id: string) {
+		return request<{ story: Story }>(
+			`/stories/${encodeURIComponent(id)}/restore`,
+			{
+				method: "POST",
+				body: "{}",
+			},
+		);
+	},
 	list(params: StoryListParams = {}) {
 		const query = new URLSearchParams(
 			Object.entries(params)
@@ -161,6 +177,20 @@ export const storyClient = {
 			total: number;
 			hasMore: boolean;
 		}>(`/stories?${query}`, { method: "GET" });
+	},
+	listMine(status?: StoryStatus, page = 1, limit = 12) {
+		const query = new URLSearchParams({
+			page: String(page),
+			limit: String(limit),
+		});
+		if (status) query.set("status", status);
+		return request<{
+			stories: Story[];
+			page: number;
+			limit: number;
+			total: number;
+			hasMore: boolean;
+		}>(`/stories/mine/list?${query.toString()}`, { method: "GET" });
 	},
 	getPublic(slug: string) {
 		return request<{ story: Story }>(`/stories/${encodeURIComponent(slug)}`, {

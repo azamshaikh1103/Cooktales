@@ -15,16 +15,15 @@ export default function AnalyticsPage() {
   }, [status]);
 
   return (
-    <div className="mx-auto max-w-6xl p-6 lg:p-12">
-      <header className="mb-12">
-        <h1 className="mb-2 text-3xl font-black lg:text-4xl">Audience Insights</h1>
+    <div>
+      <header className="mb-8">
+        <h2 className="mb-2 text-3xl font-semibold text-[#101827] dark:text-white">Analytics</h2>
         <p className="text-gray-500 dark:text-gray-400">
-          Real-time performance data for your kitchen.
+          See how people respond to your recipes.
         </p>
       </header>
 
-      {/* Pass data to the interactive client */}
-      <AnalyticsClient user={analytics?.user || { isPro: false }} content={analytics?.recipes || []} />
+      <AnalyticsClient content={analytics?.recipes || []} />
     </div>
   );
 }

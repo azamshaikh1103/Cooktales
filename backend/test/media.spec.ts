@@ -26,6 +26,7 @@ describe('Media service safety', () => {
       create: jest.fn(),
       count: jest.fn(),
       findFirst: jest.fn(),
+      findMany: jest.fn(),
       upsert: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
@@ -35,6 +36,7 @@ describe('Media service safety', () => {
   let service: MediaService;
   let signSpy: jest.SpyInstance;
   let destroySpy: jest.SpyInstance;
+  let renameSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,12 +44,14 @@ describe('Media service safety', () => {
     destroySpy = jest
       .spyOn(cloudinary.uploader, 'destroy')
       .mockResolvedValue({ result: 'ok' } as never);
+    renameSpy = jest.spyOn(cloudinary.uploader, 'rename');
     service = new MediaService(config, prisma);
   });
 
   afterEach(() => {
     signSpy.mockRestore();
     destroySpy.mockRestore();
+    renameSpy.mockRestore();
   });
 
   it('creates a server-owned avatar upload signature without exposing the API secret', async () => {
@@ -217,6 +221,29 @@ describe('Media service safety', () => {
     await expect(
       service.assertAttachableUploads('user-1', ['cooktale/tmp/a', 'cooktale/tmp/b']),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('adds automatic format and quality delivery settings to relocated thread images', async () => {
+    (prisma.pendingMediaUpload.findMany as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 'upload-1',
+        publicId: 'cooktale/tmp/user-1/thread-image',
+        resourceType: CloudinaryResourceType.IMAGE,
+      },
+    ]);
+    renameSpy.mockResolvedValueOnce({
+      secure_url:
+        'https://res.cloudinary.com/cooktale-test-cloud/image/upload/v1/thread-image.jpg',
+    });
+
+    const moved = await service.relocateThreadUploads('user-1', 'thread-1', [
+      'cooktale/tmp/user-1/thread-image',
+    ]);
+
+    expect(moved.get('cooktale/tmp/user-1/thread-image')).toEqual({
+      publicId: 'cooktale/community/threads/thread-1/thread-image',
+      url: 'https://res.cloudinary.com/cooktale-test-cloud/image/upload/f_auto/q_auto/v1/thread-image.jpg',
+    });
   });
 
   it('queues removed recipe media for reliable worker deletion', async () => {

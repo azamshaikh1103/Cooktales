@@ -428,8 +428,8 @@ export class MediaService {
   }
 
   private withAutoOptimization(url: string) {
-    return url.includes('/upload/') && !url.includes('/upload/f_auto,q_auto/')
-      ? url.replace('/upload/', '/upload/f_auto,q_auto/')
+    return url.includes('/upload/') && !url.includes('/upload/f_auto/q_auto/')
+      ? url.replace('/upload/', '/upload/f_auto/q_auto/')
       : url;
   }
 }

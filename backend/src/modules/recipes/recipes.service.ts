@@ -47,7 +47,20 @@ const recipeInclude = {
   equipments: { orderBy: { position: 'asc' as const } },
   steps: { orderBy: { position: 'asc' as const } },
   faqs: { orderBy: { position: 'asc' as const } },
-  media: { orderBy: [{ kind: 'asc' as const }, { position: 'asc' as const }] },
+  media: {
+    orderBy: [{ kind: 'asc' as const }, { position: 'asc' as const }],
+    select: {
+      publicId: true,
+      url: true,
+      resourceType: true,
+      kind: true,
+      position: true,
+      width: true,
+      height: true,
+      bytes: true,
+      format: true,
+    },
+  },
   reviews: {
     where: { status: ReviewStatus.VISIBLE, deletedAt: null },
     orderBy: { createdAt: 'desc' as const },

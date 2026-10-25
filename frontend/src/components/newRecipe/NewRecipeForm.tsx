@@ -6,7 +6,11 @@ import { BiLoaderAlt } from "react-icons/bi";
 import { FaArrowLeft, FaPaperPlane } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { type RecipeResponse, recipeClient } from "@/lib/api/recipeClient";
+import {
+	type RecipeMediaInput,
+	type RecipeResponse,
+	recipeClient,
+} from "@/lib/api/recipeClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import {
@@ -35,6 +39,28 @@ import {
 
 const SERVER_SAVE_DELAY_MS = 3000;
 
+const toRecipeMediaAsset = ({
+	publicId,
+	url,
+	resourceType,
+	kind,
+	position,
+	width,
+	height,
+	bytes,
+	format,
+}: RecipeMediaInput): RecipeMediaAsset => ({
+	publicId,
+	url,
+	resourceType: resourceType || "IMAGE",
+	kind,
+	position: position || 0,
+	width,
+	height,
+	bytes,
+	format,
+});
+
 const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 	const urls = [server.mainImage, ...(server.moreImages || [])].filter(
 		(url): url is string => Boolean(url),
@@ -48,7 +74,7 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 		about: server.about || null,
 		images: urls,
 		imageUrls: urls,
-		media: (server.media || []) as RecipeMediaAsset[],
+		media: (server.media || []).map(toRecipeMediaAsset),
 		totalTimeReq: server.totalTimeReq || null,
 		yield: server.yield || null,
 		calories: server.calories || null,
@@ -309,7 +335,7 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 					question: faq.question.trim(),
 					answer: faq.answer.trim(),
 				})) || [],
-		media: recipe.media || [],
+		media: (recipe.media || []).map(toRecipeMediaAsset),
 	};
 };
 

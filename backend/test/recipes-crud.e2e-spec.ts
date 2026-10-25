@@ -247,6 +247,12 @@ describe('Recipe CRUD API', () => {
       },
     });
 
+    const loaded = await request(app.getHttpServer())
+      .get(`/api/v1/recipes/${recipe.id}/manage`)
+      .set(auth(token))
+      .expect(200);
+    expect(loaded.body.recipe.media[0]).not.toHaveProperty('id');
+
     await request(app.getHttpServer())
       .patch(`/api/v1/recipes/${recipe.id}`)
       .set(auth(token))

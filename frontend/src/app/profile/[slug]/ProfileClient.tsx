@@ -257,7 +257,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
 
         <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
           <div>
-            <nav className="flex gap-2 overflow-x-auto border-b border-gray-200 pb-3 dark:border-white/10">
+            <nav className="-mx-5 flex gap-1 overflow-x-auto border-b border-gray-200 px-5 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-2 sm:px-0 dark:border-white/10">
               {tabs.map((tab) => (
                 <TabButton
                   key={tab.id}
@@ -504,7 +504,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+      className={`flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors sm:gap-2 sm:px-4 ${
         active
           ? 'bg-[#006C5E] text-white dark:bg-[#4ADE80] dark:text-[#0d1f1c]'
           : 'text-gray-500 hover:bg-gray-50 hover:text-[#006C5E] dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-[#4ADE80]'

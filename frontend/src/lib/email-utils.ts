@@ -73,7 +73,7 @@ export const wrapEmail = (
 
           <!-- FOOTER -->
           <div style="margin-top: 24px; text-align: center; color: #9ca3af; font-size: 12px;">
-            <p style="margin: 0 0 10px;">© 2025 CookTale Inc. All rights reserved.</p>
+            <p style="margin: 0 0 10px;">© 2026 CookTale Inc. All rights reserved.</p>
             <p style="margin: 0;">Made with <span style="color: ${BRAND_COLOR}; font-size: 14px;">&hearts;</span> by Chefs in Mumbai.</p>
             <div style="margin-top: 12px;">
                <a href="https://cooktale.in" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Website</a> •

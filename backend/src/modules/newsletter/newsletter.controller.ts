@@ -20,13 +20,6 @@ export class NewsletterController {
     return this.newsletter.subscribe(dto, request);
   }
 
-  @Get('confirm')
-  @Redirect()
-  async confirm(@Query('token') token: string) {
-    await this.newsletter.confirm(token);
-    return { url: new URL('/?newsletter=confirmed', this.config.get('FRONTEND_URL', { infer: true })).toString() };
-  }
-
   @Get('unsubscribe')
   @Redirect()
   async unsubscribe(@Query('token') token: string) {

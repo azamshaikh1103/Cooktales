@@ -7,6 +7,7 @@ import type { AppConfig } from '../src/config/env.validation';
 import { configureApp } from '../src/configure-app';
 import { PrismaService } from '../src/database/prisma.service';
 import { EmailQueueService } from '../src/modules/auth/mailer/email-queue.service';
+import { EmailUnsubscribeService } from '../src/modules/auth/mailer/email-unsubscribe.service';
 import { MediaService } from '../src/modules/media/media.service';
 import { TurnstileService } from '../src/modules/auth/security/turnstile.service';
 import { RedisService } from '../src/redis/redis.service';
@@ -15,6 +16,7 @@ describe('Newsletter API', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let redis: RedisService;
+  let emailUnsubscribe: EmailUnsubscribeService;
   const emailQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
   const origin = 'http://localhost:3001';
 
@@ -38,6 +40,7 @@ describe('Newsletter API', () => {
     await app.init();
     prisma = app.get(PrismaService);
     redis = app.get(RedisService);
+    emailUnsubscribe = app.get(EmailUnsubscribeService);
   });
 
   beforeEach(async () => {
@@ -55,42 +58,21 @@ describe('Newsletter API', () => {
       .set('Origin', origin)
       .send({ email });
 
-  function tokenFromQueuedEmail(path: 'confirm' | 'unsubscribe') {
-    const html = emailQueue.enqueue.mock.calls.at(-1)?.[0]?.html as string;
-    const match = html.match(new RegExp(`/newsletter/subscriptions/${path}\\?token=([^"&]+)`));
-    expect(match?.[1]).toBeTruthy();
-    return decodeURIComponent(match![1]);
-  }
-
-  it('requires confirmation before activating, then allows one-click unsubscribe', async () => {
+  it('activates a subscriber immediately, then allows one-click unsubscribe', async () => {
     const email = 'cook@example.newsletter.test';
 
     await subscribe(email).expect(202).expect({
       accepted: true,
-      message: 'Check your inbox to confirm your subscription.',
+      message: 'You are subscribed to CookTale.',
     });
-    expect(emailQueue.enqueue).toHaveBeenCalledTimes(1);
-
-    const pending = await prisma.newsletterSubscriber.findUniqueOrThrow({ where: { email } });
-    expect(pending).toMatchObject({ isActive: false, source: 'footer', confirmedAt: null });
-    expect(pending.confirmationTokenHash).toHaveLength(64);
-
-    const confirmToken = tokenFromQueuedEmail('confirm');
-    await request(app.getHttpServer())
-      .get(`/api/v1/newsletter/subscriptions/confirm?token=${encodeURIComponent(confirmToken)}`)
-      .expect(302)
-      .expect('Location', 'http://localhost:3001/?newsletter=confirmed');
+    expect(emailQueue.enqueue).not.toHaveBeenCalled();
 
     const active = await prisma.newsletterSubscriber.findUniqueOrThrow({ where: { email } });
-    expect(active.isActive).toBe(true);
+    expect(active).toMatchObject({ isActive: true, source: 'footer' });
     expect(active.confirmedAt).toBeInstanceOf(Date);
     expect(active.confirmationTokenHash).toBeNull();
 
-    await request(app.getHttpServer())
-      .get(`/api/v1/newsletter/subscriptions/confirm?token=${encodeURIComponent(confirmToken)}`)
-      .expect(401);
-
-    const unsubscribeToken = tokenFromQueuedEmail('unsubscribe');
+    const unsubscribeToken = emailUnsubscribe.createNewsletterUrl(active.id).split('token=')[1]!;
     await request(app.getHttpServer())
       .get(`/api/v1/newsletter/subscriptions/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`)
       .expect(302)
@@ -101,29 +83,16 @@ describe('Newsletter API', () => {
     expect(unsubscribed.unsubscribedAt).toBeInstanceOf(Date);
   });
 
-  it('keeps one row per email and does not re-send to an active subscriber', async () => {
+  it('keeps one row per email and does not change an active subscriber', async () => {
     const email = 'duplicate@example.newsletter.test';
     await subscribe(email).expect(202);
-    const firstToken = tokenFromQueuedEmail('confirm');
 
     await subscribe(email).expect(202);
     expect(await prisma.newsletterSubscriber.count({ where: { email } })).toBe(1);
-    expect(emailQueue.enqueue).toHaveBeenCalledTimes(2);
-
-    const currentToken = tokenFromQueuedEmail('confirm');
-    await request(app.getHttpServer())
-      .get(`/api/v1/newsletter/subscriptions/confirm?token=${encodeURIComponent(firstToken)}`)
-      .expect(401);
-    await request(app.getHttpServer())
-      .get(`/api/v1/newsletter/subscriptions/confirm?token=${encodeURIComponent(currentToken)}`)
-      .expect(302);
-
-    await subscribe(email).expect(202);
-    expect(await prisma.newsletterSubscriber.count({ where: { email } })).toBe(1);
-    expect(emailQueue.enqueue).toHaveBeenCalledTimes(2);
+    expect(emailQueue.enqueue).not.toHaveBeenCalled();
   });
 
-  it('rejects invalid input, untrusted origins, and excessive confirmation requests', async () => {
+  it('rejects invalid input, untrusted origins, and excessive signup requests', async () => {
     await subscribe('not-an-email').expect(400);
     await request(app.getHttpServer())
       .post('/api/v1/newsletter/subscriptions')

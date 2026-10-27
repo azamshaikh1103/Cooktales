@@ -67,18 +67,4 @@ describe('CookTale email layout', () => {
     await expect(unsubscribe.unsubscribeDailyDigest(`${token}changed`)).rejects.toThrow('Invalid unsubscribe link');
   });
 
-  it('builds a branded confirmation email with a subscriber unsubscribe link', () => {
-    const unsubscribe = new EmailUnsubscribeService(config as never, prisma as never);
-    const mailer = new AuthMailerService(config as never, unsubscribe);
-    const email = mailer.buildNewsletterConfirmationEmail({
-      to: 'chef@example.test',
-      confirmationUrl: 'https://api.cooktale.test/api/v1/newsletter/subscriptions/confirm?token=token',
-      unsubscribeUrl: 'https://api.cooktale.test/api/v1/newsletter/subscriptions/unsubscribe?token=token',
-    });
-
-    expect(email.subject).toBe('Confirm your CookTale newsletter subscription');
-    expect(email.html).toContain('Confirm your subscription');
-    expect(email.html).toContain('Confirm subscription');
-    expect(email.html).toContain('/newsletter/subscriptions/unsubscribe?token=token');
-  });
 });

@@ -128,7 +128,6 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(15 * 60),
-  NEWSLETTER_CONFIRMATION_TTL_HOURS: z.coerce.number().int().positive().max(168).default(24),
   NEWSLETTER_SIGNUP_EMAIL_LIMIT: z.coerce.number().int().positive().default(3),
   NEWSLETTER_SIGNUP_IP_LIMIT: z.coerce.number().int().positive().default(10),
   NEWSLETTER_SIGNUP_WINDOW_SECONDS: z.coerce.number().int().positive().default(60 * 60),

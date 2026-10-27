@@ -49,24 +49,6 @@ export class AuthMailerService {
     };
   }
 
-  buildNewsletterConfirmationEmail(input: { to: string; confirmationUrl: string; unsubscribeUrl: string }) {
-    return {
-      to: input.to,
-      subject: 'Confirm your CookTale newsletter subscription',
-      html: this.renderEmail({
-        title: 'Confirm your subscription',
-        preview: 'Confirm your email to receive CookTale recipes and kitchen ideas.',
-        emailReason: 'You received this because this email address was entered in the CookTale newsletter form.',
-        unsubscribeUrl: input.unsubscribeUrl,
-        body: `
-          <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4b5563;">Confirm your email to receive CookTale recipes, stories, and practical kitchen ideas.</p>
-          ${this.primaryButton(input.confirmationUrl, 'Confirm subscription')}
-          <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#667085;">This confirmation link expires in 24 hours. If you did not request this, you can ignore this email.</p>
-        `,
-      }),
-    };
-  }
-
   buildNotificationDigestEmail(input: {
     recipientId: string;
     to: string;

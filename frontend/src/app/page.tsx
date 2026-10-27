@@ -7,7 +7,6 @@ import {
 } from "@/components/homepage/HomeComponents";
 import HomePopups from "@/components/homepage/HomePopups";
 import RegionalPick from "@/components/homepage/RegionalPick";
-import Reviewsarea from "@/components/homepage/Reviews";
 import Stepsarea from "@/components/homepage/Stepsarea";
 import Navbar from "@/components/Navbar";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
@@ -42,8 +41,6 @@ export default async function HomePage() {
 				<RegionalPick />
 
 				<Stepsarea />
-
-				<Reviewsarea />
 			</main>
 
 			<Footer />

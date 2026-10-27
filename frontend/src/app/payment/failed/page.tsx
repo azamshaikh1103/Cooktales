@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaExclamationTriangle, FaArrowRight } from 'react-icons/fa';
+import { FaExclamationTriangle } from 'react-icons/fa';
 
 export default function PaymentFailed() {
   return (
@@ -17,14 +17,8 @@ export default function PaymentFailed() {
         </p>
         <div className="flex flex-col gap-4">
           <Link
-            href="/membership"
-            className="w-full rounded-2xl bg-white py-4 font-bold text-black transition-colors hover:bg-gray-200"
-          >
-            Try Again
-          </Link>
-          <Link
             href="/"
-            className="text-sm font-bold text-gray-500 transition-colors hover:text-white"
+            className="w-full rounded-2xl bg-white py-4 font-bold text-black transition-colors hover:bg-gray-200"
           >
             Back to Home
           </Link>

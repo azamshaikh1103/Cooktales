@@ -8,7 +8,6 @@ import {
   FaQuestionCircle,
   FaUserCog,
   FaUtensils,
-  FaCreditCard,
   FaBug,
   FaEnvelope,
 } from 'react-icons/fa';
@@ -27,7 +26,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Is CookTale free to use?',
-        a: "Yes! You can browse, search, and save recipes for free. We also offer a 'Sous Chef' premium membership for advanced features like nutritional analysis and ad-free browsing.",
+        a: 'Yes! CookTale is free to use. You can browse, search, save recipes, and share your own food stories.',
       },
       {
         q: 'Is there a mobile app?',
@@ -68,24 +67,6 @@ const FAQ_DATA = [
       {
         q: 'Can I save recipes offline?',
         a: "Offline access is currently a feature limited to our 'Sous Chef' premium members.",
-      },
-    ],
-  },
-  {
-    category: 'Membership & Billing',
-    icon: <FaCreditCard />,
-    items: [
-      {
-        q: "What is included in the 'Sous Chef' plan?",
-        a: 'You get an ad-free experience, unlimited collections, nutritional breakdowns, ingredient scaling tools, and priority support.',
-      },
-      {
-        q: 'Can I cancel my subscription?',
-        a: 'Absolutely. You can cancel anytime from your Billing Settings. You will retain access until the end of your current billing cycle.',
-      },
-      {
-        q: 'Do you offer refunds?',
-        a: 'We offer a 30-day money-back guarantee if you are not satisfied with the premium features. Contact support to process this.',
       },
     ],
   },

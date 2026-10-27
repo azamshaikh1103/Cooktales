@@ -1,13 +1,12 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-	FaTimes,
+	FaArrowRight,
 	FaCheck,
 	FaCrown,
 	FaStar,
-	FaArrowRight,
+	FaTimes,
 } from "react-icons/fa";
 
 interface AdFreePopupProps {
@@ -39,6 +38,7 @@ export const AdFreePopup = ({ isOpen, onClose }: AdFreePopupProps) => {
 					>
 						{/* Close Button */}
 						<button
+							type="button"
 							aria-label="Close Popup"
 							onClick={onClose}
 							className="absolute top-4 right-4 z-20 rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
@@ -91,11 +91,13 @@ export const AdFreePopup = ({ isOpen, onClose }: AdFreePopupProps) => {
 							</ul>
 
 							{/* CTA Button */}
-							<Link href="/membership" onClick={onClose}>
-								<button className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-amber-400 to-orange-500 py-4 text-lg font-black text-white shadow-xl shadow-amber-500/20 transition-colors hover:from-amber-300 hover:to-orange-400">
-									Join the Club <FaArrowRight />
-								</button>
-							</Link>
+							<button
+								type="button"
+								onClick={onClose}
+								className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-amber-400 to-orange-500 py-4 text-lg font-black text-white shadow-xl shadow-amber-500/20 transition-colors hover:from-amber-300 hover:to-orange-400"
+							>
+								Continue cooking <FaArrowRight />
+							</button>
 
 							<p className="mt-4 text-[10px] font-bold tracking-wider text-gray-500 uppercase dark:text-gray-500">
 								Cancel anytime • Secure payment

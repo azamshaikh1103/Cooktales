@@ -4,7 +4,6 @@ import {
 	AlertTriangle,
 	BookOpenText,
 	ChefHat,
-	Crown,
 	LogOut,
 	ScrollText,
 	Settings,
@@ -330,15 +329,8 @@ const ProfilePopup = ({ onRequestLogout }: { onRequestLogout: () => void }) => {
 			},
 		];
 
-		if (status === "authenticated") {
-			opts.push({
-				title: "Join Club",
-				icon: Crown,
-				onclick: () => router.push("/membership"),
-			});
-		}
 		return opts;
-	}, [router, dispatch, status, user]);
+	}, [router, dispatch, user]);
 
 	useEffect(() => {
 		const handleClickOutside = (e: MouseEvent) => {
@@ -664,13 +656,6 @@ const SmallWidthMenusPopup = ({
 					className="cursor-pointer rounded-xl px-3 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-[#f1f7f6] dark:text-gray-200 dark:hover:bg-white/5"
 				>
 					Community
-				</Link>
-				<Link
-					href="/membership"
-					onClick={onClose}
-					className="mt-1 flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-3 py-3 text-left text-sm font-semibold text-white dark:bg-[#4ADE80] dark:text-black"
-				>
-					<Crown className="h-4 w-4" /> Join Club
 				</Link>
 			</nav>
 

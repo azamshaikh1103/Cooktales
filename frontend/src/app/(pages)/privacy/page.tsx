@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
 										"Account details, such as your name, email address, username, profile image, and sign-in method.",
 										"Content and activity, such as recipes, stories, comments, reviews, bookmarks, follows, notification settings, and the media you upload.",
 										"Technical and security information, such as IP address, browser or device details, log records, and information used to prevent abuse or protect accounts.",
-										"Payment-related records, such as membership status and transaction references. Card details are handled by the payment provider, not stored by CookTale.",
+										"Payment-related records, such as transaction references. Card details are handled by the payment provider, not stored by CookTale.",
 									]}
 								/>
 							</PolicySection>

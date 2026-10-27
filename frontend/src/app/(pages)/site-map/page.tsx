@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MetadataRoute } from "next";
 import {
 	FaHome,
 	FaSearch,
@@ -13,7 +12,6 @@ import {
 	FaMapMarkedAlt,
 	FaComments,
 	FaTrophy,
-	FaCrown,
 	FaCookieBite,
 	FaBriefcase,
 } from "react-icons/fa";
@@ -90,12 +88,6 @@ export default async function Sitemap() {
 					icon: FaComments,
 					label: "Start a Discussion",
 					desc: "Ask the community a cooking question.",
-				},
-				{
-					href: "/membership",
-					icon: FaCrown,
-					label: "Membership",
-					desc: "View CookTale membership options.",
 				},
 			],
 		},

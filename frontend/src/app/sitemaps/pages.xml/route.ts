@@ -11,7 +11,6 @@ const pages = [
 	"/community/discussion",
 	"/community/challenge",
 	"/community/leaderboard",
-	"/membership",
 	"/about",
 	"/careers",
 	"/partners",

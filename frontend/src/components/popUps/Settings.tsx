@@ -58,7 +58,7 @@ import type { RootState } from '@/lib/store';
 import UpgradeModal from '../UpgradeModal';
 
 // --- TYPES ---
-type Tab = 'profile' | 'account' | 'preferences' | 'notifications' | 'billing' | 'danger';
+type Tab = 'profile' | 'account' | 'preferences' | 'notifications' | 'danger';
 
 type SaveBarState = {
   loading: boolean;
@@ -88,7 +88,6 @@ export default function SettingsModal() {
     { id: 'account', label: 'Account & Security', icon: FiLock },
     { id: 'preferences', label: 'App Preferences', icon: FiSettings },
     { id: 'notifications', label: 'Notifications', icon: FiBell },
-    { id: 'billing', label: 'Billing & Plan', icon: FiCreditCard },
   ];
 
   return (
@@ -167,7 +166,6 @@ export default function SettingsModal() {
                   {activeTab === 'account' && <AccountTab />}
                   {activeTab === 'preferences' && <PreferencesTab />}
                   {activeTab === 'notifications' && <NotificationsTab />}
-                  {activeTab === 'billing' && <BillingTab />}
                   {activeTab === 'danger' && <DangerTab />}
                 </div>
               </div>

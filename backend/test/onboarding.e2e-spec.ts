@@ -129,4 +129,29 @@ describe('Optional onboarding survey API', () => {
     expect(saved.surveySkippedAt).toBeInstanceOf(Date);
     expect(saved.discoverySource).toBeNull();
   });
+
+  it('saves earning from food content as a creator goal', async () => {
+    const user = await createUser('earnings@onboarding.test');
+    const token = await tokenFor(user);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/onboarding/survey')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        discoverySource: 'GOOGLE_SEARCH',
+        primaryGoal: 'EARN_FROM_CONTENT',
+        cookingIdentity: 'FOOD_CREATOR',
+      })
+      .expect(200)
+      .expect({
+        survey: {
+          surveyCompleted: true,
+          surveySkippedAt: null,
+          discoverySource: 'GOOGLE_SEARCH',
+          discoverySourceDetail: null,
+          onboardingGoal: 'EARN_FROM_CONTENT',
+          cookingIdentity: 'FOOD_CREATOR',
+        },
+      });
+  });
 });

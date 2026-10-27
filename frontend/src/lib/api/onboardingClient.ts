@@ -17,7 +17,8 @@ export type OnboardingGoal =
   | 'COOK_WITH_MORE_CONFIDENCE'
   | 'SAVE_MEAL_IDEAS'
   | 'SHARE_RECIPES_OR_STORIES'
-  | 'GROW_A_FOOD_AUDIENCE';
+  | 'GROW_A_FOOD_AUDIENCE'
+  | 'EARN_FROM_CONTENT';
 
 export type CookingIdentity =
   | 'BEGINNER'

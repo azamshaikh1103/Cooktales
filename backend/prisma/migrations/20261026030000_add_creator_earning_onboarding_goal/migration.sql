@@ -1,0 +1,1 @@
+ALTER TYPE "OnboardingGoal" ADD VALUE 'EARN_FROM_CONTENT';

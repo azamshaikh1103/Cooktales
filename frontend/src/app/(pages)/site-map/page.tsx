@@ -1,22 +1,21 @@
 import Link from "next/link";
 import {
-	FaHome,
-	FaSearch,
-	FaUtensils,
-	FaQuestionCircle,
-	FaShieldAlt,
+	FaBookOpen,
+	FaComments,
+	FaCookieBite,
 	FaEnvelope,
 	FaFileContract,
-	FaBookOpen,
-	FaPenNib,
+	FaHome,
 	FaMapMarkedAlt,
-	FaComments,
+	FaPenNib,
+	FaQuestionCircle,
+	FaSearch,
+	FaShieldAlt,
 	FaTrophy,
-	FaCookieBite,
-	FaBriefcase,
+	FaUtensils,
 } from "react-icons/fa";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export default async function Sitemap() {
 	const sections = [
@@ -101,18 +100,6 @@ export default async function Sitemap() {
 					desc: "Our mission & team.",
 				},
 				{
-					href: "/careers",
-					icon: FaBriefcase,
-					label: "Careers",
-					desc: "Explore opportunities with CookTale.",
-				},
-				{
-					href: "/partners",
-					icon: FaMapMarkedAlt,
-					label: "Partners",
-					desc: "Learn about working with CookTale.",
-				},
-				{
 					href: "/contact",
 					icon: FaEnvelope,
 					label: "Contact",
@@ -177,16 +164,16 @@ export default async function Sitemap() {
 
 					{/* --- MAP GRID --- */}
 					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
-						{sections.map((section, idx) => (
-							<div key={idx} className="flex flex-col gap-6">
+						{sections.map((section) => (
+							<div key={section.title} className="flex flex-col gap-6">
 								<h3 className="border-b border-gray-200 pb-4 text-sm font-bold tracking-widest text-gray-500 uppercase dark:border-white/10 dark:text-gray-500">
 									{section.title}
 								</h3>
 
 								<div className="flex flex-col gap-4">
-									{section.links.map((link, i) => (
+									{section.links.map((link) => (
 										<Link
-											key={i}
+											key={link.href}
 											href={link.href}
 											className="group flex items-start gap-4 rounded-2xl border border-gray-100 bg-white p-4 transition-colors duration-300 hover:border-[#006C5E]/30 dark:border-white/10 dark:bg-white/5 dark:hover:border-[#006C5E]/50 dark:hover:bg-white/10"
 										>

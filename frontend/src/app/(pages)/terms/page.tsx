@@ -8,12 +8,13 @@ import {
 } from "react-icons/fa";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 
 const SECTIONS = [
 	{ id: "service", label: "1. Using CookTale" },
 	{ id: "accounts", label: "2. Accounts" },
-	{ id: "content", label: "3. Your content" },
-	{ id: "payments", label: "4. Paid plans" },
+	{ id: "content", label: "3. Content and monetization" },
+	{ id: "payments", label: "4. Creator payments" },
 	{ id: "conduct", label: "5. Community rules" },
 	{ id: "safety", label: "6. Food safety" },
 	{ id: "availability", label: "7. Availability and liability" },
@@ -55,8 +56,9 @@ export default function TermsPage() {
 							Terms of Service
 						</h1>
 						<p className="max-w-2xl text-lg leading-relaxed text-gray-500 dark:text-gray-400">
-							Last updated: September 5, 2026. These terms set the rules for
-							using CookTale.
+							Last updated: October 28, 2026. These terms set the legal rules
+							for accessing and using CookTale (&quot;we&quot;, &quot;us&quot;,
+							or &quot;our&quot;).
 						</p>
 					</header>
 
@@ -85,76 +87,78 @@ export default function TermsPage() {
 						<div className="space-y-16 lg:col-span-9">
 							<TermsSection id="service" title="1. Using CookTale">
 								<p>
-									CookTale is a place to find, save, publish, and discuss
-									food-related content. By using it, you agree to these terms
-									and our Privacy Policy. Do not use CookTale if you cannot
-									legally agree to these terms where you live.
+									CookTale is a global platform to discover, save, publish, and
+									discuss food-related content. By accessing or using CookTale,
+									you agree to be bound by these Terms of Service and our
+									Privacy Policy. Do not use CookTale if you cannot legally form
+									a binding contract in your jurisdiction.
 								</p>
 								<p>
-									We may change, improve, limit, or stop parts of the service
-									when reasonably needed for security, maintenance, legal
-									reasons, or the operation of CookTale.
+									We may modify, update, limit, or discontinue parts of the
+									service when reasonably necessary for security, maintenance,
+									legal compliance, or platform evolution.
 								</p>
 							</TermsSection>
 
 							<TermsSection id="accounts" title="2. Accounts">
 								<List
 									items={[
-										"Give accurate account information and keep it updated.",
-										"Keep your password and sign-in method private. Tell us promptly if you believe someone has accessed your account without permission.",
-										"You are responsible for activity from your account unless it resulted from CookTale's failure to protect it.",
-										"Do not create accounts to impersonate another person or bypass a restriction.",
+										"Accurate information: You must provide accurate registration and payout information and keep it updated.",
+										"Account security: Keep your password and authentication credentials confidential. Notify us immediately if you suspect unauthorised access to your account.",
+										"Account responsibility: You are responsible for all activity occurring under your account unless caused by a verified security breach on CookTale's part.",
+										"No impersonation: Do not create accounts to impersonate another person, brand, or creator, or to evade a prior suspension or restriction.",
 									]}
 								/>
 							</TermsSection>
 
-							<TermsSection id="content" title="3. Your content">
+							<TermsSection
+								id="content"
+								title="3. Your content and platform monetization"
+							>
 								<p>
-									You keep ownership of the recipes, stories, comments, reviews,
-									photos, and other content you submit. You give CookTale a
-									non-exclusive, worldwide, royalty-free licence to host, store,
-									reproduce, adapt for technical formatting, display,
-									distribute, and promote that content through CookTale while it
-									is available on the service.
+									You retain ownership of the original recipes, stories,
+									comments, reviews, photos, and media you submit to CookTale.
+									By publishing content on the platform, you grant CookTale a
+									non-exclusive, worldwide, royalty-free license to host, store,
+									cache, reproduce, adapt for technical formatting, display,
+									distribute, and promote that content across CookTale and our
+									marketing channels while it remains published on the service.
 								</p>
-								<p>
-									You confirm that you have the rights needed to post your
-									content and that it does not break the law, infringe another
-									person&apos;s rights, or contain private information without
-									permission. We may remove or limit content that breaks these
-									terms, the law, or a valid rights complaint.
-								</p>
+								<List
+									items={[
+										"Right to monetize: You acknowledge and agree that CookTale may display third-party advertisements and promotional placements alongside, within, or adjacent to any content uploaded to the platform.",
+										"Content rights and plagiarism: You represent and warrant that you own or have the necessary legal rights to publish your submitted content, and that it does not infringe any copyright, trademark, or third-party right. Copying recipes, verbatim instructions, or photographs from other websites, cookbooks, or creators without authorisation is strictly prohibited and will result in content removal and forfeiture of monetisation eligibility.",
+									]}
+								/>
 							</TermsSection>
 
-							<TermsSection id="payments" title="4. Paid plans">
+							<TermsSection
+								id="payments"
+								title="4. Creator monetization and payments"
+							>
 								<p>
-									If you buy a paid plan, the price, billing period, taxes,
-									features, and any trial terms shown at checkout apply to that
-									purchase. Payments are processed by Lemon Squeezy or another
-									checkout provider shown at checkout.
+									Eligible creators may earn a share of net advertising revenue
+									generated by their published recipes, subject to the following
+									program terms:
 								</p>
-								<p>
-									Monthly and yearly plans renew unless you cancel before the
-									next renewal using the billing option provided by the checkout
-									provider. A lifetime plan is a one-time payment and does not
-									renew. We may change future plan prices or features, but a
-									change will not alter a completed payment without notice or a
-									lawful basis.
-								</p>
-								<p>
-									Refund and cancellation rights depend on the checkout terms
-									and the laws that apply to you. We will publish a specific
-									refund policy before public paid-plan launch.
-								</p>
+								<List
+									items={[
+										"Revenue calculation and Net-30 cycle: Creator revenue shares (targeted at 70% of net realised ad revenue) are calculated monthly based on verified, legitimate pageviews in proportion to total platform views. Earnings displayed in your dashboard during an active month are estimates only. Finalised earnings are settled and disbursed on a Net-30 monthly schedule only after CookTale actually receives settled funds from our advertising partners.",
+										"Minimum thresholds and processing fees: Payouts are issued only once an account's finalised balance reaches the applicable minimum payout threshold (for example, $50 USD for international payouts or ₹500 INR for domestic payouts). Third-party payment processor, currency conversion, or cross-border transfer fees (such as a 2% international payout processing fee) are deducted from the gross payout amount at the time of transfer.",
+										"Invalid traffic and forfeiture: If our automated systems or advertising partners detect invalid traffic, bot views, self-refreshing, click-exchange rings, or plagiarised or AI-spammed content, CookTale reserves the absolute right to deduct invalid impressions, withhold payouts, or permanently terminate monetisation access.",
+										"Taxes and independent status: Participating creators act strictly as independent third parties and not as employees, agents, or legal partners of CookTale. You are solely responsible for reporting and paying any applicable local, state, or national income taxes on payouts you receive.",
+										"Future paid features: If CookTale introduces optional paid features, courses, or digital products in the future, the pricing, billing intervals, taxes, and refund terms displayed at checkout will govern those purchases, processed securely via our third-party payment providers.",
+									]}
+								/>
 							</TermsSection>
 
 							<TermsSection id="conduct" title="5. Community rules">
 								<List
 									items={[
-										"Do not harass, threaten, deceive, spam, or post hateful, illegal, or harmful material.",
-										"Do not upload malware, scrape the service, overload it, or attempt to access accounts or data without permission.",
-										"Do not use another person's content, identity, or personal details without permission.",
-										"Do not use CookTale to advertise scams, collect personal data, or break applicable law.",
+										"Harass, threaten, deceive, spam, or post hateful, defamatory, illegal, or harmful material.",
+										"Artificially inflate recipe views, ad impressions, or engagement using bots, scripts, VPN cycling, auto-refreshers, or traffic-exchange networks.",
+										"Upload malware, scrape platform data, bypass rate limits, overload infrastructure, or attempt unauthorised access to accounts or systems.",
+										"Upload another creator's photographs, recipes, or personal details without authorisation, or use CookTale to promote scams or deceptive links.",
 									]}
 								/>
 							</TermsSection>
@@ -165,12 +169,15 @@ export default function TermsPage() {
 										<FaExclamationTriangle /> Use your judgement in the kitchen
 									</h3>
 									<p className="mt-3 leading-relaxed">
-										CookTale does not independently test every recipe or
-										nutrition statement. Check ingredients for allergies and
-										dietary needs, follow safe food-handling practices, cook
-										food to safe temperatures, and use equipment carefully. Talk
-										to a qualified professional for medical, allergy, or
-										nutrition advice.
+										CookTale is a community publishing platform and does not
+										independently test, verify, or certify user-submitted
+										recipes, cooking times, or nutritional statements. Always
+										check ingredients carefully for food allergies,
+										intolerances, and dietary restrictions, follow safe
+										food-handling and cross-contamination practices, cook meats
+										and perishables to safe internal temperatures, and handle
+										kitchen equipment with care. Consult a qualified physician
+										or dietitian for medical, allergy, or nutritional advice.
 									</p>
 								</div>
 							</TermsSection>
@@ -180,32 +187,40 @@ export default function TermsPage() {
 								title="7. Availability and liability"
 							>
 								<p>
-									We work to keep CookTale available and accurate, but the
-									service and community content are provided on an "as
-									available" basis. To the extent allowed by law, CookTale is
-									not responsible for indirect or unexpected losses arising from
-									use of the service or reliance on user-posted content.
+									CookTale and all community-submitted content are provided on
+									an &quot;as is&quot; and &quot;as available&quot; basis
+									without warranties of any kind, whether express or implied.
 								</p>
 								<p>
-									Nothing in these terms removes rights that the law does not
-									allow us to remove. If a law requires a different outcome,
-									that law applies.
+									To the maximum extent permitted by applicable law, CookTale
+									and its operators shall not be liable for any indirect,
+									incidental, consequential, or unexpected damages, including
+									loss of data, loss of anticipated ad revenue, or physical harm
+									or illness resulting from the preparation or consumption of
+									any recipe published on the service. Nothing in these terms
+									excludes liability where doing so is prohibited by applicable
+									law.
 								</p>
 							</TermsSection>
 
 							<TermsSection id="contact" title="8. Changes and contact">
 								<p>
-									We may update these terms as CookTale changes. The date above
-									shows the latest version. Continued use after an update means
-									you accept the updated terms, where the law allows this.
+									We may update these Terms of Service as CookTale introduces
+									new features or to comply with legal requirements. The
+									&quot;Last updated&quot; date at the top of this page reflects
+									the current version. Continued use of CookTale after an update
+									constitutes acceptance of the revised terms.
 								</p>
-								<p>For questions or rights complaints, contact:</p>
-								<a
+								<p>
+									For legal inquiries, copyright or DMCA takedown notices, or
+									questions regarding these terms, contact us at:
+								</p>
+								<PrimaryActionLink
 									href="mailto:legal@cooktale.in"
-									className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#006C5E] px-6 py-3 font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
+									className="mt-8"
 								>
 									<FaEnvelope /> legal@cooktale.in
-								</a>
+								</PrimaryActionLink>
 							</TermsSection>
 						</div>
 					</div>

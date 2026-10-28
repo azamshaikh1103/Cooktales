@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import { FaEnvelope, FaUsers } from "react-icons/fa";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 
 const SECTIONS = [
 	{ id: "purpose", label: "1. Our community" },
-	{ id: "post", label: "2. What you can post" },
-	{ id: "conduct", label: "3. Treat people well" },
-	{ id: "safety", label: "4. Safety and rights" },
-	{ id: "moderation", label: "5. Moderation" },
-	{ id: "reports", label: "6. Reporting a problem" },
+	{ id: "post", label: "2. Content and integrity" },
+	{ id: "conduct", label: "3. Respectful conduct" },
+	{ id: "safety", label: "4. Food safety and law" },
+	{ id: "moderation", label: "5. Moderation and enforcement" },
+	{ id: "reports", label: "6. Reporting and copyright" },
 ];
 
 export default function CommunityGuidelinesPage() {
@@ -43,8 +44,9 @@ export default function CommunityGuidelinesPage() {
 							Community Guidelines
 						</h1>
 						<p className="max-w-2xl text-lg leading-relaxed text-gray-500 dark:text-gray-400">
-							Last updated: September 5, 2026. These guidelines help make
-							CookTale useful, safe, and welcoming for everyone.
+							Last updated: October 29, 2026. These guidelines set the standards
+							for participating in CookTale&apos;s recipes, comments, reviews,
+							and community discussion threads.
 						</p>
 					</header>
 
@@ -77,71 +79,113 @@ export default function CommunityGuidelinesPage() {
 						<div className="space-y-16 lg:col-span-9">
 							<GuidelineSection id="purpose" title="1. Our community">
 								<p>
-									CookTale is for people who enjoy cooking, learning, and
-									sharing food. We welcome different cultures, skill levels,
-									diets, and opinions. Be helpful, honest, and respectful.
+									CookTale is a global culinary community for food creators,
+									home cooks, and food lovers to exchange recipes, share
+									techniques, and discuss cooking. We welcome diverse cultures,
+									culinary traditions, and dietary perspectives.
+								</p>
+								<p>
+									By starting a discussion, replying to a topic, or leaving a
+									recipe review or comment, you agree to treat other members
+									with respect and follow these standards.
 								</p>
 							</GuidelineSection>
 
-							<GuidelineSection id="post" title="2. What you can post">
+							<GuidelineSection
+								id="post"
+								title="2. Content standards and integrity"
+							>
 								<List
 									items={[
-										"Share recipes, food stories, reviews, tips, and comments that are useful and truthful.",
-										"Use photos, videos, and text that you created or have permission to use.",
-										"Make clear when a post includes a paid partnership, affiliate link, or promotion.",
-										"Keep private information, such as phone numbers, addresses, passwords, and payment details, out of public posts.",
+										"Originality and ownership: Only upload recipes, stories, photographs, and media that you created or have express permission to share. Do not scrape or repost content from cookbooks, food blogs, or paid publications.",
+										"Commercial transparency: Clearly disclose affiliate links, sponsored partnerships, paid endorsements, or self-promotional products, for example #ad, #sponsored, or [Affiliate].",
+										"No unsolicited promotion or spam: Do not post automated links, affiliate spam, repetitive self-promotion, or deceptive commercial schemes.",
+										"Privacy and confidentiality: Never post another person's private information, including phone numbers, home addresses, email addresses, or payment details.",
 									]}
 								/>
 							</GuidelineSection>
 
-							<GuidelineSection id="conduct" title="3. Treat people well">
+							<GuidelineSection
+								id="conduct"
+								title="3. Respectful conduct and discussions"
+							>
 								<List
 									items={[
-										"Do not harass, threaten, shame, discriminate against, or target another person.",
-										"Do not spam, mislead people, impersonate others, or repeatedly post unwanted promotions.",
-										"Disagree with ideas without attacking the person who shared them.",
-										"Do not manipulate reviews, likes, follows, or other community activity.",
+										"Harassment and hate speech: No bullying, targeted harassment, insults, threats of violence, or hate speech targeting race, ethnicity, religion, gender, sexual orientation, disability, or national origin.",
+										"Constructive critique: Honest recipe feedback and culinary debate are welcome. Personal attacks, derogatory insults, and bad-faith disruption are not.",
+										"Impersonation and deception: Do not impersonate chefs, creators, brands, or CookTale representatives, or mislead the community with fraudulent credentials.",
+										"Review and thread manipulation: Do not use duplicate accounts to manipulate recipe ratings, artificially boost likes, or coordinate review-bombing campaigns.",
 									]}
 								/>
 							</GuidelineSection>
 
-							<GuidelineSection id="safety" title="4. Safety and rights">
+							<GuidelineSection
+								id="safety"
+								title="4. Food safety, health and legal compliance"
+							>
 								<p>
-									Do not share dangerous instructions, illegal content, or
-									content that encourages self-harm or harm to others. Recipes
-									are shared for general information, so readers must still
-									check allergens, ingredients, and safe cooking temperatures.
+									Food preparation carries real-world health responsibilities.
+									Do not post preservation or preparation instructions known to
+									pose serious biological or chemical hazards, such as unsafe
+									home canning, toxic wild-mushroom foraging, or improperly
+									handled raw perishables.
 								</p>
 								<p>
-									Respect copyright, privacy, and other people&apos;s rights. Do
-									not copy someone&apos;s recipe, photo, or story and present it
-									as your own.
+									Do not present recipes as medical cures or offer unverified
+									medical, allergy, or dietary diagnoses. Do not share illegal,
+									dangerous, sexually explicit, or self-harm content.
+								</p>
+								<p>
+									Community discussions, reviews, comments, and cooking tips are
+									the views of their authors. CookTale does not endorse,
+									guarantee, or take responsibility for user-submitted advice.
 								</p>
 							</GuidelineSection>
 
-							<GuidelineSection id="moderation" title="5. Moderation">
+							<GuidelineSection
+								id="moderation"
+								title="5. Moderation and enforcement"
+							>
 								<p>
-									We may remove content, limit features, or suspend accounts
-									that break these guidelines, our Terms of Service, or the law.
-									We make these decisions to protect people and the CookTale
-									community. We may act quickly when there is a safety,
-									security, or legal risk.
+									To protect the community, CookTale may review content and
+									account behaviour that violates these guidelines, our Terms,
+									or applicable law. We may act promptly, including by:
 								</p>
+								<List
+									items={[
+										"Editing, locking, or removing discussion threads, comments, reviews, or uploaded recipes.",
+										"Muting, restricting, or suspending posting and commenting privileges.",
+										"Withholding or ending creator monetisation eligibility when community rules are breached.",
+										"Banning accounts and associated access when necessary to protect the platform or community.",
+									]}
+								/>
 							</GuidelineSection>
 
-							<GuidelineSection id="reports" title="6. Reporting a problem">
+							<GuidelineSection
+								id="reports"
+								title="6. Reporting violations and copyright notices"
+							>
 								<p>
-									Use the report option on a post when available. For urgent
-									safety concerns, copyright concerns, or a decision you believe
-									was wrong, email us with a link to the content, a short
-									explanation, and any useful evidence.
+									If you encounter harmful content, harassment, or another
+									violation, use the report option on the relevant recipe,
+									comment, review, or thread when it is available. For serious
+									safety threats, impersonation, or persistent harassment, email
+									us with direct URLs and context.
 								</p>
-								<a
-									href="mailto:legal@cooktale.in"
-									className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#006C5E] px-6 py-3 font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
-								>
-									<FaEnvelope /> legal@cooktale.in
-								</a>
+								<p>
+									For copyright or DMCA notices, email our designated copyright
+									team with the work you own, the exact CookTale URL, your legal
+									name and contact details, your signature, and a good-faith
+									statement that the use is unauthorised.
+								</p>
+								<div className="mt-8 flex flex-wrap gap-3">
+									<PrimaryActionLink href="mailto:support@cooktale.in">
+										<FaEnvelope /> Email support
+									</PrimaryActionLink>
+									<PrimaryActionLink href="mailto:legal@cooktale.in">
+										<FaEnvelope /> Copyright and DMCA
+									</PrimaryActionLink>
+								</div>
 							</GuidelineSection>
 						</div>
 					</div>

@@ -12,8 +12,6 @@ const pages = [
 	"/community/challenge",
 	"/community/leaderboard",
 	"/about",
-	"/careers",
-	"/partners",
 	"/contact",
 	"/faq",
 	"/privacy",

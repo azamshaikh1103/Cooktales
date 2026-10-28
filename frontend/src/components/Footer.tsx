@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { BiLoaderAlt } from "react-icons/bi";
 import {
+	FaArrowRight,
+	FaCheck,
+	FaEnvelope,
 	FaFacebookF,
 	FaInstagram,
-	FaYoutube,
-	FaArrowRight,
-	FaEnvelope,
 	FaTwitter,
-	FaCheck,
+	FaYoutube,
 } from "react-icons/fa";
-import { useState } from "react";
-import { newsletterClient } from "@/lib/api/newsletterClient";
 import { toast } from "sonner";
-import { BiLoaderAlt } from "react-icons/bi";
+import { newsletterClient } from "@/lib/api/newsletterClient";
 
 const Footer = () => {
 	const [email, setEmail] = useState("");
@@ -31,7 +31,9 @@ const Footer = () => {
 			setEmail("");
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Newsletter signup is unavailable right now.",
+				error instanceof Error
+					? error.message
+					: "Newsletter signup is unavailable right now.",
 			);
 		} finally {
 			setIsLoading(false);
@@ -91,40 +93,41 @@ const Footer = () => {
 
 						<form onSubmit={handleSubscribe}>
 							<div className="flex rounded-xl border border-white/10 bg-[#00463d] p-1 transition-colors focus-within:border-white/50 dark:bg-black/20">
-							<div className="flex items-center pl-3 text-white/40">
-								<FaEnvelope />
-							</div>
-							<input
-								type="email"
-								required
-								disabled={isLoading || isSuccess}
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder={
-									isSuccess ? "You're subscribed!" : "Enter your email"
-								}
-								className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50"
-							/>
-							<button
-								type="submit"
-								disabled={isLoading || isSuccess}
-								className={`flex min-w-[80px] cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-sm font-bold transition-all ${
-									isSuccess
-										? "bg-green-500 text-white"
-										: "bg-[#006C5E] text-white hover:bg-[#007d6d] dark:bg-white dark:text-black dark:hover:bg-gray-200"
-								}`}
-							>
-								{isLoading ? (
-									<BiLoaderAlt className="animate-spin" />
-								) : isSuccess ? (
-									<FaCheck />
-								) : (
-									"Join"
-								)}
-							</button>
+								<div className="flex items-center pl-3 text-white/40">
+									<FaEnvelope />
+								</div>
+								<input
+									type="email"
+									required
+									disabled={isLoading || isSuccess}
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									placeholder={
+										isSuccess ? "You're subscribed!" : "Enter your email"
+									}
+									className="w-full bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50"
+								/>
+								<button
+									type="submit"
+									disabled={isLoading || isSuccess}
+									className={`flex min-w-[80px] cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+										isSuccess
+											? "bg-green-500 text-white"
+											: "bg-[#006C5E] text-white hover:bg-[#007d6d] dark:bg-white dark:text-black dark:hover:bg-gray-200"
+									}`}
+								>
+									{isLoading ? (
+										<BiLoaderAlt className="animate-spin" />
+									) : isSuccess ? (
+										<FaCheck />
+									) : (
+										"Join"
+									)}
+								</button>
 							</div>
 							<p className="mt-3 text-xs leading-relaxed text-white/55">
-								By joining, you agree to receive CookTale emails. Unsubscribe anytime.
+								By joining, you agree to receive CookTale emails. Unsubscribe
+								anytime.
 							</p>
 						</form>
 					</div>
@@ -174,7 +177,7 @@ const Footer = () => {
 
 					{/* Column 2 */}
 					<div className="flex flex-col gap-4">
-						<h4 className="mb-2 text-lg font-bold text-white">Company</h4>
+						<h4 className="mb-2 text-lg font-bold text-white">CookTale</h4>
 						<Link
 							href="/about"
 							className="text-sm text-white/70 transition-colors hover:text-white"
@@ -188,16 +191,16 @@ const Footer = () => {
 							Contact
 						</Link>
 						<Link
-							href="/careers"
+							href="/faq"
 							className="text-sm text-white/70 transition-colors hover:text-white"
 						>
-							Careers
+							FAQ
 						</Link>
 						<Link
-							href="/partners"
+							href="/site-map"
 							className="text-sm text-white/70 transition-colors hover:text-white"
 						>
-							Partners
+							Sitemap
 						</Link>
 					</div>
 
@@ -227,18 +230,6 @@ const Footer = () => {
 							className="text-sm text-white/70 transition-colors hover:text-white"
 						>
 							Community Guidelines
-						</Link>
-						<Link
-							href="/refunds"
-							className="text-sm text-white/70 transition-colors hover:text-white"
-						>
-							Refund & Cancellation
-						</Link>
-						<Link
-							href="/site-map"
-							className="text-sm text-white/70 transition-colors hover:text-white"
-						>
-							Sitemap
 						</Link>
 					</div>
 				</div>

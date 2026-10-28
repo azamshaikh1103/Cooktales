@@ -1,16 +1,14 @@
 import "./globals.css";
-import Script from "next/script";
-import { Toaster } from "sonner";
 import type { Metadata } from "next";
-import ReduxContextProvider from "./provider";
-import TabManager from "@/components/TabManager";
-import ScrollToTop from "@/components/ScrollToTop";
-import { Raleway, Montserrat } from "next/font/google";
+import { Montserrat, Raleway } from "next/font/google";
+import Script from "next/script";
+import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "sonner";
 import OfflineStatus from "@/components/OfflineStatus";
 import ScriptManager from "@/components/ScriptManager";
-import CookieConsent from "@/components/popUps/CookieConsent";
-import { CookieProvider } from "@/lib/context/CookieContext";
-import NextTopLoader from "nextjs-toploader";
+import ScrollToTop from "@/components/ScrollToTop";
+import TabManager from "@/components/TabManager";
+import ReduxContextProvider from "./provider";
 
 export const raleway = Raleway({
 	subsets: ["latin"],
@@ -55,8 +53,7 @@ export const metadata: Metadata = {
 	publisher: "CookTale Inc.",
 	openGraph: {
 		title: "CookTale | Experience the taste of your own food",
-		description:
-			"Join the world's best community of home chefs.",
+		description: "Join the world's best community of home chefs.",
 		url: BASE_URL,
 		siteName: "CookTale",
 		images: [
@@ -148,8 +145,7 @@ export default async function RootLayout({
 					"@type": "SearchAction",
 					target: {
 						"@type": "EntryPoint",
-						urlTemplate:
-							"https://cooktale.in/search?q={search_term_string}",
+						urlTemplate: "https://cooktale.in/search?q={search_term_string}",
 					},
 					"query-input": "required name=search_term_string",
 				},
@@ -197,43 +193,40 @@ export default async function RootLayout({
 			<body
 				className={`overflow-x-clip bg-[#fafafa] antialiased transition-colors duration-500 dark:bg-[#0d1f1c]`}
 			>
-				<CookieProvider>
-					<ScriptManager />
+				<ScriptManager />
 
-					<Script
-						id="org-schema"
-						type="application/ld+json"
-						dangerouslySetInnerHTML={{
-							__html: JSON.stringify(organizationSchema),
-						}}
+				<Script
+					id="org-schema"
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(organizationSchema),
+					}}
+				/>
+
+				<ReduxContextProvider>
+					<NextTopLoader
+						color="#006C5E"
+						initialPosition={0.08}
+						crawlSpeed={200}
+						height={3}
+						crawl={true}
+						showSpinner={false}
+						easing="ease"
+						speed={200}
+						shadow="0 0 10px #006C5E,0 0 5px #006C5E"
+						zIndex={99999} // Forces it above everything
 					/>
-
-					<ReduxContextProvider>
-						<NextTopLoader
-							color="#006C5E"
-							initialPosition={0.08}
-							crawlSpeed={200}
-							height={3}
-							crawl={true}
-							showSpinner={false}
-							easing="ease"
-							speed={200}
-							shadow="0 0 10px #006C5E,0 0 5px #006C5E"
-							zIndex={99999} // Forces it above everything
-						/>
-						<ScrollToTop />
-						<TabManager />
-						<CookieConsent />
-						<OfflineStatus />
-						{children}
-						<Toaster
-							position="bottom-right"
-							theme="system"
-							richColors
-							expand={true}
-						/>
-					</ReduxContextProvider>
-				</CookieProvider>
+					<ScrollToTop />
+					<TabManager />
+					<OfflineStatus />
+					{children}
+					<Toaster
+						position="bottom-right"
+						theme="system"
+						richColors
+						expand={true}
+					/>
+				</ReduxContextProvider>
 			</body>
 		</html>
 	);

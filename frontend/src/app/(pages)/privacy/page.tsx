@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaEnvelope, FaShieldAlt } from "react-icons/fa";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 
 const SECTIONS = [
 	{ id: "information", label: "1. Information we collect" },
@@ -11,9 +12,9 @@ const SECTIONS = [
 	{ id: "sharing", label: "3. When we share it" },
 	{ id: "content", label: "4. Public content" },
 	{ id: "retention", label: "5. Storage and security" },
-	{ id: "choices", label: "6. Your choices" },
-	{ id: "cookies", label: "7. Cookies and ads" },
-	{ id: "contact", label: "8. Contact" },
+	{ id: "choices", label: "6. Your choices and rights" },
+	{ id: "cookies", label: "7. Cookies and advertising" },
+	{ id: "contact", label: "8. Changes and contact" },
 ];
 
 export default function PrivacyPolicy() {
@@ -51,9 +52,10 @@ export default function PrivacyPolicy() {
 							Privacy Policy
 						</h1>
 						<p className="max-w-2xl text-lg leading-relaxed text-gray-500 dark:text-gray-400">
-							Last updated: September 5, 2026. This policy explains how CookTale
-							handles personal information when you use the website and its
-							features.
+							Last updated: October 28, 2026. This policy explains how CookTale
+							(&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects,
+							uses, and protects your personal information when you use our
+							website and services.
 						</p>
 					</header>
 
@@ -82,15 +84,15 @@ export default function PrivacyPolicy() {
 						<div className="space-y-16 lg:col-span-9">
 							<PolicySection id="information" title="1. Information we collect">
 								<p>
-									We collect the information needed to run CookTale and the
-									information you choose to give us.
+									We collect information required to operate CookTale, support
+									our creator community, and maintain platform security.
 								</p>
 								<List
 									items={[
-										"Account details, such as your name, email address, username, profile image, and sign-in method.",
-										"Content and activity, such as recipes, stories, comments, reviews, bookmarks, follows, notification settings, and the media you upload.",
-										"Technical and security information, such as IP address, browser or device details, log records, and information used to prevent abuse or protect accounts.",
-										"Payment-related records, such as transaction references. Card details are handled by the payment provider, not stored by CookTale.",
+										"Account and profile details: Information you provide when registering or updating your profile, such as your name, email address, username, profile image, bio, and authentication method.",
+										"Public content and community activity: Recipes, stories, ingredients, instructions, photos, comments, reviews, bookmarks, follows, and notification preferences you choose to submit or publish.",
+										"Creator monetization and payment records: If you participate in creator monetization or make transactions on the platform, we collect necessary payout identifiers (such as your designated payout email, bank or transfer routing identifiers, or tax compliance status) and transaction reference records. Payment card credentials for any purchases are processed directly by our third-party payment gateways and are never stored by CookTale.",
+										"Technical, usage, and anti-fraud data: Information collected automatically when you interact with the platform, including IP addresses, browser and device characteristics, operating system, referring URLs, page interaction logs, and session identifiers used to verify legitimate traffic, prevent automated abuse, and secure accounts.",
 									]}
 								/>
 							</PolicySection>
@@ -98,82 +100,88 @@ export default function PrivacyPolicy() {
 							<PolicySection id="use" title="2. How we use it">
 								<List
 									items={[
-										"To create and secure accounts, provide the features you ask for, and respond to support requests.",
-										"To show your public profile and community activity where you choose to publish it.",
-										"To send service messages, such as verification, password reset, account, payment, and notification emails.",
-										"To investigate misuse, enforce our rules, improve reliability, and meet legal obligations.",
-										"To provide optional analytics or advertising only when you allow the related cookies.",
+										"Provide and secure the service: To create and authenticate accounts, deliver platform features, personalise your recipe feed, and respond to support inquiries.",
+										"Enable community features: To display your public profile, published recipes, and community interactions where you choose to share them.",
+										"Creator earnings and payouts: To measure content performance, verify authentic pageviews, detect invalid or fraudulent traffic, calculate creator ad-revenue shares, and disburse payouts.",
+										"Transactional communications: To send essential service notifications, including email verification codes, password resets, security alerts, and billing or payout updates.",
+										"Safety, compliance, and analytics: To investigate misuse, enforce our Terms of Service, meet tax and legal obligations, and—where permitted by your cookie preferences—analyse site performance and serve advertisements.",
 									]}
 								/>
 							</PolicySection>
 
 							<PolicySection id="sharing" title="3. When we share it">
 								<p>
-									We do not sell personal information. We share it only when
-									needed to operate CookTale, process a request, comply with
-									law, or protect people and the service.
+									We do not sell your personal information to third parties. We
+									share data only when necessary to operate CookTale, complete a
+									transaction you requested, or comply with the law.
 								</p>
-								<p>
-									Examples include hosting and database providers, Cloudinary
-									for media storage, Google for sign-in, Cloudflare Turnstile
-									for abuse prevention, Resend for email delivery, Lemon Squeezy
-									for payments, and Google services if you opt in to analytics
-									or advertising. Each provider handles information under its
-									own terms and privacy policy.
-								</p>
+								<List
+									items={[
+										"Service providers: We engage trusted third-party vendors to perform essential infrastructure functions on our behalf—such as cloud hosting, database storage, media content delivery, transactional email delivery, security and bot protection, and payment or payout processing. These providers are authorised to process data strictly as needed to perform their services for us.",
+										"Advertising and analytics partners: Where enabled, we work with advertising networks and analytics providers to measure traffic trends and display advertisements across the platform.",
+										"Legal and safety obligations: We may disclose information if required by law, regulation, or legal process, or when necessary to investigate fraud, enforce our policies, or protect the rights, property, and safety of CookTale, our users, or the public.",
+									]}
+								/>
 							</PolicySection>
 
 							<PolicySection id="content" title="4. Public content">
 								<p>
-									Recipes, stories, comments, reviews, profile details, and
-									media that you publish can be visible to other people and may
-									be indexed by search engines. Do not publish personal,
-									private, or sensitive information that you do not want others
-									to see.
+									Recipes, stories, comments, reviews, profile information, and
+									media that you publish on CookTale are public by default and
+									may be indexed by third-party search engines or shared across
+									the web. Do not publish private, confidential, or sensitive
+									personal information in public areas.
 								</p>
 								<p>
-									Deleting an item removes it from CookTale&apos;s normal public
-									view. Copies may remain temporarily in backups, browser
-									caches, or third-party search indexes until they refresh.
+									When you delete published content, it is removed from
+									CookTale&apos;s public views; however, residual copies may
+									remain temporarily in system backups, browser caches, or
+									external search engine indexes until they naturally refresh.
 								</p>
 							</PolicySection>
 
 							<PolicySection id="retention" title="5. Storage and security">
 								<p>
-									We keep account information while your account is active and
-									for a reasonable period afterward when needed for security,
-									legal records, dispute handling, or backups. We keep public
-									content until you delete it, we remove it, or your account is
-									deleted.
+									We retain account information for as long as your account
+									remains active and for a reasonable period afterward as
+									necessary to maintain security, prevent fraud, resolve
+									disputes, or comply with statutory tax, accounting, and legal
+									record-keeping requirements.
 								</p>
 								<p>
-									We use reasonable technical and organisational safeguards,
-									including access controls and encrypted connections. No online
-									system can guarantee absolute security.
+									We implement industry-standard technical, administrative, and
+									organisational safeguards—including encrypted data
+									transmission (TLS/SSL) and strict access controls—to protect
+									your information. However, no internet transmission or
+									electronic storage system can guarantee absolute security.
 								</p>
 							</PolicySection>
 
-							<PolicySection id="choices" title="6. Your choices">
+							<PolicySection id="choices" title="6. Your choices and rights">
 								<p>
-									You can update profile and notification settings in CookTale.
-									You can request an export of your account data or delete your
-									account from account settings. Depending on where you live,
-									you may also have rights to access, correct, delete, restrict,
-									object to, or receive a copy of your personal information.
+									You can review and update your profile details, payout
+									settings, and notification preferences directly in your
+									account settings. You may also request an export of your
+									account data or delete your account at any time.
 								</p>
 								<p>
-									To make a privacy request that settings do not cover, email us
-									from the address connected to your account. We may need to
-									verify your identity before acting on the request.
+									Depending on your location, you may have statutory rights
+									under applicable data protection laws to access, correct,
+									delete, restrict, or object to our processing of your personal
+									information, or to withdraw previously granted consent. To
+									submit a privacy request not covered by your account settings,
+									email us from the address associated with your account. We may
+									require identity verification before fulfilling a request.
 								</p>
 							</PolicySection>
 
 							<PolicySection id="cookies" title="7. Cookies and advertising">
 								<p>
-									Essential cookies keep the site working and protect accounts.
-									Analytics and advertising tools are optional and are not
-									loaded until you choose them. You can change this choice at
-									any time in the{" "}
+									We use essential cookies and local storage technologies to
+									keep the site functioning, authenticate sessions, remember
+									preferences, and protect against unauthorised access. Optional
+									analytics and advertising cookies are governed by your
+									preferences, which you can adjust at any time via our{" "}
 									<a
 										className="font-bold text-[#006C5E] hover:underline dark:text-[#4ADE80]"
 										href="/cookies"
@@ -183,9 +191,13 @@ export default function PrivacyPolicy() {
 									.
 								</p>
 								<p>
-									When advertising is enabled, Google AdSense may process data
-									under Google&apos;s policies. You can also manage personalised
-									Google ads in{" "}
+									When advertising is active, third-party vendors, including
+									Google AdSense, use cookies to serve ads based on a
+									user&apos;s prior visits to CookTale or other websites on the
+									internet. Google&apos;s use of advertising cookies enables it
+									and its partners to serve personalised or contextual ads to
+									users. You may opt out of personalised advertising at any time
+									by visiting{" "}
 									<a
 										className="font-bold text-[#006C5E] hover:underline dark:text-[#4ADE80]"
 										href="https://www.google.com/settings/ads"
@@ -193,6 +205,15 @@ export default function PrivacyPolicy() {
 										rel="noreferrer"
 									>
 										Google Ads Settings
+									</a>{" "}
+									or{" "}
+									<a
+										className="font-bold text-[#006C5E] hover:underline dark:text-[#4ADE80]"
+										href="https://www.aboutads.info"
+										target="_blank"
+										rel="noreferrer"
+									>
+										www.aboutads.info
 									</a>
 									.
 								</p>
@@ -205,12 +226,12 @@ export default function PrivacyPolicy() {
 									be communicated through the site or by email when appropriate.
 								</p>
 								<p>For privacy questions or requests, contact CookTale at:</p>
-								<a
+								<PrimaryActionLink
 									href="mailto:privacy@cooktale.in"
-									className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#006C5E] px-6 py-3 font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
+									className="mt-8"
 								>
 									<FaEnvelope /> privacy@cooktale.in
-								</a>
+								</PrimaryActionLink>
 							</PolicySection>
 						</div>
 					</div>

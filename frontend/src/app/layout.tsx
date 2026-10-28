@@ -173,6 +173,30 @@ export default async function RootLayout({
 					crossOrigin="anonymous"
 				/>
 				<script
+					async
+					src="https://fundingchoicesmessages.google.com/i/pub-6574614841664693?ers=1"
+				/>
+				<script
+					id="google-funding-choices-present"
+					dangerouslySetInnerHTML={{
+						__html: `(function() {
+  function signalGooglefcPresent() {
+    if (!window.frames.googlefcPresent) {
+      if (document.body) {
+        var iframe = document.createElement('iframe');
+        iframe.style = 'width:0;height:0;border:0;z-index:-1000;left:-1000px;top:-1000px;display:none';
+        iframe.name = 'googlefcPresent';
+        document.body.appendChild(iframe);
+      } else {
+        setTimeout(signalGooglefcPresent, 0);
+      }
+    }
+  }
+  signalGooglefcPresent();
+})();`,
+					}}
+				/>
+				<script
 					dangerouslySetInnerHTML={{
 						__html: `
               (function() {

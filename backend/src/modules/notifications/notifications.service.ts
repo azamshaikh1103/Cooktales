@@ -17,6 +17,7 @@ type CreateNotificationInput = {
   targetPath?: string | null;
   payload?: Prisma.InputJsonValue;
   dedupeKey?: string;
+  force?: boolean;
 };
 
 const actorSelect = {
@@ -51,7 +52,7 @@ export class NotificationsService {
         select: { id: true, notificationPreferences: true },
       });
       if (!recipient) return null;
-      if (!this.isEnabled(recipient.notificationPreferences, input.type)) return null;
+      if (!input.force && !this.isEnabled(recipient.notificationPreferences, input.type)) return null;
 
       const data = {
         recipientId: input.recipientId,

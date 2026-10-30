@@ -9,6 +9,8 @@ import { AdminRecipesService } from './admin-recipes.service';
 import { HideAdminRecipeDto, ListAdminRecipesQueryDto } from './dto/admin-recipes.dto';
 import { HideAdminStoryDto, ListAdminStoriesQueryDto } from './dto/admin-stories.dto';
 import { AdminStoriesService } from './admin-stories.service';
+import { AdminUserReasonDto, ListAdminUsersQueryDto } from './dto/admin-users.dto';
+import { AdminUsersService } from './admin-users.service';
 
 @Controller({ path: 'admin', version: '1' })
 @UseGuards(CsrfOriginGuard, AuthGuard, AdminGuard)
@@ -18,6 +20,7 @@ export class AdminController {
     private readonly operations: AdminOperationsService,
     private readonly recipes: AdminRecipesService,
     private readonly stories: AdminStoriesService,
+    private readonly users: AdminUsersService,
   ) {}
 
   @Get('analytics/overview')
@@ -67,5 +70,33 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   restoreStory(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
     return this.stories.restore(request.user.sub, id);
+  }
+
+  @Get('users')
+  listUsers(@Query() query: ListAdminUsersQueryDto) {
+    return this.users.list(query);
+  }
+
+  @Get('users/:id')
+  getUser(@Param('id') id: string) {
+    return this.users.get(id);
+  }
+
+  @Post('users/:id/warn')
+  @HttpCode(HttpStatus.OK)
+  warnUser(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: AdminUserReasonDto) {
+    return this.users.warn(request.user.sub, id, dto);
+  }
+
+  @Post('users/:id/ban')
+  @HttpCode(HttpStatus.OK)
+  banUser(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: AdminUserReasonDto) {
+    return this.users.ban(request.user.sub, id, dto);
+  }
+
+  @Post('users/:id/unban')
+  @HttpCode(HttpStatus.OK)
+  unbanUser(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: AdminUserReasonDto) {
+    return this.users.unban(request.user.sub, id, dto);
   }
 }

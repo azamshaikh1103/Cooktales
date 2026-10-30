@@ -58,6 +58,8 @@ model User {
   deletedAt               DateTime?
   oauthAccounts           OAuthAccount[]
   authSessions            AuthSession[]
+  adminActionsTaken       AdminUserModerationAction[] @relation("AdminUserActionActor")
+  adminActionsReceived    AdminUserModerationAction[] @relation("AdminUserActionTarget")
   adminRecipeActions      AdminRecipeModerationAction[] @relation("AdminRecipeActionActor")
   adminStoryActions       AdminStoryModerationAction[]  @relation("AdminStoryActionActor")
   stories                 Story[]
@@ -419,6 +421,21 @@ model AdminStoryModerationAction {
   admin     User                            @relation("AdminStoryActionActor", fields: [adminId], references: [id], onDelete: Cascade)
 
   @@index([storyId, createdAt])
+  @@index([adminId, createdAt])
+}
+
+model AdminUserModerationAction {
+  id            String                          @id @default(uuid())
+  targetUserId  String
+  adminId       String
+  action        AdminUserModerationActionType
+  reason        String
+  emailQueuedAt DateTime?
+  createdAt     DateTime                        @default(now())
+  targetUser    User                            @relation("AdminUserActionTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  admin         User                            @relation("AdminUserActionActor", fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([targetUserId, createdAt])
   @@index([adminId, createdAt])
 }
 
@@ -787,6 +804,12 @@ enum StoryStatus {
 enum AdminStoryModerationActionType {
   HIDDEN
   RESTORED
+}
+
+enum AdminUserModerationActionType {
+  WARNING
+  BANNED
+  UNBANNED
 }
 
 enum RecipeMediaKind {

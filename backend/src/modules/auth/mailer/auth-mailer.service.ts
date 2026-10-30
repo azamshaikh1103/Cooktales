@@ -65,6 +65,23 @@ export class AuthMailerService {
     };
   }
 
+  buildAdminModerationEmail(input: { to: string; name: string; action: 'warning'; reason: string }) {
+    return {
+      to: input.to,
+      subject: 'A message from CookTale',
+      html: this.renderEmail({
+        title: 'Please review this CookTale warning',
+        preview: 'CookTale has sent you an account warning.',
+        body: `
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4b5563;">Hi ${this.escapeHtml(input.name)},</p>
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4b5563;">We need you to review a warning about your CookTale account:</p>
+          <div style="margin:0 0 18px;padding:16px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:15px;line-height:1.6;color:#7c2d12;">${this.escapeHtml(input.reason)}</div>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#667085;">Please follow the CookTale community rules. Repeated problems may lead to account suspension.</p>
+        `,
+      }),
+    };
+  }
+
   buildNotificationDigestEmail(input: {
     recipientId: string;
     to: string;

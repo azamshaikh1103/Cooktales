@@ -45,9 +45,9 @@ function passwordResetToken(email: QueuedEmail) {
 }
 
 function adminMagicLink(email: QueuedEmail) {
-  const match = email.html.match(/admin\/complete\?token=([^&"']+)&amp;email=([^"']+)/);
+  const match = email.html.match(/auth\/complete\?email=([^&"']+)&amp;token=([^"']+)/);
   if (!match) throw new Error('Admin magic link not found in queued email');
-  return { token: match[1], email: decodeURIComponent(match[2]) };
+  return { email: decodeURIComponent(match[1]), token: match[2] };
 }
 
 describe('Authentication API', () => {

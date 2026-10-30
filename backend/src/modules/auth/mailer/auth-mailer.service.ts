@@ -49,6 +49,22 @@ export class AuthMailerService {
     };
   }
 
+  buildAdminMagicLinkEmail(email: string, loginUrl: string) {
+    return {
+      to: email,
+      subject: 'Your secure CookTale admin link',
+      html: this.renderEmail({
+        title: 'Sign in to CookTale admin',
+        preview: 'Use this secure, one-time link to open the admin workspace.',
+        body: `
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#4b5563;">Use this secure link to open the CookTale admin workspace.</p>
+          ${this.primaryButton(loginUrl, 'Open admin workspace')}
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#667085;">This link expires shortly and works once. If you did not request it, you can ignore this email.</p>
+        `,
+      }),
+    };
+  }
+
   buildNotificationDigestEmail(input: {
     recipientId: string;
     to: string;

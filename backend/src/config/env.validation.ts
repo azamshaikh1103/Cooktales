@@ -41,6 +41,21 @@ const envSchema = z.object({
   EMAIL_VERIFICATION_CODE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
   EMAIL_VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   PASSWORD_RESET_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  ADMIN_APP_URL: z.string().url().default('http://localhost:3002'),
+  ADMIN_MAGIC_LINK_EMAILS: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ADMIN_MAGIC_LINK_TTL_SECONDS: z.coerce.number().int().positive().default(15 * 60),
+  ADMIN_MAGIC_LINK_EMAIL_LIMIT: z.coerce.number().int().positive().default(5),
+  ADMIN_MAGIC_LINK_EMAIL_WINDOW_SECONDS: z.coerce.number().int().positive().default(60 * 60),
+  ADMIN_MAGIC_LINK_IP_LIMIT: z.coerce.number().int().positive().default(10),
+  ADMIN_MAGIC_LINK_IP_WINDOW_SECONDS: z.coerce.number().int().positive().default(60 * 60),
   AUTH_RATE_LIMIT_ENABLED: z
     .string()
     .default('true')

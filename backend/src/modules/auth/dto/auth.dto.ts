@@ -84,3 +84,14 @@ export class ResetPasswordDto {
   })
   password!: string;
 }
+
+export class AdminMagicLinkRequestDto {
+  @IsEmail()
+  email!: string;
+}
+
+export class AdminMagicLinkConsumeDto extends AdminMagicLinkRequestDto {
+  @IsString()
+  @MinLength(32)
+  token!: string;
+}

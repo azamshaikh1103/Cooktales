@@ -208,6 +208,21 @@ export class AuthRateLimitService {
     });
   }
 
+  async checkAdminMagicLink(email: string, meta: AuthRateLimitMeta) {
+    await this.consumeMany([
+      {
+        key: this.key('admin-magic-link', 'email', email),
+        limit: this.config.get('ADMIN_MAGIC_LINK_EMAIL_LIMIT', { infer: true }),
+        windowSeconds: this.config.get('ADMIN_MAGIC_LINK_EMAIL_WINDOW_SECONDS', { infer: true }),
+      },
+      {
+        key: this.key('admin-magic-link', 'ip', this.ipKey(meta.ipAddress)),
+        limit: this.config.get('ADMIN_MAGIC_LINK_IP_LIMIT', { infer: true }),
+        windowSeconds: this.config.get('ADMIN_MAGIC_LINK_IP_WINDOW_SECONDS', { infer: true }),
+      },
+    ]);
+  }
+
   private async consumeMany(rules: RateLimitRule[]) {
     for (const rule of rules) {
       await this.consume(rule);

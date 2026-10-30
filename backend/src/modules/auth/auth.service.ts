@@ -15,6 +15,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import {
   ForgotPasswordDto,
+  AdminMagicLinkConsumeDto,
+  AdminMagicLinkRequestDto,
   LoginDto,
   ResendVerificationDto,
   ResetPasswordDto,
@@ -256,6 +258,64 @@ export class AuthService {
     return { success: true };
   }
 
+  async requestAdminMagicLink(dto: AdminMagicLinkRequestDto, meta: RequestMeta) {
+    const email = dto.email.toLowerCase().trim();
+    await this.rateLimit.checkAdminMagicLink(email, meta);
+
+    if (!this.isAllowedAdminEmail(email)) return;
+
+    const token = randomBytes(32).toString('base64url');
+    const loginUrl = new URL('/auth/complete', this.config.get('ADMIN_APP_URL', { infer: true }));
+    loginUrl.searchParams.set('email', email);
+    loginUrl.searchParams.set('token', token);
+
+    await this.redis.getClient().set(
+      this.getAdminMagicLinkKey(email),
+      this.hashAdminMagicLinkToken(email, token),
+      'EX',
+      this.config.get('ADMIN_MAGIC_LINK_TTL_SECONDS', { infer: true }),
+    );
+    await this.emailQueue.enqueue(this.mailer.buildAdminMagicLinkEmail(email, loginUrl.toString()));
+  }
+
+  async consumeAdminMagicLink(dto: AdminMagicLinkConsumeDto, meta: RequestMeta) {
+    const email = dto.email.toLowerCase().trim();
+    if (!this.isAllowedAdminEmail(email)) {
+      throw new BadRequestException('Invalid or expired admin link');
+    }
+
+    const consumed = await this.redis.getClient().eval(
+      "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+      1,
+      this.getAdminMagicLinkKey(email),
+      this.hashAdminMagicLinkToken(email, dto.token),
+    );
+
+    if (consumed !== 1) {
+      throw new BadRequestException('Invalid or expired admin link');
+    }
+
+    const user = await this.prisma.user.upsert({
+      where: { email },
+      update: {
+        role: UserRole.ADMIN,
+        status: AccountStatus.ACTIVE,
+        deletedAt: null,
+        emailVerified: new Date(),
+      },
+      create: {
+        email,
+        name: 'CookTale Admin',
+        username: await this.generateUniqueUsername(email.split('@')[0]),
+        role: UserRole.ADMIN,
+        status: AccountStatus.ACTIVE,
+        emailVerified: new Date(),
+      },
+    });
+
+    return this.createAuthResponse(user, meta);
+  }
+
   async resetPassword(dto: ResetPasswordDto, meta: RequestMeta) {
     const email = dto.email.toLowerCase().trim();
     await this.rateLimit.checkResetPassword(email, dto.token, meta);
@@ -484,6 +544,19 @@ export class AuthService {
 
   private getPasswordResetKey(email: string) {
     return `auth:password-reset:${email}`;
+  }
+
+  private getAdminMagicLinkKey(email: string) {
+    return `auth:admin-magic-link:${email}`;
+  }
+
+  private hashAdminMagicLinkToken(email: string, token: string) {
+    const secret = this.config.get('JWT_REFRESH_SECRET', { infer: true }) || 'local-admin-link-secret';
+    return createHash('sha256').update(`admin-magic-link:${email}:${token}:${secret}`).digest('hex');
+  }
+
+  private isAllowedAdminEmail(email: string) {
+    return this.config.get('ADMIN_MAGIC_LINK_EMAILS', { infer: true }).includes(email);
   }
 
   private hashVerificationCode(email: string, code: string) {

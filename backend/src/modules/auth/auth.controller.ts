@@ -29,6 +29,8 @@ import { AuthService } from './auth.service';
 import { CsrfOriginGuard } from './security/csrf-origin.guard';
 import {
   ForgotPasswordDto,
+  AdminMagicLinkConsumeDto,
+  AdminMagicLinkRequestDto,
   LoginDto,
   RefreshTokenDto,
   ResendVerificationDto,
@@ -121,6 +123,25 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto, @Req() request: Request) {
     return this.authService.resetPassword(dto, this.getRequestMeta(request));
+  }
+
+  @Post('admin/magic-link')
+  @HttpCode(HttpStatus.OK)
+  async requestAdminMagicLink(@Body() dto: AdminMagicLinkRequestDto, @Req() request: Request) {
+    await this.authService.requestAdminMagicLink(dto, this.getRequestMeta(request));
+    return { success: true };
+  }
+
+  @Post('admin/magic-link/consume')
+  @HttpCode(HttpStatus.OK)
+  async consumeAdminMagicLink(
+    @Body() dto: AdminMagicLinkConsumeDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.consumeAdminMagicLink(dto, this.getRequestMeta(request));
+    this.setRefreshCookie(response, result.refreshToken);
+    return removeRefreshTokenFromResponse(result);
   }
 
   @Get('google')

@@ -44,6 +44,12 @@ function passwordResetToken(email: QueuedEmail) {
   return match[1];
 }
 
+function adminMagicLink(email: QueuedEmail) {
+  const match = email.html.match(/admin\/complete\?token=([^&"']+)&amp;email=([^"']+)/);
+  if (!match) throw new Error('Admin magic link not found in queued email');
+  return { token: match[1], email: decodeURIComponent(match[2]) };
+}
+
 describe('Authentication API', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -251,6 +257,40 @@ describe('Authentication API', () => {
 
     expect(response.body).toEqual({ success: true });
     expect(enqueue).toHaveBeenCalledTimes(callsBefore);
+  });
+
+  it('sends an approved administrator a single-use email link without Turnstile', async () => {
+    const email = 'admin@example.test';
+
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/admin/magic-link')
+      .set('Origin', trustedOrigin)
+      .send({ email })
+      .expect(200)
+      .expect({ success: true });
+
+    expect(verifyTurnstile).not.toHaveBeenCalled();
+    const link = adminMagicLink(latestEmail(enqueue));
+
+    const authenticated = await request(app.getHttpServer())
+      .post('/api/v1/auth/admin/magic-link/consume')
+      .set('Origin', trustedOrigin)
+      .send(link)
+      .expect(200);
+
+    expect(authenticated.body.user).toMatchObject({ email, role: 'ADMIN' });
+    expect(getCookie(authenticated)).toContain('HttpOnly');
+    await request(app.getHttpServer())
+      .get('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${authenticated.body.accessToken}`)
+      .expect(200)
+      .expect(({ body }) => expect(body.user.role).toBe('ADMIN'));
+
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/admin/magic-link/consume')
+      .set('Origin', trustedOrigin)
+      .send(link)
+      .expect(400);
   });
 
   it('blocks login after five wrong passwords', async () => {

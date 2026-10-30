@@ -58,6 +58,7 @@ model User {
   deletedAt               DateTime?
   oauthAccounts           OAuthAccount[]
   authSessions            AuthSession[]
+  adminRecipeActions      AdminRecipeModerationAction[] @relation("AdminRecipeActionActor")
   stories                 Story[]
   bookmarks               Bookmark[]
   challengeEntries        ChallengeEntry[]
@@ -396,6 +397,7 @@ model Recipe {
   steps              Step[]
   regionalPopularity Country[]        @relation("PopularInCountries")
   collections        Collection[]     @relation("RecipeCollections")
+  adminModerationActions AdminRecipeModerationAction[]
 
   @@unique([authorId, clientDraftId])
   @@index([authorId, status])
@@ -403,6 +405,20 @@ model Recipe {
   @@index([status, recipeCategory, publishedAt])
   @@index([deletedAt])
   @@index([popularityScore])
+}
+
+model AdminRecipeModerationAction {
+  id        String                           @id @default(uuid())
+  recipeId  String
+  adminId   String
+  action    AdminRecipeModerationActionType
+  reason    String?
+  createdAt DateTime                         @default(now())
+  recipe    Recipe                           @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  admin     User                             @relation("AdminRecipeActionActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, createdAt])
+  @@index([adminId, createdAt])
 }
 
 model RecipeMedia {
@@ -738,6 +754,11 @@ enum RecipeStatus {
   PUBLISHED
   ARCHIVED
   DELETED
+}
+
+enum AdminRecipeModerationActionType {
+  HIDDEN
+  RESTORED
 }
 
 enum StoryStatus {

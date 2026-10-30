@@ -16,6 +16,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { StudioModule } from './modules/studio/studio.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ContactModule } from './modules/contact/contact.module';
     StudioModule,
     PaymentsModule,
     ContactModule,
+    AdminModule,
     HealthModule,
   ],
 })

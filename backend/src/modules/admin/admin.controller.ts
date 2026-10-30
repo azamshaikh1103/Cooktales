@@ -7,6 +7,8 @@ import { AdminAnalyticsService } from './admin-analytics.service';
 import { AdminOperationsService } from './admin-operations.service';
 import { AdminRecipesService } from './admin-recipes.service';
 import { HideAdminRecipeDto, ListAdminRecipesQueryDto } from './dto/admin-recipes.dto';
+import { HideAdminStoryDto, ListAdminStoriesQueryDto } from './dto/admin-stories.dto';
+import { AdminStoriesService } from './admin-stories.service';
 
 @Controller({ path: 'admin', version: '1' })
 @UseGuards(CsrfOriginGuard, AuthGuard, AdminGuard)
@@ -15,6 +17,7 @@ export class AdminController {
     private readonly analytics: AdminAnalyticsService,
     private readonly operations: AdminOperationsService,
     private readonly recipes: AdminRecipesService,
+    private readonly stories: AdminStoriesService,
   ) {}
 
   @Get('analytics/overview')
@@ -47,5 +50,22 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   restoreRecipe(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
     return this.recipes.restore(request.user.sub, id);
+  }
+
+  @Get('stories')
+  listStories(@Query() query: ListAdminStoriesQueryDto) {
+    return this.stories.list(query);
+  }
+
+  @Post('stories/:id/hide')
+  @HttpCode(HttpStatus.OK)
+  hideStory(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: HideAdminStoryDto) {
+    return this.stories.hide(request.user.sub, id, dto);
+  }
+
+  @Post('stories/:id/restore')
+  @HttpCode(HttpStatus.OK)
+  restoreStory(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.stories.restore(request.user.sub, id);
   }
 }

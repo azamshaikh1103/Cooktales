@@ -59,6 +59,7 @@ model User {
   oauthAccounts           OAuthAccount[]
   authSessions            AuthSession[]
   adminRecipeActions      AdminRecipeModerationAction[] @relation("AdminRecipeActionActor")
+  adminStoryActions       AdminStoryModerationAction[]  @relation("AdminStoryActionActor")
   stories                 Story[]
   bookmarks               Bookmark[]
   challengeEntries        ChallengeEntry[]
@@ -407,6 +408,20 @@ model Recipe {
   @@index([popularityScore])
 }
 
+model AdminStoryModerationAction {
+  id        String                          @id @default(uuid())
+  storyId   String
+  adminId   String
+  action    AdminStoryModerationActionType
+  reason    String?
+  createdAt DateTime                        @default(now())
+  story     Story                           @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  admin     User                            @relation("AdminStoryActionActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([storyId, createdAt])
+  @@index([adminId, createdAt])
+}
+
 model AdminRecipeModerationAction {
   id        String                           @id @default(uuid())
   recipeId  String
@@ -472,6 +487,7 @@ model Story {
   media              StoryMedia[]
   userLikes          Like[]
   reviews            Review[]
+  adminModerationActions AdminStoryModerationAction[]
 
   @@unique([authorId, clientDraftId])
   @@index([authorId, status])
@@ -766,6 +782,11 @@ enum StoryStatus {
   PUBLISHED
   ARCHIVED
   DELETED
+}
+
+enum AdminStoryModerationActionType {
+  HIDDEN
+  RESTORED
 }
 
 enum RecipeMediaKind {

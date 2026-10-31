@@ -3,6 +3,18 @@ import type { PrismaService } from '../../database/prisma.service';
 import { AdminUsersService } from './admin-users.service';
 
 describe('AdminUsersService', () => {
+  it('includes administrator accounts in the people list', async () => {
+    const prisma = {
+      user: { findMany: jest.fn().mockResolvedValue([]), count: jest.fn().mockResolvedValue(0) },
+    } as unknown as PrismaService;
+    const service = new AdminUsersService(prisma, {} as never, {} as never, {} as never);
+
+    await service.list({ page: 1, pageSize: 25 });
+
+    const [{ where }] = (prisma.user.findMany as jest.Mock).mock.calls[0];
+    expect(where.role).toBeUndefined();
+  });
+
   it('bans an active non-admin user, revokes sessions, and records why', async () => {
     const tx = {
       user: {

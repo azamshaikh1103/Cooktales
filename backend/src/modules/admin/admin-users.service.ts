@@ -56,7 +56,6 @@ export class AdminUsersService {
         : {};
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
-      role: { not: UserRole.ADMIN },
       ...(query.status ? { status: query.status } : {}),
       ...kindFilter,
       ...(query.search ? {
@@ -90,7 +89,7 @@ export class AdminUsersService {
 
   async get(id: string) {
     const user = await this.prisma.user.findFirst({
-      where: { id, deletedAt: null, role: { not: UserRole.ADMIN } },
+      where: { id, deletedAt: null },
       select: {
         ...userSelect,
         adminActionsReceived: {

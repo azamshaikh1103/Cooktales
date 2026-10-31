@@ -237,7 +237,7 @@ const Footer = () => {
 				{/* --- BOTTOM SECTION: COPYRIGHT & SOCIALS --- */}
 				<div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 md:flex-row">
 					<div className="text-xs font-medium text-white/60">
-						© 2026 COOKTALE INC. ALL RIGHTS RESERVED.
+						© 2026 COOKTALE. ALL RIGHTS RESERVED.
 					</div>
 
 					<div className="flex gap-4">

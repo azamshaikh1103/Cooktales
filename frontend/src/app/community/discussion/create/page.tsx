@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
 import {
 	FaArrowLeft,
@@ -16,20 +16,14 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { PrimaryActionButton } from "@/components/ui/PrimaryActionButton";
 import { communityClient } from "@/lib/api/communityClient";
 import { type SearchResult, searchClient } from "@/lib/api/searchClient";
+import { DISCUSSION_CATEGORIES } from "@/lib/community/discussionCategories";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import imageLoader from "@/lib/loader";
 
 // --- TYPES ---
-const CATEGORIES = [
-	{ id: "help", label: "Cooking Help", icon: "🆘" },
-	{ id: "showcase", label: "Showcase", icon: "📸" },
-	{ id: "technique", label: "Technique", icon: "🔪" },
-	{ id: "equipment", label: "Equipment", icon: "🍳" },
-	{ id: "ingredients", label: "Ingredients", icon: "🥕" },
-];
-
 interface AttachedItem {
 	type: "image" | "recipe" | "story";
 	id: string; // URL for image, ID for recipe/blog
@@ -45,7 +39,7 @@ export default function CreateDiscussion() {
 	// State
 	const [title, setTitle] = useState("");
 	const [body, setBody] = useState("");
-	const [category, setCategory] = useState(CATEGORIES[0].id);
+	const [category, setCategory] = useState<string>(DISCUSSION_CATEGORIES[0]);
 	const [attachments, setAttachments] = useState<AttachedItem[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,7 +66,7 @@ export default function CreateDiscussion() {
 				]);
 				toast.success("Image attached", { id: toastId });
 			}
-		} catch (err) {
+		} catch {
 			toast.error("Upload failed", { id: toastId });
 		}
 	};
@@ -112,8 +106,10 @@ export default function CreateDiscussion() {
 
 			toast.success("Discussion posted! 🎉");
 			router.push(`/community/discussion/${discussion.slug}`);
-		} catch (error: any) {
-			toast.error(error.message || "Failed to post discussion.");
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Failed to post discussion.",
+			);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -124,12 +120,13 @@ export default function CreateDiscussion() {
 			<Navbar />
 
 			{/* --- HEADER --- */}
-			<div className="relative top-20 z-30 border-b border-gray-200 bg-[#fafafa]/90 px-6 py-4 backdrop-blur-md dark:border-white/5 dark:bg-[#0d1f1c]/90">
-				<div className="container mx-auto flex max-w-4xl items-center justify-between">
+			<div className="relative top-20 z-30 border-b border-gray-200 bg-[#fafafa]/90 px-6 py-4 backdrop-blur-md dark:border-white/10 dark:bg-[#0d1f1c]/90">
+				<div className="container mx-auto flex max-w-3xl items-center justify-between">
 					<div className="flex items-center gap-4">
 						<button
+							type="button"
 							onClick={() => router.back()}
-							className="rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+							className="cursor-pointer rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
 						>
 							<FaArrowLeft className="text-gray-500 dark:text-gray-400" />
 						</button>
@@ -137,10 +134,10 @@ export default function CreateDiscussion() {
 							Start a Discussion
 						</span>
 					</div>
-					<button
+					<PrimaryActionButton
 						onClick={handleSubmit}
 						disabled={isSubmitting}
-						className="flex items-center gap-2 rounded-xl bg-[#006C5E] px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-[#005a4e] disabled:opacity-50 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74]"
+						className="px-5 py-2.5"
 					>
 						{isSubmitting ? (
 							<BiLoaderAlt className="animate-spin" />
@@ -148,49 +145,61 @@ export default function CreateDiscussion() {
 							<FaPaperPlane />
 						)}{" "}
 						Post
-					</button>
+					</PrimaryActionButton>
 				</div>
 			</div>
 
-			<main className="container mx-auto max-w-4xl px-6 py-24">
-				<div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-					{/* LEFT: EDITOR */}
-					<div className="space-y-8 lg:col-span-8">
-						{/* 1. Category Picker */}
-						<div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-							{CATEGORIES.map((cat) => (
-								<button
-									key={cat.id}
-									onClick={() => setCategory(cat.id)}
-									className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold whitespace-nowrap transition-all ${
-										category === cat.id
-											? "border-[#006C5E] bg-[#006C5E] text-white dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-black"
-											: "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-									}`}
-								>
-									<span>{cat.icon}</span> {cat.label}
-								</button>
-							))}
+			<main className="container mx-auto max-w-3xl px-6 py-28">
+				<div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-[#152a26]">
+					<div className="mb-7">
+						<h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+							Start a discussion
+						</h1>
+						<p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+							Ask a clear cooking question, share something you made, or start a
+							useful food conversation.
+						</p>
+					</div>
+					<div className="space-y-6">
+						<div>
+							<p className="mb-3 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+								Choose a topic
+							</p>
+							<div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+								{DISCUSSION_CATEGORIES.map((cat) => (
+									<button
+										key={cat}
+										type="button"
+										onClick={() => setCategory(cat)}
+										aria-pressed={category === cat}
+										className={`flex cursor-pointer items-center rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors ${
+											category === cat
+												? "border-[#006C5E] bg-[#006C5E] text-white dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-black"
+												: "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
+										}`}
+									>
+										{cat}
+									</button>
+								))}
+							</div>
 						</div>
 
-						{/* 2. Inputs */}
 						<div className="space-y-4">
 							<input
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								placeholder="What's on your mind?"
-								className="w-full bg-transparent p-0 text-3xl font-semibold outline-none placeholder:text-gray-300 focus:ring-0 lg:text-4xl dark:placeholder:text-gray-700"
-								autoFocus
+								className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-xl font-semibold text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
 							/>
 							<textarea
 								value={body}
 								onChange={(e) => {
 									setBody(e.target.value);
 									e.target.style.height = "auto";
-									e.target.style.height = e.target.scrollHeight + "px";
+									e.target.style.height = `${e.target.scrollHeight}px`;
 								}}
 								placeholder="Share your details, questions, or story..."
-								className="min-h-[200px] w-full resize-none bg-transparent p-0 text-lg leading-relaxed text-gray-600 outline-none placeholder:text-gray-300 focus:ring-0 dark:text-gray-300 dark:placeholder:text-gray-700"
+								className="min-h-[220px] w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-7 text-gray-700 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
 							/>
 						</div>
 
@@ -199,7 +208,7 @@ export default function CreateDiscussion() {
 							<div className="grid grid-cols-2 gap-4">
 								{attachments.map((item, i) => (
 									<div
-										key={i}
+										key={`${item.type}-${item.id}`}
 										className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5"
 									>
 										{item.type === "image" ? (
@@ -234,8 +243,9 @@ export default function CreateDiscussion() {
 											</div>
 										)}
 										<button
+											type="button"
 											onClick={() => removeAttachment(i)}
-											className="absolute top-2 right-2 rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500"
+											className="absolute top-2 right-2 cursor-pointer rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500"
 										>
 											<FaTimes size={12} />
 										</button>
@@ -244,8 +254,7 @@ export default function CreateDiscussion() {
 							</div>
 						)}
 
-						{/* 4. Toolbar */}
-						<div className="flex items-center gap-2 border-t border-gray-200 pt-4 dark:border-white/10">
+						<div className="flex items-center gap-2 border-t border-gray-200 pt-5 dark:border-white/10">
 							<input
 								type="file"
 								id="img-upload"
@@ -261,8 +270,9 @@ export default function CreateDiscussion() {
 							</label>
 
 							<button
+								type="button"
 								onClick={() => setShowLinker(true)}
-								className="rounded-xl bg-gray-100 p-3 text-gray-500 transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
+								className="cursor-pointer rounded-xl bg-gray-100 p-3 text-gray-500 transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
 							>
 								<FaLink className="text-lg" />
 							</button>
@@ -270,24 +280,6 @@ export default function CreateDiscussion() {
 							<span className="ml-auto hidden text-xs text-gray-400 sm:block">
 								Markdown Supported
 							</span>
-						</div>
-					</div>
-
-					{/* RIGHT: GUIDELINES SIDEBAR */}
-					<div className="hidden lg:col-span-4 lg:block">
-						<div className="sticky top-32 rounded-4xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-900/10">
-							<h3 className="mb-4 font-bold text-blue-800 dark:text-blue-300">
-								Posting Guidelines
-							</h3>
-							<ul className="space-y-3 text-sm text-blue-900/70 dark:text-blue-200/70">
-								<li>• Be kind and respectful to other chefs.</li>
-								<li>
-									• If asking for help, provide details (recipe used, oven
-									temp).
-								</li>
-								<li>• No self-promotion or spam links.</li>
-								<li>• Keep it food related! 🍕</li>
-							</ul>
 						</div>
 					</div>
 				</div>
@@ -305,9 +297,19 @@ export default function CreateDiscussion() {
 }
 
 // --- LINKER MODAL COMPONENT ---
-const LinkerModal = ({ onClose, onSelect }: any) => {
+interface LinkerModalProps {
+	onClose: () => void;
+	onSelect: (item: AttachedSearchResult, type: "recipe" | "story") => void;
+}
+
+type AttachedSearchResult = SearchResult & { type: "recipe" | "story" };
+
+const isAttachableResult = (item: SearchResult): item is AttachedSearchResult =>
+	item.type === "recipe" || item.type === "story";
+
+const LinkerModal = ({ onClose, onSelect }: LinkerModalProps) => {
 	const [query, setQuery] = useState("");
-	const [results, setResults] = useState<any[]>([]);
+	const [results, setResults] = useState<AttachedSearchResult[]>([]);
 	const [loading, setLoading] = useState(false);
 
 	const handleSearch = async (val: string) => {
@@ -321,11 +323,7 @@ const LinkerModal = ({ onClose, onSelect }: any) => {
 				type: "all",
 				limit: 10,
 			});
-			setResults(
-				response.suggestions.filter(
-					(item) => item.type === "recipe" || item.type === "story",
-				),
-			);
+			setResults(response.suggestions.filter(isAttachableResult));
 		} catch (e) {
 			console.error(e);
 		} finally {
@@ -334,13 +332,12 @@ const LinkerModal = ({ onClose, onSelect }: any) => {
 	};
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-			onClick={onClose}
-		>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
 			<div
+				role="dialog"
+				aria-modal="true"
+				aria-label="Attach a recipe or story"
 				className="w-full max-w-lg overflow-hidden rounded-4xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#152a26]"
-				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="flex items-center gap-3 border-b border-gray-100 p-4 dark:border-white/5">
 					<FaSearch className="text-gray-400" />
@@ -349,9 +346,8 @@ const LinkerModal = ({ onClose, onSelect }: any) => {
 						onChange={(e) => handleSearch(e.target.value)}
 						placeholder="Search for a recipe or story..."
 						className="flex-1 bg-transparent text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
-						autoFocus
 					/>
-					<button onClick={onClose}>
+					<button type="button" onClick={onClose}>
 						<FaTimes className="text-gray-400 hover:text-gray-900 dark:hover:text-white" />
 					</button>
 				</div>
@@ -368,10 +364,11 @@ const LinkerModal = ({ onClose, onSelect }: any) => {
 					) : (
 						<div className="space-y-1">
 							{results.map((item) => (
-								<div
+								<button
 									key={item.id}
+									type="button"
 									onClick={() => onSelect(item, item.type)}
-									className="flex cursor-pointer items-center gap-3 rounded-xl p-2 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+									className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
 								>
 									<div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gray-200 dark:bg-white/10">
 										{item.image && (
@@ -393,7 +390,7 @@ const LinkerModal = ({ onClose, onSelect }: any) => {
 											{item.type}
 										</p>
 									</div>
-								</div>
+								</button>
 							))}
 						</div>
 					)}

@@ -1,11 +1,20 @@
 "use client";
 
-import { BookOpen, ChefHat, Clock3, Search, UserRound, X } from "lucide-react";
+import {
+	BookOpen,
+	ChefHat,
+	ChevronDown,
+	Clock3,
+	Search,
+	UserRound,
+	X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
 	type FormEvent,
+	type MouseEvent,
 	Suspense,
 	useEffect,
 	useMemo,
@@ -27,6 +36,20 @@ const typeOptions: Array<{ value: SearchType; label: string }> = [
 	{ value: "recipe", label: "Recipes" },
 	{ value: "story", label: "Stories" },
 	{ value: "chef", label: "Chefs" },
+];
+
+const sortOptions: Array<{ value: SearchSort; label: string }> = [
+	{ value: "relevance", label: "Most relevant" },
+	{ value: "latest", label: "Newest" },
+	{ value: "popular", label: "Most popular" },
+];
+
+const timeOptions = [
+	{ value: undefined, label: "Any time" },
+	{ value: 20, label: "20 minutes or less" },
+	{ value: 30, label: "30 minutes or less" },
+	{ value: 45, label: "45 minutes or less" },
+	{ value: 60, label: "1 hour or less" },
 ];
 
 function resultHref(result: SearchResult) {
@@ -63,9 +86,9 @@ function ResultCard({ result }: { result: SearchResult }) {
 	return (
 		<Link
 			href={resultHref(result)}
-			className="group flex min-h-36 gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-emerald-600/45 hover:bg-emerald-50/40 dark:border-white/10 dark:bg-[#102622] dark:hover:border-emerald-300/40 dark:hover:bg-white/5"
+			className="group flex min-h-36 gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-emerald-600/45 hover:bg-emerald-50/40 dark:border-white/10 dark:bg-[#102622] dark:hover:border-emerald-300/40 dark:hover:bg-white/5"
 		>
-			<div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
+			<div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
 				{result.image ? (
 					<Image
 						src={result.image}
@@ -179,10 +202,30 @@ function SearchPageContent() {
 		setPage(1);
 	}
 
+	function chooseSort(next: SearchSort, event: MouseEvent<HTMLButtonElement>) {
+		setSort(next);
+		setPage(1);
+		event.currentTarget.closest("details")?.removeAttribute("open");
+	}
+
+	function chooseTime(
+		next: number | undefined,
+		event: MouseEvent<HTMLButtonElement>,
+	) {
+		setMaxMinutes(next);
+		setPage(1);
+		event.currentTarget.closest("details")?.removeAttribute("open");
+	}
+
+	const sortLabel = sortOptions.find((option) => option.value === sort)?.label;
+	const timeLabel = timeOptions.find(
+		(option) => option.value === maxMinutes,
+	)?.label;
+
 	return (
 		<div className="flex min-h-screen flex-col bg-[#f7faf8] text-slate-900 dark:bg-[#071a16] dark:text-white">
 			<Navbar />
-			<main className="grow px-5 pb-16 pt-28 sm:px-8 lg:pt-32">
+			<main className="min-h-[calc(100vh-5rem)] grow px-5 pb-16 pt-28 sm:px-8 lg:pt-32">
 				<div className="mx-auto max-w-6xl">
 					<header className="max-w-3xl">
 						<p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
@@ -198,7 +241,7 @@ function SearchPageContent() {
 
 					<form
 						onSubmit={submit}
-						className="mt-8 flex items-center gap-3 rounded-lg border border-slate-300 bg-white p-2 dark:border-white/15 dark:bg-[#102622]"
+						className="mt-8 flex items-center gap-3 rounded-2xl border border-slate-300 bg-white p-2 dark:border-white/15 dark:bg-[#102622]"
 					>
 						<Search
 							className="ml-2 shrink-0 text-slate-500 dark:text-slate-300"
@@ -220,7 +263,7 @@ function SearchPageContent() {
 									setSubmittedQuery("");
 									setPage(1);
 								}}
-								className="grid h-9 w-9 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
+								className="grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
 								aria-label="Clear search"
 							>
 								<X size={18} aria-hidden="true" />
@@ -228,7 +271,7 @@ function SearchPageContent() {
 						)}
 						<button
 							type="submit"
-							className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
+							className="cursor-pointer rounded-full bg-emerald-700 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
 							disabled={query.trim().length < 2}
 						>
 							Search
@@ -243,49 +286,48 @@ function SearchPageContent() {
 									key={option.value}
 									type="button"
 									onClick={() => updateType(option.value)}
-									className={`rounded-full px-3 py-1.5 text-sm transition-colors ${type === option.value ? "bg-emerald-700 text-white dark:bg-emerald-400 dark:text-emerald-950" : "border border-slate-300 bg-white text-slate-700 hover:border-emerald-600 dark:border-white/15 dark:bg-transparent dark:text-slate-200 dark:hover:border-emerald-300"}`}
+									className={`cursor-pointer rounded-full px-3 py-1.5 text-sm transition-colors ${type === option.value ? "bg-emerald-700 text-white dark:bg-emerald-400 dark:text-emerald-950" : "border border-slate-300 bg-white text-slate-700 hover:border-emerald-600 dark:border-white/15 dark:bg-transparent dark:text-slate-200 dark:hover:border-emerald-300"}`}
 								>
 									{option.label}
 								</button>
 							))}
 						</fieldset>
 						<div className="ml-auto flex flex-wrap items-center gap-2">
-							<label className="sr-only" htmlFor="search-sort">
-								Sort results
-							</label>
-							<select
-								id="search-sort"
-								value={sort}
-								onChange={(event) => {
-									setSort(event.target.value as SearchSort);
-									setPage(1);
-								}}
-								className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none dark:border-white/15 dark:bg-[#102622] dark:text-slate-100"
-							>
-								<option value="relevance">Most relevant</option>
-								<option value="latest">Newest</option>
-								<option value="popular">Most popular</option>
-							</select>
+							<details className="group relative">
+								<summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-600 dark:border-white/15 dark:bg-[#102622] dark:text-slate-100 dark:hover:border-emerald-300 [&::-webkit-details-marker]:hidden">
+									Sort: {sortLabel} <ChevronDown size={15} aria-hidden="true" />
+								</summary>
+								<div className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#102622]">
+									{sortOptions.map((option) => (
+										<button
+											key={option.value}
+											type="button"
+											onClick={(event) => chooseSort(option.value, event)}
+											className={`w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm ${sort === option.value ? "bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200" : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"}`}
+										>
+											{option.label}
+										</button>
+									))}
+								</div>
+							</details>
 							{type !== "story" && type !== "chef" && (
-								<select
-									value={maxMinutes || ""}
-									onChange={(event) => {
-										setMaxMinutes(
-											event.target.value
-												? Number(event.target.value)
-												: undefined,
-										);
-										setPage(1);
-									}}
-									className="cursor-pointer rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none dark:border-white/15 dark:bg-[#102622] dark:text-slate-100"
-									aria-label="Maximum cooking time"
-								>
-									<option value="">Any time</option>
-									<option value="20">20 minutes or less</option>
-									<option value="30">30 minutes or less</option>
-									<option value="45">45 minutes or less</option>
-									<option value="60">1 hour or less</option>
-								</select>
+								<details className="group relative">
+									<summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-600 dark:border-white/15 dark:bg-[#102622] dark:text-slate-100 dark:hover:border-emerald-300 [&::-webkit-details-marker]:hidden">
+										{timeLabel} <ChevronDown size={15} aria-hidden="true" />
+									</summary>
+									<div className="absolute right-0 z-20 mt-2 w-52 rounded-2xl border border-slate-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#102622]">
+										{timeOptions.map((option) => (
+											<button
+												key={option.label}
+												type="button"
+												onClick={(event) => chooseTime(option.value, event)}
+												className={`w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm ${maxMinutes === option.value ? "bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200" : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"}`}
+											>
+												{option.label}
+											</button>
+										))}
+									</div>
+								</details>
 							)}
 						</div>
 					</div>
@@ -304,7 +346,7 @@ function SearchPageContent() {
 							)}
 						</div>
 						{error && (
-							<p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-400/30 dark:bg-red-950/30 dark:text-red-200">
+							<p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-400/30 dark:bg-red-950/30 dark:text-red-200">
 								{error}
 							</p>
 						)}
@@ -313,7 +355,7 @@ function SearchPageContent() {
 								{["one", "two", "three", "four", "five", "six"].map((key) => (
 									<div
 										key={key}
-										className="h-36 animate-pulse rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
+										className="h-36 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5"
 									/>
 								))}
 							</div>
@@ -329,7 +371,7 @@ function SearchPageContent() {
 							</div>
 						)}
 						{!loading && !error && canSearch && results.length === 0 && (
-							<div className="border border-dashed border-slate-300 px-6 py-16 text-center dark:border-white/15">
+							<div className="rounded-2xl border border-dashed border-slate-300 px-6 py-16 text-center dark:border-white/15">
 								<Search
 									className="mx-auto text-slate-400"
 									size={28}
@@ -341,6 +383,23 @@ function SearchPageContent() {
 								<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
 									Try a dish name, ingredient, cuisine, or chef name.
 								</p>
+							</div>
+						)}
+						{!loading && !error && !canSearch && (
+							<div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 px-6 text-center dark:border-white/15">
+								<div>
+									<Search
+										className="mx-auto text-emerald-700 dark:text-emerald-300"
+										size={30}
+										aria-hidden="true"
+									/>
+									<p className="mt-4 font-semibold">
+										What are you looking for?
+									</p>
+									<p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+										Try a dish, ingredient, cuisine, or chef name.
+									</p>
+								</div>
 							</div>
 						)}
 					</section>

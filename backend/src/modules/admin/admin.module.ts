@@ -7,11 +7,12 @@ import { AdminOperationsService } from './admin-operations.service';
 import { AdminRecipesService } from './admin-recipes.service';
 import { AdminStoriesService } from './admin-stories.service';
 import { AdminUsersService } from './admin-users.service';
+import { AdminCommunicationsService } from './admin-communications.service';
 import { AdminGuard } from './security/admin.guard';
 
 @Module({
   imports: [AuthModule, NotificationsModule],
   controllers: [AdminController],
-  providers: [AdminAnalyticsService, AdminOperationsService, AdminRecipesService, AdminStoriesService, AdminUsersService, AdminGuard],
+  providers: [AdminAnalyticsService, AdminOperationsService, AdminRecipesService, AdminStoriesService, AdminUsersService, AdminCommunicationsService, AdminGuard],
 })
 export class AdminModule {}

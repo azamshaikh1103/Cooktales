@@ -11,6 +11,8 @@ import { HideAdminStoryDto, ListAdminStoriesQueryDto } from './dto/admin-stories
 import { AdminStoriesService } from './admin-stories.service';
 import { AdminUserReasonDto, ListAdminUsersQueryDto } from './dto/admin-users.dto';
 import { AdminUsersService } from './admin-users.service';
+import { AdminCommunicationsService } from './admin-communications.service';
+import { ListAdminContactMessagesQueryDto, ListAdminNewsletterSubscribersQueryDto, UpdateAdminContactMessageDto } from './dto/admin-communications.dto';
 
 @Controller({ path: 'admin', version: '1' })
 @UseGuards(CsrfOriginGuard, AuthGuard, AdminGuard)
@@ -21,6 +23,7 @@ export class AdminController {
     private readonly recipes: AdminRecipesService,
     private readonly stories: AdminStoriesService,
     private readonly users: AdminUsersService,
+    private readonly communications: AdminCommunicationsService,
   ) {}
 
   @Get('analytics/overview')
@@ -98,5 +101,21 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   unbanUser(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: AdminUserReasonDto) {
     return this.users.unban(request.user.sub, id, dto);
+  }
+
+  @Get('contact-messages')
+  listContactMessages(@Query() query: ListAdminContactMessagesQueryDto) {
+    return this.communications.listContacts(query);
+  }
+
+  @Post('contact-messages/:id')
+  @HttpCode(HttpStatus.OK)
+  updateContactMessage(@Param('id') id: string, @Body() dto: UpdateAdminContactMessageDto) {
+    return this.communications.updateContact(id, dto);
+  }
+
+  @Get('newsletter-subscribers')
+  listNewsletterSubscribers(@Query() query: ListAdminNewsletterSubscribersQueryDto) {
+    return this.communications.listNewsletterSubscribers(query);
   }
 }

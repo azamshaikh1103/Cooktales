@@ -103,6 +103,10 @@ docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance r
 docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans --force-recreate \
   backend backend-worker frontend caddy
 
+# Keep production host metrics and Docker logs connected to the separate
+# monitoring instance. This compose file only joins the existing app network.
+docker compose -f "$repo_dir/deploy/monitoring/production/docker-compose.observability.yml" up -d
+
 wait_for "Frontend HTTP server" \
   docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
   node -e "fetch('http://127.0.0.1:3000/auth/google/callback', { signal: AbortSignal.timeout(10000) }).then((response) => process.exit(response.status === 200 ? 0 : 1)).catch(() => process.exit(1))"

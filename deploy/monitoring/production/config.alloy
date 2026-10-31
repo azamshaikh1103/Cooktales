@@ -1,0 +1,27 @@
+discovery.docker "production" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "production_logs" {
+  targets = discovery.docker.production.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
+}
+
+loki.source.docker "production" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.production.targets
+  labels     = { environment = "production", app = "cooktale" }
+  relabel_rules = discovery.relabel.production_logs.rules
+  forward_to = [loki.write.monitoring.receiver]
+}
+
+loki.write "monitoring" {
+  endpoint {
+    url = "http://172.31.18.30:3100/loki/api/v1/push"
+  }
+}

@@ -467,9 +467,6 @@ export const RecipeDetailClient = ({
 							</ul>
 						</div>
 
-						{/* AD PLACEMENT 2: Mid-Sidebar (Scrolls away) */}
-						<AdUnit type="box" isPremium={isPremium} slot="5838785076" />
-
 						{/* 2. Tools Card (Scrolls naturally) */}
 						{recipe.equipments.length > 0 && (
 							<div className="border border-gray-100 bg-[#f8f9fa] p-4 lg:p-8 dark:border-white/5 dark:bg-[#112220]">

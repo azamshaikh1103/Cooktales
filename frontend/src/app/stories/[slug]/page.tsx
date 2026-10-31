@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Fragment } from "react";
 import AdUnit from "@/components/AdUnit";
 import JsonLd from "@/components/seo/JsonLd";
 import RelatedStories from "@/components/stories/RelatedStories";
@@ -131,10 +130,6 @@ export default async function StoryDetailPage({ params }: PageProps) {
 		image: story.coverImage ? [story.coverImage] : undefined,
 		publisher: { "@type": "Organization", name: "CookTale", url: SITE_URL },
 	};
-	const inlineAdIndex = story.content?.length
-		? Math.min(2, story.content.length - 1)
-		: -1;
-
 	return (
 		<main className="min-h-screen bg-white pb-24 dark:bg-[#0d1f1c]">
 			<JsonLd data={jsonLd} />
@@ -216,13 +211,8 @@ export default async function StoryDetailPage({ params }: PageProps) {
 					initialComments={story.commentsCount || 0}
 				/>
 				<div className="mt-10 space-y-6 text-lg leading-relaxed text-slate-700 dark:text-gray-200">
-					{story.content?.map((block, index) => (
-						<Fragment key={block.id}>
-							<StoryBlock block={block} />
-							{index === inlineAdIndex && (
-								<AdUnit type="banner" slot="stories-inline" className="my-10" />
-							)}
-						</Fragment>
+					{story.content?.map((block) => (
+						<StoryBlock key={block.id} block={block} />
 					))}
 				</div>
 			</article>

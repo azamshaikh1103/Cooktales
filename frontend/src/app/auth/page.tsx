@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { FaCheck, FaLock } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { FaArrowRight, FaLock, FaCheck } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
+import { PrimaryActionButton } from "@/components/ui/PrimaryActionButton";
 import { useAuth } from "@/lib/auth/AuthContext";
+import imageLoader from "@/lib/loader";
 import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
 import { setTab } from "@/lib/Slices/tabSlice";
-import imageLoader from "@/lib/loader";
-import { useEffect } from "react";
 
 export default function Auth() {
 	const dispatch = useDispatch();
@@ -80,8 +81,8 @@ export default function Auth() {
 						</h1>
 
 						<p className="max-w-lg text-lg leading-relaxed font-medium text-gray-500 dark:text-gray-500">
-							Join a community of 10,000+ chefs. Save your favorite recipes,
-							write your own stories, and get feedback from pros.
+							Join a community of chefs. Save your favorite recipes, share
+							useful stories, and find your next thing to cook.
 						</p>
 
 						{/* Feature List */}
@@ -93,27 +94,20 @@ export default function Auth() {
 
 						{/* CTA Group */}
 						<div className="flex flex-col gap-4 pt-6 sm:flex-row">
-							<button
-								type="button"
+							<PrimaryActionButton
 								onClick={openSignup}
-								className="group flex items-center justify-center gap-2 rounded-2xl bg-[#006C5E] px-8 py-4 text-lg font-bold text-white shadow-xl shadow-[#006C5E]/20 transition-all hover:-translate-y-1 hover:bg-[#005a4e]"
+								className="justify-center px-8 py-4 text-lg"
 							>
-								Get Started Free{" "}
-								<FaArrowRight className="transition-transform group-hover:translate-x-1" />
-							</button>
+								Get Started Free
+							</PrimaryActionButton>
 
-							<button
-								type="button"
+							<PrimaryActionButton
 								onClick={openLogin}
-								className="rounded-2xl border border-gray-200 bg-white px-8 py-4 text-lg font-bold text-gray-700 shadow-sm backdrop-blur-md transition-all hover:-translate-y-1 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+								className="justify-center px-8 py-4 text-lg"
 							>
 								Sign In
-							</button>
+							</PrimaryActionButton>
 						</div>
-
-						<p className="pl-2 text-xs font-medium text-gray-500 dark:text-gray-500">
-							No credit card required. Instant access.
-						</p>
 					</div>
 
 					{/* RIGHT: The Visual Hook (Card Stack) */}

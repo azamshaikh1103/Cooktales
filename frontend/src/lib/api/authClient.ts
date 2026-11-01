@@ -312,7 +312,7 @@ export async function authenticatedFetch(
 	};
 
 	const response = await send(accessToken);
-	if (response.status !== 401 || !accessToken) return response;
+	if (response.status !== 401) return response;
 
 	try {
 		const refreshed = await refreshSession();

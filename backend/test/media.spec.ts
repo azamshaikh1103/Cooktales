@@ -64,7 +64,7 @@ describe('Media service safety', () => {
     expect(result.folder).toBe('cooktale/users/user-1/avatar');
     expect(result.publicId).toMatch(/^cooktale\/users\/user-1\/avatar\//);
     expect(result.resourceType).toBe(MediaResourceType.IMAGE);
-    expect(result.params.transformation).toBe('c_limit,w_2560,h_2560/q_auto:good');
+    expect(result.params.transformation).toBe('c_fill,g_auto:face,w_512,h_512,q_auto:good,f_webp');
     expect(result).not.toHaveProperty('apiSecret');
     expect(signSpy).toHaveBeenCalledWith(
       expect.objectContaining({ folder: result.folder, overwrite: false }),

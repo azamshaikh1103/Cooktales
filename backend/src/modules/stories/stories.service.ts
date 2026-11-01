@@ -9,6 +9,7 @@ import { CloudinaryResourceType, Prisma, StoryStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { MediaService } from '../media/media.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { POINTS, PointsService } from '../points/points.service';
 import {
   CreateStoryCommentDto,
   CreateStoryDraftDto,
@@ -42,6 +43,7 @@ export class StoriesService {
     private readonly mediaService: MediaService,
     private readonly abuse: StoryAbuseService,
     private readonly notifications: NotificationsService,
+    private readonly points: PointsService,
   ) {}
 
   async createDraft(userId: string, dto: CreateStoryDraftDto) {
@@ -203,6 +205,7 @@ export class StoriesService {
       },
       include: storyInclude,
     });
+    await this.points.award(userId, POINTS.STORY_PUBLISHED, 'Published a story', `story-published:${id}`);
     return { story: this.serialize(published) };
   }
 
@@ -243,6 +246,9 @@ export class StoriesService {
         select: { authorId: true, title: true, slug: true },
       });
       if (story) {
+        if (story.authorId !== userId) {
+          await this.points.award(story.authorId, POINTS.RECEIVED_LIKE, 'Story received a like', `story-like:${userId}:${id}`);
+        }
         await this.notifications.create({
           recipientId: story.authorId,
           actorId: userId,
@@ -325,6 +331,7 @@ export class StoriesService {
       where: { id },
       select: { authorId: true, title: true, slug: true },
     });
+    await this.points.award(userId, POINTS.COMMENT, 'Posted a comment', `story-comment:${comment.id}`, POINTS.COMMENT_DAILY_LIMIT);
     if (story) {
       await this.notifications.create({
         recipientId: parentAuthorId || story.authorId,

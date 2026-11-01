@@ -329,8 +329,11 @@ model PointHistory {
   userId    String
   amount    Int
   reason    String
+  eventKey  String?  @unique
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model NewsletterSubscriber {

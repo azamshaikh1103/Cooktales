@@ -56,7 +56,7 @@ export class MediaService {
       timestamp,
       overwrite: false,
       tags,
-      transformation: this.resolveIncomingTransformation(resourceType),
+      transformation: this.resolveIncomingTransformation(input, resourceType),
     };
 
     const signature = cloudinary.utils.api_sign_request(
@@ -349,7 +349,11 @@ export class MediaService {
     return expected;
   }
 
-  private resolveIncomingTransformation(resourceType: MediaResourceType) {
+  private resolveIncomingTransformation(input: SignedUploadInput, resourceType: MediaResourceType) {
+    if (input.context === MediaUploadContext.USER_AVATAR) {
+      return 'c_fill,g_auto:face,w_512,h_512,q_auto:good,f_webp';
+    }
+
     return resourceType === MediaResourceType.VIDEO
       ? VIDEO_INCOMING_TRANSFORMATION
       : IMAGE_INCOMING_TRANSFORMATION;

@@ -21,6 +21,8 @@ export const montserrat = Montserrat({
 });
 
 const BASE_URL = "https://cooktale.in";
+const analyticsMeasurementId =
+	process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-WW9DP3T4V4";
 
 export const metadata: Metadata = {
 	metadataBase: new URL(BASE_URL),
@@ -175,6 +177,20 @@ export default async function RootLayout({
 				<script
 					async
 					src="https://fundingchoicesmessages.google.com/i/pub-6574614841664693?ers=1"
+				/>
+				<script
+					async
+					src={`https://www.googletagmanager.com/gtag/js?id=${analyticsMeasurementId}`}
+				/>
+				<script
+					id="google-analytics-init"
+					dangerouslySetInnerHTML={{
+						__html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.gtag = window.gtag || gtag;
+window.gtag('js', new Date());
+window.gtag('config', ${JSON.stringify(analyticsMeasurementId)});`,
+					}}
 				/>
 				<script
 					id="google-funding-choices-present"

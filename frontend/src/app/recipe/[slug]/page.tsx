@@ -70,7 +70,7 @@ export default async function RecipeDetailPage({ params }: PageProps) {
       <JsonLd data={jsonLd} />
       <Navbar />
       <main className="grow">
-        <RecipeDetailClient recipe={recipe} isPremium={recipe.isPremium} />
+        <RecipeDetailClient recipe={recipe} />
       </main>
       <div className="bg-[#fafafa] transition-colors duration-500 dark:bg-[#0d1f1c]">
         <Footer />

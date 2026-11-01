@@ -156,40 +156,6 @@ export default function RecipePageClient({
 			</div>
 
 			<main className="container mx-auto px-4 pt-8 pb-12 sm:pt-10 lg:px-24 lg:py-12">
-				{/* Promotional Banner */}
-				<div className="group relative mb-16 cursor-pointer overflow-hidden rounded-[2.5rem] bg-[#006C5E] text-white shadow-2xl shadow-[#006C5E]/20 dark:border dark:border-white/10 dark:shadow-none">
-					<div
-						className="absolute inset-0 opacity-20"
-						style={{
-							backgroundImage:
-								"radial-gradient(circle, white 1px, transparent 1px)",
-							backgroundSize: "20px 20px",
-						}}
-					/>
-					<div className="absolute top-0 right-0 h-full w-1/2 bg-linear-to-l from-black/40 to-transparent" />
-
-					<div className="relative z-10 flex flex-col items-center justify-between gap-8 p-10 md:flex-row lg:p-16">
-						<div className="max-w-xl">
-							<span className="mb-4 inline-block rounded-full border border-white/10 bg-white/20 px-4 py-1 text-xs font-bold tracking-widest uppercase backdrop-blur-md">
-								Pro Member Exclusive
-							</span>
-							<h2 className="mb-4 text-3xl leading-tight font-black lg:text-5xl">
-								Master the Art of <br /> Sourdough Bread.
-							</h2>
-							<p className="mb-8 text-lg leading-relaxed text-white/80">
-								Unlock our comprehensive 5-part video course. Learn
-								fermentation, shaping, and baking perfect loaves.
-							</p>
-							<button
-								type="button"
-								className="rounded-xl bg-white px-8 py-3 font-bold text-[#006C5E] shadow-lg transition-colors hover:bg-gray-100"
-							>
-								Start Learning
-							</button>
-						</div>
-					</div>
-				</div>
-
 				{/* Popular Section */}
 				{selectedCategory === "All" && popularRecipes.length > 0 && (
 					<section className="animate-fade-in-up mb-20">

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import AdUnit from "@/components/AdUnit";
 import JsonLd from "@/components/seo/JsonLd";
 import RelatedStories from "@/components/stories/RelatedStories";
 import StoryComments from "@/components/stories/StoryComments";
@@ -217,13 +216,6 @@ export default async function StoryDetailPage({ params }: PageProps) {
 				</div>
 			</article>
 			<div className="px-6">
-				<div className="mx-auto max-w-3xl">
-					<AdUnit
-						type="banner"
-						slot="stories-before-conversation"
-						className="mt-14 mb-0"
-					/>
-				</div>
 				<StoryComments storyId={story.id} />
 				<RelatedStories
 					storyId={story.id}

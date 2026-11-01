@@ -1,7 +1,6 @@
 import { ArrowRight, PenLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import AdUnit from "@/components/AdUnit";
 import { StoryPreviewCard } from "@/components/stories/StoryPreviewCard";
 import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";
 import type { Story } from "@/lib/api/storyClient";
@@ -79,16 +78,9 @@ export default async function StoriesPage() {
 						</div>
 					) : (
 						<div>
-							{stories.map((story, index) => (
+							{stories.map((story) => (
 								<article key={story.id}>
 									<StoryPreviewCard story={story} />
-									{index > 0 && (index + 1) % 12 === 0 && (
-										<AdUnit
-											type="banner"
-											slot="stories-list-inline"
-											className="mx-2 sm:mx-3"
-										/>
-									)}
 								</article>
 							))}
 						</div>

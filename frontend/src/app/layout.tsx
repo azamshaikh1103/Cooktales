@@ -165,6 +165,10 @@ export default async function RootLayout({
 				<meta name="application-name" content="CookTale" />
 				<meta property="og:site_name" content="CookTale" />
 				<meta
+					name="p:domain_verify"
+					content="410288d10339588c451fc47fdd3d3ebf"
+				/>
+				<meta
 					name="cooktale-build-revision"
 					content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
 				/>

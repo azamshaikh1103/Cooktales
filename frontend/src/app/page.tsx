@@ -1,5 +1,4 @@
 import Footer from "@/components/Footer";
-import Heroarea from "@/components/homepage/Heroarea";
 import {
 	PopularRecipes,
 	SeasonalPick,
@@ -30,8 +29,6 @@ export default async function HomePage() {
 			<Navbar />
 			<HomePopups />
 			<main className="grow">
-				<Heroarea />
-
 				<div className="relative z-10 flex flex-col gap-8 py-8 lg:gap-10 lg:py-10">
 					<PopularRecipes recipes={popularRecipes} />
 					<TodaysPick recipes={todayRecipes} />

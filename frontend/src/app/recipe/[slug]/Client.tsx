@@ -23,7 +23,6 @@ import {
 } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
 import { toast } from "sonner";
-import AdUnit from "@/components/AdUnit";
 import { useDispatch } from "react-redux";
 import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
 import { setTab } from "@/lib/Slices/tabSlice";
@@ -40,10 +39,8 @@ import { useAuth } from "@/lib/auth/AuthContext";
 
 export const RecipeDetailClient = ({
 	recipe,
-	isPremium = false,
 }: {
 	recipe: PublicRecipe;
-	isPremium?: boolean;
 }) => {
 	const { status, user } = useAuth();
 	const [isLiked, setIsLiked] = useState(false);
@@ -427,8 +424,6 @@ export const RecipeDetailClient = ({
 						<FaFire /> Start cooking
 					</button>
 
-					<AdUnit type="banner" isPremium={isPremium} slot="1268984670" />
-
 					{recipe.tags && recipe.tags.length > 0 && (
 						<div className="mt-4 flex flex-wrap items-center gap-2">
 							<FaHashtag className="text-[#006C5E] dark:text-[#4ADE80]" />
@@ -484,10 +479,6 @@ export const RecipeDetailClient = ({
 							</div>
 						)}
 
-						{/* AD PLACEMENT 3 */}
-						<div className="z-10 hidden pt-6 lg:sticky lg:top-24 lg:block">
-							<AdUnit type="box" isPremium={isPremium} slot="1234567890" />
-						</div>
 					</div>
 
 					<div className="rounded-[2.5rem] bg-white p-4 lg:w-2/3 lg:p-16 dark:bg-[#152a26]">
@@ -549,9 +540,6 @@ export const RecipeDetailClient = ({
 								</div>
 							</div>
 						)}
-
-						{/* AD PLACEMENT: FOOTER BANNER */}
-						<AdUnit type="banner" isPremium={isPremium} slot="1234567890" />
 
 						{/* REVIEWS SECTION */}
 						<div className="mt-16 border-t border-gray-100 pt-10 dark:border-white/5">

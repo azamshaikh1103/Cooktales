@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
     const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null;
 
     if (!token) {
-      throw new UnauthorizedException('Missing access token');
+      throw new UnauthorizedException('Please sign in to continue.');
     }
 
     try {
@@ -45,7 +45,7 @@ export class AuthGuard implements CanActivate {
 
       return true;
     } catch {
-      throw new UnauthorizedException('Invalid access token');
+      throw new UnauthorizedException('Your session has ended. Please sign in again.');
     }
   }
 }

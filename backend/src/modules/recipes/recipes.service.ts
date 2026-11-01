@@ -16,6 +16,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { MediaService } from '../media/media.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { POINTS, PointsService } from '../points/points.service';
 import {
   CreateRecipeDraftDto,
   CreateRecipeCommentDto,
@@ -122,6 +123,7 @@ export class RecipesService {
     private readonly mediaService: MediaService,
     private readonly abuse: RecipeAbuseService,
     private readonly notifications: NotificationsService,
+    private readonly points: PointsService,
   ) {}
 
   async createDraft(userId: string, dto: CreateRecipeDraftDto) {
@@ -365,6 +367,7 @@ export class RecipesService {
       where: { id },
       select: { authorId: true, name: true, slug: true },
     });
+    await this.points.award(userId, POINTS.COMMENT, 'Posted a comment', `recipe-comment:${comment.saved.id}`, POINTS.COMMENT_DAILY_LIMIT);
     if (recipe) {
       const isReply = Boolean(dto.parentId);
       await this.notifications.create({
@@ -621,6 +624,8 @@ export class RecipesService {
       include: recipeInclude,
     });
 
+    await this.points.award(userId, POINTS.RECIPE_PUBLISHED, 'Published a recipe', `recipe-published:${id}`);
+
     return { recipe: this.serializeRecipe(published) };
   }
 
@@ -678,6 +683,9 @@ export class RecipesService {
         select: { authorId: true, name: true, slug: true },
       });
       if (recipe) {
+        if (recipe.authorId !== userId) {
+          await this.points.award(recipe.authorId, POINTS.RECEIVED_LIKE, 'Recipe received a like', `recipe-like:${userId}:${id}`);
+        }
         await this.notifications.create({
           recipientId: recipe.authorId,
           actorId: userId,
@@ -789,6 +797,7 @@ export class RecipesService {
       where: { id },
       select: { authorId: true, name: true, slug: true },
     });
+    await this.points.award(userId, POINTS.RECIPE_REVIEW, 'Wrote a recipe review', `recipe-review:${review.id}`);
     if (recipe) {
       await this.notifications.create({
         recipientId: recipe.authorId,

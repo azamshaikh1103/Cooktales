@@ -3,6 +3,7 @@ import { CloudinaryResourceType, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { MediaService } from '../media/media.service';
+import { POINTS, PointsService } from '../points/points.service';
 import { CommunityAbuseService } from './community-abuse.service';
 import { CreateCommentDto, CreateDiscussionDto, ListDiscussionsQueryDto, ListLeaderboardQueryDto } from './dto/community.dto';
 
@@ -25,6 +26,7 @@ export class CommunityService {
     private readonly prisma: PrismaService,
     private readonly abuse: CommunityAbuseService,
     private readonly media: MediaService,
+    private readonly points: PointsService,
   ) {}
 
   async snapshot() {
@@ -118,6 +120,7 @@ export class CommunityService {
       if (!parent) throw new BadRequestException('Replies can only be made to a top-level discussion comment');
     }
     const comment = await this.prisma.comment.create({ data: { content: dto.content, authorId: userId, discussionId, parentId: dto.parentId }, include: { author: { select: userSelect }, likes: { select: { userId: true } } } });
+    await this.points.award(userId, POINTS.COMMENT, 'Posted a comment', `discussion-comment:${comment.id}`, POINTS.COMMENT_DAILY_LIMIT);
     return { comment };
   }
 

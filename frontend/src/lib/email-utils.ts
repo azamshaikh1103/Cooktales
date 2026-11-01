@@ -77,7 +77,7 @@ export const wrapEmail = (
             <p style="margin: 0;">Made with <span style="color: ${BRAND_COLOR}; font-size: 14px;">&hearts;</span> by Chefs in Mumbai.</p>
             <div style="margin-top: 12px;">
                <a href="https://cooktale.in" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Website</a> •
-               <a href="https://instagram.com/cooktale.in" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Instagram</a>
+               <a href="https://www.instagram.com/cooktale_in/" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Instagram</a>
             </div>
           </div>
 

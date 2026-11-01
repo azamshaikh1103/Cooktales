@@ -5,11 +5,13 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
 	title: "Recipes | CookTale",
-	description: "Explore thousands of community-tested recipes.",
+	description:
+		"Browse practical home-cooking recipes with clear ingredients, step-by-step instructions, storage tips, and helpful FAQs.",
 	alternates: { canonical: "/recipe" },
 	openGraph: {
 		title: "Recipes | CookTale",
-		description: "Explore thousands of community-tested recipes.",
+		description:
+			"Browse practical home-cooking recipes with clear ingredients, step-by-step instructions, storage tips, and helpful FAQs.",
 		url: "/recipe",
 	},
 };

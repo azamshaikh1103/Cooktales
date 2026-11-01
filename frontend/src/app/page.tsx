@@ -29,7 +29,7 @@ export default async function HomePage() {
 			<Navbar />
 			<HomePopups />
 			<main className="grow">
-				<div className="relative z-10 flex flex-col gap-8 py-8 lg:gap-10 lg:py-10">
+				<div className="relative z-10 flex flex-col gap-8 pt-16 pb-8 lg:gap-10 lg:pt-20 lg:pb-10">
 					<PopularRecipes recipes={popularRecipes} />
 					<TodaysPick recipes={todayRecipes} />
 					<SeasonalPick recipes={seasonalRecipes} />

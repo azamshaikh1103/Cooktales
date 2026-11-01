@@ -9,8 +9,8 @@ import {
 	FaEnvelope,
 	FaFacebookF,
 	FaInstagram,
-	FaTwitter,
-	FaYoutube,
+	FaPinterest,
+	FaRedditAlien,
 } from "react-icons/fa";
 import { toast } from "sonner";
 import { newsletterClient } from "@/lib/api/newsletterClient";
@@ -242,24 +242,24 @@ const Footer = () => {
 
 					<div className="flex gap-4">
 						<SocialLink
-							href="https://instagram.com/cooktale.in"
+							href="https://www.instagram.com/cooktale_in/"
 							label="Instagram"
 							icon={<FaInstagram />}
 						/>
 						<SocialLink
-							href="https://facebook.com/cooktale.in"
+							href="https://www.facebook.com/profile.php?id=61596221366707"
 							label="Facebook"
 							icon={<FaFacebookF />}
 						/>
 						<SocialLink
-							href="https://youtube.com/cooktale.in"
-							label="Youtube"
-							icon={<FaYoutube />}
+							href="https://www.pinterest.com/cooktale_in/"
+							label="Pinterest"
+							icon={<FaPinterest />}
 						/>
 						<SocialLink
-							href="https://x.com/cooktaleapp"
-							label="X"
-							icon={<FaTwitter />}
+							href="https://www.reddit.com/r/CookTale/"
+							label="Reddit"
+							icon={<FaRedditAlien />}
 						/>
 					</div>
 				</div>
@@ -281,6 +281,7 @@ const SocialLink = ({
 	<Link
 		href={href}
 		target="_blank"
+		rel="noreferrer"
 		aria-label={label}
 		className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all duration-300 hover:bg-white hover:text-[#006C5E] dark:hover:border-[#006C5E] dark:hover:bg-[#006C5E] dark:hover:text-white"
 	>

@@ -137,6 +137,9 @@ const envSchema = z.object({
   AUTH_REFRESH_IP_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
   AUTH_REFRESH_TOKEN_LIMIT: z.coerce.number().int().positive().default(30),
   AUTH_REFRESH_TOKEN_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
+  AUTH_REFRESH_SESSION_LIMIT: z.coerce.number().int().positive().default(120),
+  AUTH_REFRESH_SESSION_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
+  AUTH_REFRESH_ROTATION_INTERVAL_SECONDS: z.coerce.number().int().positive().default(300),
   AUTH_GOOGLE_IP_LIMIT: z.coerce.number().int().positive().default(30),
   AUTH_GOOGLE_IP_WINDOW_SECONDS: z.coerce
     .number()

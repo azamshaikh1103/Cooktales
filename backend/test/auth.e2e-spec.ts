@@ -165,7 +165,7 @@ describe('Authentication API', () => {
       });
   });
 
-  it('rotates refresh tokens, rejects replay, and revokes logout sessions', async () => {
+  it('keeps recent refresh tokens stable, rotates older tokens, rejects replay, and revokes logout sessions', async () => {
     const email = 'sessions@example.test';
     await createVerifiedUser(email);
 
@@ -180,10 +180,24 @@ describe('Authentication API', () => {
       .send({})
       .expect(200);
 
-    const newCookie = getCookie(refreshed);
+    expect(getCookie(refreshed)).toBe(oldCookie);
+    expect(refreshed.body).not.toHaveProperty('refreshToken');
+
+    await prisma.authSession.updateMany({
+      where: { userId: refreshed.body.user.id },
+      data: { updatedAt: new Date(Date.now() - 6 * 60 * 1000) },
+    });
+
+    const rotated = await request(app.getHttpServer())
+      .post('/api/v1/auth/refresh')
+      .set('Origin', trustedOrigin)
+      .set('Cookie', oldCookie as string)
+      .send({})
+      .expect(200);
+
+    const newCookie = getCookie(rotated);
     expect(newCookie).toBeDefined();
     expect(newCookie).not.toBe(oldCookie);
-    expect(refreshed.body).not.toHaveProperty('refreshToken');
 
     await request(app.getHttpServer())
       .post('/api/v1/auth/refresh')

@@ -132,9 +132,8 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string | undefined, meta: RequestMeta) {
-    await this.rateLimit.checkRefresh(refreshToken, meta);
-
     if (!refreshToken) {
+      await this.rateLimit.checkInvalidRefresh(meta);
       throw new UnauthorizedException('Missing refresh token');
     }
 
@@ -149,15 +148,39 @@ export class AuthService {
     });
 
     if (!session || session.user.status !== AccountStatus.ACTIVE || session.user.deletedAt) {
+      await this.rateLimit.checkInvalidRefresh(meta);
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    await this.prisma.authSession.update({
-      where: { id: session.id },
-      data: { revokedAt: new Date() },
+    await this.rateLimit.checkRefreshSession(session.id);
+
+    const accessToken = await this.createAccessToken(session.user);
+    const rotationInterval =
+      this.config.get('AUTH_REFRESH_ROTATION_INTERVAL_SECONDS', { infer: true }) * 1000;
+
+    if (Date.now() - session.updatedAt.getTime() < rotationInterval) {
+      return {
+        accessToken,
+        refreshToken,
+        user: this.serializeUser(session.user),
+      };
+    }
+
+    const nextRefreshToken = randomBytes(48).toString('base64url');
+    const rotated = await this.prisma.authSession.updateMany({
+      where: { id: session.id, refreshTokenHash: tokenHash, revokedAt: null },
+      data: { refreshTokenHash: await this.hashToken(nextRefreshToken) },
     });
 
-    return this.createAuthResponse(session.user, meta);
+    if (rotated.count !== 1) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    return {
+      accessToken,
+      refreshToken: nextRefreshToken,
+      user: this.serializeUser(session.user),
+    };
   }
 
   async getCurrentUser(userId: string) {
@@ -461,13 +484,7 @@ export class AuthService {
     },
     meta: RequestMeta,
   ) {
-    const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, email: user.email, role: user.role },
-      {
-        secret: this.config.get('JWT_ACCESS_SECRET', { infer: true }),
-        expiresIn: this.config.get('JWT_ACCESS_TTL_SECONDS', { infer: true }),
-      },
-    );
+    const accessToken = await this.createAccessToken(user);
 
     const refreshToken = randomBytes(48).toString('base64url');
     const expiresAt = new Date(
@@ -489,6 +506,20 @@ export class AuthService {
       refreshToken,
       user: this.serializeUser(user),
     };
+  }
+
+  private createAccessToken(user: {
+    id: string;
+    email: string;
+    role: UserRole;
+  }) {
+    return this.jwtService.signAsync(
+      { sub: user.id, email: user.email, role: user.role },
+      {
+        secret: this.config.get('JWT_ACCESS_SECRET', { infer: true }),
+        expiresIn: this.config.get('JWT_ACCESS_TTL_SECONDS', { infer: true }),
+      },
+    );
   }
 
   private serializeUser(user: {

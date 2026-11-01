@@ -505,8 +505,6 @@ export const RecipeDetailClient = ({
 							))}
 						</div>
 
-						<AdUnit type="banner" isPremium={isPremium} slot="2390494657" />
-
 						{recipe.tipsAndTricks && (
 							<div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 lg:p-8 dark:border-amber-500/20 dark:bg-amber-900/10">
 								<h4 className="mb-4 flex items-center gap-2 font-bold text-amber-800 dark:text-amber-400">

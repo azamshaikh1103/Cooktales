@@ -181,23 +181,20 @@ export class AuthRateLimitService {
     ]);
   }
 
-  async checkRefresh(refreshToken: string | undefined, meta: AuthRateLimitMeta) {
-    await this.consumeMany([
-      {
-        key: this.key('refresh', 'ip', this.ipKey(meta.ipAddress)),
-        limit: this.config.get('AUTH_REFRESH_IP_LIMIT', { infer: true }),
-        windowSeconds: this.config.get('AUTH_REFRESH_IP_WINDOW_SECONDS', { infer: true }),
-      },
-      ...(refreshToken
-        ? [
-            {
-              key: this.key('refresh', 'token', refreshToken),
-              limit: this.config.get('AUTH_REFRESH_TOKEN_LIMIT', { infer: true }),
-              windowSeconds: this.config.get('AUTH_REFRESH_TOKEN_WINDOW_SECONDS', { infer: true }),
-            },
-          ]
-        : []),
-    ]);
+  async checkInvalidRefresh(meta: AuthRateLimitMeta) {
+    await this.consume({
+      key: this.key('refresh', 'ip', this.ipKey(meta.ipAddress)),
+      limit: this.config.get('AUTH_REFRESH_IP_LIMIT', { infer: true }),
+      windowSeconds: this.config.get('AUTH_REFRESH_IP_WINDOW_SECONDS', { infer: true }),
+    });
+  }
+
+  async checkRefreshSession(sessionId: string) {
+    await this.consume({
+      key: this.key('refresh', 'session', sessionId),
+      limit: this.config.get('AUTH_REFRESH_SESSION_LIMIT', { infer: true }),
+      windowSeconds: this.config.get('AUTH_REFRESH_SESSION_WINDOW_SECONDS', { infer: true }),
+    });
   }
 
   async checkGoogle(meta: AuthRateLimitMeta) {

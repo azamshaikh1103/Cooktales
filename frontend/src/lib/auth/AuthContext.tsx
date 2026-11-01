@@ -9,12 +9,15 @@ import {
 	useState,
 } from "react";
 import {
+	type AuthUser,
 	authClient,
 	clearPersistedAuth,
 	getAccessToken,
+	getAccessTokenExpiry,
+	isConfirmedSessionInvalid,
+	notifyAuthLogout,
 	persistAuthResponse,
 	setAccessToken,
-	type AuthUser,
 } from "@/lib/api/authClient";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -43,17 +46,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			setAccessTokenState(refreshed.accessToken || null);
 			setUser(hasUsableSession ? refreshed.user || null : null);
 			setStatus(hasUsableSession ? "authenticated" : "unauthenticated");
-		} catch {
-			clearPersistedAuth();
-			setAccessTokenState(null);
-			setUser(null);
-			setStatus("unauthenticated");
+		} catch (error) {
+			if (isConfirmedSessionInvalid(error)) {
+				clearPersistedAuth();
+				setAccessTokenState(null);
+				setUser(null);
+				setStatus("unauthenticated");
+				return;
+			}
+
+			setStatus("loading");
 		}
 	}, []);
 
 	useEffect(() => {
 		void bootstrap();
 	}, [bootstrap]);
+
+	useEffect(() => {
+		if (status !== "authenticated") return;
+
+		const expiry = getAccessTokenExpiry(accessToken);
+		if (!expiry) return;
+
+		const delay = Math.max(expiry - Date.now() - 60_000, 0);
+		const timer = window.setTimeout(() => void bootstrap(), delay);
+		return () => window.clearTimeout(timer);
+	}, [accessToken, bootstrap, status]);
 
 	useEffect(() => {
 		const syncToken = () => {
@@ -89,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		try {
 			await authClient.logout();
 		} finally {
+			notifyAuthLogout();
 			clearPersistedAuth();
 			setAccessTokenState(null);
 			setUser(null);

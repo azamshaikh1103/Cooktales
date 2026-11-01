@@ -73,6 +73,14 @@ export default async function CommunityPage() {
                 >
                   Community guidelines
                 </Link>
+                <a
+                  href="https://www.reddit.com/r/CookTale/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-[#006C5E]/40 hover:text-[#006C5E] dark:border-white/15 dark:text-gray-200 dark:hover:border-[#4ADE80]/50 dark:hover:text-[#4ADE80]"
+                >
+                  Join r/CookTale
+                </a>
               </div>
             </div>
 

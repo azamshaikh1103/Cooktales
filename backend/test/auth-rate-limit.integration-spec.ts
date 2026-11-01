@@ -18,6 +18,8 @@ const values: Partial<AppConfig> = {
   AUTH_OTP_RESEND_EMAIL_WINDOW_SECONDS: 60,
   AUTH_OTP_RESEND_IP_LIMIT: 20,
   AUTH_OTP_RESEND_IP_WINDOW_SECONDS: 60,
+  AUTH_REFRESH_SESSION_LIMIT: 2,
+  AUTH_REFRESH_SESSION_WINDOW_SECONDS: 60,
 };
 
 const config = {
@@ -67,5 +69,16 @@ describe('Auth rate limiting with Redis', () => {
     await expect(rateLimit.checkResendVerification(email, meta)).rejects.toMatchObject({
       status: HttpStatus.TOO_MANY_REQUESTS,
     });
+  });
+
+  it('limits refresh attempts by session instead of a shared IP address', async () => {
+    await rateLimit.checkRefreshSession('session-a');
+    await rateLimit.checkRefreshSession('session-a');
+
+    await expect(rateLimit.checkRefreshSession('session-a')).rejects.toMatchObject({
+      status: HttpStatus.TOO_MANY_REQUESTS,
+    });
+
+    await expect(rateLimit.checkRefreshSession('session-b')).resolves.toBeUndefined();
   });
 });

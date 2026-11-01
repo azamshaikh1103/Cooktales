@@ -21,6 +21,7 @@ export const montserrat = Montserrat({
 });
 
 const BASE_URL = "https://cooktale.in";
+const tagManagerId = "GTM-N774P8VR";
 const analyticsMeasurementId =
 	process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-WW9DP3T4V4";
 
@@ -169,6 +170,12 @@ export default async function RootLayout({
 					name="cooktale-build-revision"
 					content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
 				/>
+				<script
+					id="google-tag-manager"
+					dangerouslySetInnerHTML={{
+						__html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${tagManagerId}');`,
+					}}
+				/>
 				<meta name="google-adsense-account" content="ca-pub-6574614841664693" />
 				<script
 					async
@@ -234,6 +241,15 @@ window.gtag('config', ${JSON.stringify(analyticsMeasurementId)});`,
 			<body
 				className={`overflow-x-clip bg-[#fafafa] antialiased transition-colors duration-500 dark:bg-[#0d1f1c]`}
 			>
+				<noscript>
+					<iframe
+						src={`https://www.googletagmanager.com/ns.html?id=${tagManagerId}`}
+						height="0"
+						width="0"
+						style={{ display: "none", visibility: "hidden" }}
+						title="Google Tag Manager"
+					/>
+				</noscript>
 				<ScriptManager />
 
 				<Script

@@ -5,10 +5,10 @@ import {
 	FaBug,
 	FaClock,
 	FaEnvelope,
-	FaGlobeAmericas,
 	FaHandshake,
 	FaMapMarkerAlt,
 	FaPaperPlane,
+	FaPhone,
 	FaWallet,
 } from "react-icons/fa";
 import { toast } from "sonner";
@@ -149,20 +149,19 @@ export default function ContactPage() {
 									title="Location"
 									value="Mumbai, India"
 								/>
+								{/* shortcut: public verification phone, remove after Payoneer verification. */}
+								<ContactDetail
+									icon={FaPhone}
+									title="Founder & developer"
+									value="Azam Ali Shaikh · +91 98675 84687"
+									href="tel:+919867584687"
+								/>
 								<ContactDetail
 									icon={FaClock}
 									title="Response time"
 									value="Typically within 1–2 business days"
 									detail="Monday–Friday"
 								/>
-							</div>
-							<div className="rounded-3xl border border-gray-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-								<FaGlobeAmericas className="mb-4 text-2xl text-[#006C5E] dark:text-[#4ADE80]" />
-								<h3 className="mb-2 font-bold">Built for a global community</h3>
-								<p className="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-									CookTale is built and maintained for home cooks and creators
-									around the world.
-								</p>
 							</div>
 						</aside>
 

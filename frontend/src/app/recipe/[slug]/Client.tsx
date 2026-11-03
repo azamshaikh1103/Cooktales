@@ -37,11 +37,7 @@ import {
 } from "@/lib/api/recipeClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 
-export const RecipeDetailClient = ({
-	recipe,
-}: {
-	recipe: PublicRecipe;
-}) => {
+export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	const { status, user } = useAuth();
 	const [isLiked, setIsLiked] = useState(false);
 	const [isBookmarked, setIsBookmarked] = useState(false);
@@ -73,6 +69,7 @@ export const RecipeDetailClient = ({
 		...(recipe.moreImages || []),
 		...stepImages,
 	];
+	const galleryImages = recipe.moreImages || [];
 	const hasCountedView = useRef(false);
 
 	useEffect(() => {
@@ -438,6 +435,35 @@ export const RecipeDetailClient = ({
 							))}
 						</div>
 					)}
+
+					{galleryImages.length > 0 && (
+						<section className="mt-10" aria-labelledby="recipe-gallery">
+							<h2
+								id="recipe-gallery"
+								className="mb-4 text-xl font-black text-gray-900 dark:text-white"
+							>
+								Gallery
+							</h2>
+							<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+								{galleryImages.map((image, index) => (
+									<button
+										key={image}
+										type="button"
+										onClick={() => openLightbox(index + 1)}
+										className="group relative aspect-square overflow-hidden rounded-2xl bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#006C5E] focus-visible:ring-offset-2 focus-visible:outline-none dark:bg-white/10 dark:focus-visible:ring-[#4ADE80] dark:focus-visible:ring-offset-[#152a26]"
+									>
+										<Image
+											src={image}
+											alt={`${recipe.name} gallery image ${index + 1}`}
+											fill
+											loader={imageLoader}
+											className="object-cover transition-transform duration-300 group-hover:scale-105"
+										/>
+									</button>
+								))}
+							</div>
+						</section>
+					)}
 				</div>
 
 				<div className="flex flex-col lg:flex-row-reverse">
@@ -478,7 +504,6 @@ export const RecipeDetailClient = ({
 								</ul>
 							</div>
 						)}
-
 					</div>
 
 					<div className="rounded-[2.5rem] bg-white p-4 lg:w-2/3 lg:p-16 dark:bg-[#152a26]">
@@ -497,22 +522,22 @@ export const RecipeDetailClient = ({
 						</div>
 
 						{recipe.tipsAndTricks && (
-							<div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 lg:p-8 dark:border-amber-500/20 dark:bg-amber-900/10">
-								<h4 className="mb-4 flex items-center gap-2 font-bold text-amber-800 dark:text-amber-400">
-									💡 Chef's Tips
+							<div className="mt-8 rounded-2xl border border-[#006C5E]/15 bg-[#006C5E]/5 p-4 lg:p-8 dark:border-[#4ADE80]/20 dark:bg-[#4ADE80]/10">
+								<h4 className="mb-4 font-bold text-[#006C5E] dark:text-[#4ADE80]">
+									Chef's Tips
 								</h4>
-								<p className="leading-relaxed whitespace-pre-line text-amber-900/80 dark:text-amber-200/80">
+								<p className="leading-relaxed whitespace-pre-line text-[#174a43] dark:text-[#b7f5ce]">
 									{recipe.tipsAndTricks}
 								</p>
 							</div>
 						)}
 
 						{recipe.storingFreezing && (
-							<div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50 p-4 lg:p-8 dark:border-blue-500/20 dark:bg-blue-900/10">
-								<h4 className="mb-4 flex items-center gap-2 font-bold text-blue-800 dark:text-blue-400">
-									🧊 Storing
+							<div className="mt-8 rounded-2xl border border-[#006C5E]/15 bg-[#006C5E]/5 p-4 lg:p-8 dark:border-[#4ADE80]/20 dark:bg-[#4ADE80]/10">
+								<h4 className="mb-4 font-bold text-[#006C5E] dark:text-[#4ADE80]">
+									Storing
 								</h4>
-								<p className="leading-relaxed whitespace-pre-line text-blue-900/80 dark:text-blue-200/80">
+								<p className="leading-relaxed whitespace-pre-line text-[#174a43] dark:text-[#b7f5ce]">
 									{recipe.storingFreezing}
 								</p>
 							</div>
@@ -761,7 +786,7 @@ const ListItem = ({ item }: { item: any }) => {
 				<a
 					href={item.link}
 					target="_blank"
-					rel="noopener noreferrer"
+					rel="sponsored noopener noreferrer"
 					onClick={(e) => e.stopPropagation()}
 					className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
 				>

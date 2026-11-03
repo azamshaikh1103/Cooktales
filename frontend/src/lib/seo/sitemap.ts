@@ -9,6 +9,7 @@ const apiUrl =
 export type SitemapEntry = {
 	path: string;
 	lastModified?: string | null;
+	images?: string[];
 };
 
 type SitemapListKey = "items" | "recipes" | "stories" | "discussions";
@@ -23,18 +24,25 @@ const lastmod = (value?: string | null) => {
 };
 
 export function sitemapXml(entries: SitemapEntry[]) {
+	const includesImages = entries.some((entry) => entry.images?.length);
 	const urls = entries
 		.map(
-			({ path, lastModified }) =>
-				`<url><loc>${xmlEscape(`${siteUrl}${path}`)}</loc>${lastmod(lastModified)}<changefreq>daily</changefreq><priority>0.8</priority></url>`,
+			({ path, lastModified, images }) =>
+				`<url><loc>${xmlEscape(`${siteUrl}${path}`)}</loc>${lastmod(lastModified)}${(images || []).map((image) => `<image:image><image:loc>${xmlEscape(image)}</image:loc></image:image>`).join("")}<changefreq>daily</changefreq><priority>0.8</priority></url>`,
 		)
 		.join("");
-	return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`;
+	const imageNamespace = includesImages
+		? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'
+		: "";
+	return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}>${urls}</urlset>`;
 }
 
 export function sitemapIndexXml(paths: string[]) {
 	const maps = paths
-		.map((path) => `<sitemap><loc>${xmlEscape(`${siteUrl}${path}`)}</loc></sitemap>`)
+		.map(
+			(path) =>
+				`<sitemap><loc>${xmlEscape(`${siteUrl}${path}`)}</loc></sitemap>`,
+		)
 		.join("");
 	return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${maps}</sitemapindex>`;
 }

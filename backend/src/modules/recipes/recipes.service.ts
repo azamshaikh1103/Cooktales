@@ -1220,6 +1220,7 @@ export class RecipesService {
       name: true,
       about: true,
       mainImage: true,
+      moreImages: true,
       totalTimeReq: true,
       yield: true,
       calories: true,

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { FaFire, FaTrophy, FaCommentDots, FaMedal } from 'react-icons/fa';
+import { FaFire, FaCommentDots } from 'react-icons/fa';
 import { MdVerified, MdForum, MdOutlineTimer, MdAccountCircle } from 'react-icons/md';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -85,14 +85,7 @@ export default async function CommunityPage() {
                 >
                   Community guidelines
                 </Link>
-                <a
-                  href="https://www.reddit.com/r/CookTale/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-[#006C5E]/40 hover:text-[#006C5E] dark:border-white/15 dark:text-gray-200 dark:hover:border-[#4ADE80]/50 dark:hover:text-[#4ADE80]"
-                >
-                  Join r/CookTale
-                </a>
+                {/* shortcut: Reddit link is hidden until the community is available again. */}
               </div>
             </div>
 
@@ -222,16 +215,11 @@ export default async function CommunityPage() {
           <div className="space-y-8 lg:col-span-4">
             {/* LEADERBOARD */}
             <div className="top-24 rounded-4xl border border-gray-100 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-[#152a26]">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-xl bg-yellow-50 p-3 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
-                  <FaTrophy className="text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white">Top Chefs</h3>
-                  <p className="text-xs font-bold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                    All Time
-                  </p>
-                </div>
+              <div className="mb-6">
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">Top Chefs</h3>
+                <p className="text-xs font-bold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                  All Time
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -241,24 +229,18 @@ export default async function CommunityPage() {
                       <div className="w-4 text-center font-black text-gray-300 dark:text-gray-600">
                         {index + 1}
                       </div>
-                      <div className="relative">
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
                         {chef.image ? (
                           <Image
                             src={chef.image}
-                            width={40}
-                            height={40}
-                            className="rounded-full"
+                            fill
+                            className="object-cover"
                             alt={chef.name}
                             loader={imageLoader}
                           />
                         ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#006C5E] font-bold text-white">
+                          <div className="flex h-full w-full items-center justify-center bg-[#006C5E] font-bold text-white">
                             {chef.name[0]}
-                          </div>
-                        )}
-                        {index === 0 && (
-                          <div className="absolute -top-2 -right-2 rounded-full bg-white p-0.5 text-yellow-400 shadow-sm dark:bg-gray-800">
-                            <FaMedal />
                           </div>
                         )}
                       </div>
@@ -279,16 +261,21 @@ export default async function CommunityPage() {
                     </div>
                   </Link>
                 ))}
+                {topChefs.length === 0 && (
+                  <p className="py-2 text-sm text-gray-500 dark:text-gray-400">
+                    No chefs have earned points yet.
+                  </p>
+                )}
               </div>
 
-              <div className="mt-6 border-t border-gray-100 pt-6 text-center dark:border-white/10">
+              {topChefs.length > 0 && <div className="mt-6 border-t border-gray-100 pt-6 text-center dark:border-white/10">
                 <Link
                   href="/community/leaderboard"
                   className="text-xs font-bold tracking-widest text-gray-400 uppercase transition-colors hover:text-[#006C5E] dark:text-gray-500 dark:hover:text-[#4ADE80]"
                 >
                   View Full Leaderboard
                 </Link>
-              </div>
+              </div>}
             </div>
             {/* ... Trending Tags & Newsletter ... */}
           </div>

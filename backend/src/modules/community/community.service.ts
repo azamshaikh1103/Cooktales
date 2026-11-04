@@ -33,7 +33,7 @@ export class CommunityService {
     const [topDiscussions, activeChallenge, topChefs, totalRecipes, totalStories, totalChefs, totalDiscussions] = await this.prisma.$transaction([
       this.prisma.discussion.findMany({ take: 5, orderBy: [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }], include: { author: { select: userSelect }, _count: { select: { comments: true, likes: true } } } }),
       this.prisma.challenge.findFirst({ where: { isActive: true, endDate: { gt: new Date() } }, orderBy: { endDate: 'asc' }, include: { _count: { select: { entries: true } } } }),
-      this.prisma.user.findMany({ take: 5, orderBy: [{ points: 'desc' }, { createdAt: 'asc' }], select: userSelect }),
+      this.prisma.user.findMany({ where: { deletedAt: null, role: 'CHEF', points: { gt: 0 } }, take: 5, orderBy: [{ points: 'desc' }, { createdAt: 'asc' }], select: userSelect }),
       this.prisma.recipe.count({ where: { status: 'PUBLISHED', deletedAt: null } }),
       this.prisma.story.count({ where: { status: 'PUBLISHED', deletedAt: null } }),
       this.prisma.user.count({ where: { deletedAt: null } }),
@@ -68,7 +68,7 @@ export class CommunityService {
 
   async leaderboard(query: ListLeaderboardQueryDto) {
     const page = query.page || 1; const limit = query.limit || 50; const skip = (page - 1) * limit;
-    const where = { deletedAt: null };
+    const where = { deletedAt: null, role: 'CHEF' as const, points: { gt: 0 } };
     const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({ where, skip, take: limit, orderBy: [{ points: 'desc' }, { createdAt: 'asc' }], select: userSelect }),
       this.prisma.user.count({ where }),

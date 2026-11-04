@@ -560,14 +560,8 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 		const file = e.target.files[0];
 		const idx = activeStepIndex;
 
-		// 1. Show Base64 Preview immediately (Optimistic UI)
-		const reader = new FileReader();
-		reader.onloadend = () => {
-			update(idx, "image", reader.result as string);
-		};
-		reader.readAsDataURL(file);
-
-		// 2. Start Cloud Upload
+		// Keep the file out of recipe state until Cloud Storage returns its URL.
+		// Otherwise autosave can send the whole image as recipe data.
 		setUploadingIndex(idx);
 		const loadingId = toast.loading(`Uploading image for Step ${idx + 1}...`);
 
@@ -575,7 +569,6 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 			const res = await uploadFile(file);
 
 			if (res?.publicUrl) {
-				// 3. Replace Base64 with Real Cloud URL
 				update(idx, "image", res.publicUrl);
 				toast.success("Step image uploaded!", { id: loadingId });
 			} else {

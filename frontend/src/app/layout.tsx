@@ -5,6 +5,7 @@ import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import OfflineStatus from "@/components/OfflineStatus";
+import InstallCookTalePrompt from "@/components/InstallCookTalePrompt";
 import ScriptManager from "@/components/ScriptManager";
 import ScrollToTop from "@/components/ScrollToTop";
 import TabManager from "@/components/TabManager";
@@ -275,6 +276,7 @@ window.gtag('config', ${JSON.stringify(analyticsMeasurementId)});`,
 					<ScrollToTop />
 					<TabManager />
 					<OfflineStatus />
+					<InstallCookTalePrompt />
 					{children}
 					<Toaster
 						position="bottom-right"

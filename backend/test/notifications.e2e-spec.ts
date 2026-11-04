@@ -368,7 +368,7 @@ describe('Notifications API', () => {
 
   it('protects browser subscriptions and never exposes the VAPID private key', async () => {
     const owner = await createUser('push_owner');
-    const endpoint = `https://push.example.test/subscriptions/${owner.user.id}`;
+    const endpoint = `https://fcm.googleapis.com/fcm/send/${owner.user.id}`;
 
     await request(app.getHttpServer()).get('/api/v1/notifications/push/config').expect(401);
 

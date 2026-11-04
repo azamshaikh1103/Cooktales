@@ -217,11 +217,8 @@ export class AuthController {
   }
 
   private getRequestMeta(request: Request) {
-    const forwardedFor = request.headers['x-forwarded-for'];
     const ipAddress =
-      request.headers['cf-connecting-ip']?.toString() ||
-      request.headers['x-real-ip']?.toString() ||
-      (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(',')[0]?.trim()) ||
+      request.headers['x-cooktale-client-ip']?.toString() ||
       request.ip;
 
     return {

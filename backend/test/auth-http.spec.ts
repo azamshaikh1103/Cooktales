@@ -96,6 +96,36 @@ describe('Auth HTTP safety', () => {
     );
   });
 
+  it('uses only Caddy’s internal client-address header for login metadata', async () => {
+    const login = jest.fn().mockResolvedValue({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      user: { id: 'user-1' },
+    });
+    const { controller } = createController({ login } as Partial<AuthService>);
+    const response = { cookie: jest.fn() } as unknown as Response;
+
+    await controller.login(
+      { email: 'user@example.com', password: 'Password1' },
+      {
+        headers: {
+          'cf-connecting-ip': '203.0.113.10',
+          'x-real-ip': '203.0.113.11',
+          'x-forwarded-for': '203.0.113.12',
+          'x-cooktale-client-ip': '198.51.100.20',
+        },
+        cookies: {},
+        ip: '172.20.0.2',
+      } as unknown as Request,
+      response,
+    );
+
+    expect(login).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ipAddress: '198.51.100.20' }),
+    );
+  });
+
   it('revokes and clears the cookie token on logout', async () => {
     const logout = jest.fn().mockResolvedValue(undefined);
     const { controller } = createController({ logout } as Partial<AuthService>);

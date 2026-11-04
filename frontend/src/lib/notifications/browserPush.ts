@@ -71,16 +71,10 @@ export async function sendBrowserPushTest() {
     throw new Error('Allow browser alerts first, then save your notification settings.');
   }
 
-  const registration = await navigator.serviceWorker.register(SERVICE_WORKER_PATH, { scope: '/' });
-  await registration.update();
-  const activeRegistration = await navigator.serviceWorker.ready;
-  await activeRegistration.showNotification('CookTale', {
-    body: 'Browser alerts are ready for your kitchen activity.',
-    icon: '/favicon-512x512.png',
-    badge: '/favicon-512x512.png',
-    tag: `cooktale-browser-test-${Date.now()}`,
-    data: { url: '/notifications' },
-  });
+  const result = await notificationClient.sendPushTest();
+  if (!result.queued) {
+    throw new Error('Enable browser alerts and save your settings before sending a test.');
+  }
 }
 
 export async function disableBrowserPush() {

@@ -114,4 +114,10 @@ export const notificationClient = {
 			body: JSON.stringify({ endpoint }),
 		});
 	},
+
+	sendPushTest() {
+		return request<{ queued: number }>("/notifications/push/test", {
+			method: "POST",
+		});
+	},
 };

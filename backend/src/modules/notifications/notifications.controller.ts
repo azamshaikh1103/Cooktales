@@ -60,4 +60,10 @@ export class NotificationsController {
   unsubscribePush(@Req() request: AuthenticatedRequest, @Body() dto: DeletePushSubscriptionDto) {
     return this.push.unsubscribe(request.user.sub, dto.endpoint);
   }
+
+  @Post('push/test')
+  @HttpCode(HttpStatus.OK)
+  sendPushTest(@Req() request: AuthenticatedRequest) {
+    return this.push.sendTest(request.user.sub);
+  }
 }

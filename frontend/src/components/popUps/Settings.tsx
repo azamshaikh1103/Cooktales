@@ -945,7 +945,7 @@ export const NotificationsTab = () => {
     setTestingBrowserAlert(true);
     try {
       await sendBrowserPushTest();
-      toast.success('Test browser alert sent.');
+      toast.success('Test browser alert queued. It may take a moment to arrive.');
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'The browser could not show the test alert.';
       toast.error(reason);
@@ -1048,7 +1048,7 @@ export const NotificationsTab = () => {
           />
           <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3 dark:border-white/10">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Check that this browser can visibly show CookTale alerts.
+              Send a real CookTale browser alert to this device.
             </p>
             <button
               type="button"

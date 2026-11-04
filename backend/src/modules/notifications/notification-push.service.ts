@@ -1,4 +1,11 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AccountStatus, NotificationType, Prisma } from '@prisma/client';
 import { Queue, Worker } from 'bullmq';
 import webpush from 'web-push';
@@ -7,7 +14,9 @@ import type { AppConfig } from '../../config/env.validation';
 import { PrismaService } from '../../database/prisma.service';
 import type { CreatePushSubscriptionDto } from './dto/notification.dto';
 
-type PushJob = { notificationId: string; subscriptionId: string };
+type PushJob =
+  | { notificationId: string; subscriptionId: string }
+  | { test: true; userId: string; subscriptionId: string };
 
 const QUEUE_NAME = 'notification-push';
 const MAX_SUBSCRIPTIONS_PER_USER = 5;
@@ -15,14 +24,14 @@ const MAX_SUBSCRIPTIONS_PER_USER = 5;
 @Injectable()
 export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(NotificationPushService.name);
-  private readonly queue: Queue<PushJob, void, 'deliver'>;
-  private worker?: Worker<PushJob, void, 'deliver'>;
+  private readonly queue: Queue<PushJob>;
+  private worker?: Worker<PushJob>;
 
   constructor(
     private readonly config: ConfigService<AppConfig, true>,
     private readonly prisma: PrismaService,
   ) {
-    this.queue = new Queue<PushJob, void, 'deliver'>(QUEUE_NAME, {
+    this.queue = new Queue<PushJob>(QUEUE_NAME, {
       connection: this.connectionOptions(),
     });
   }
@@ -35,7 +44,7 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.configureWebPush();
-    this.worker = new Worker<PushJob, void, 'deliver'>(
+    this.worker = new Worker<PushJob>(
       QUEUE_NAME,
       async (job) => this.deliver(job.data),
       { connection: this.connectionOptions(), concurrency: 10 },
@@ -57,6 +66,9 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
   async subscribe(userId: string, dto: CreatePushSubscriptionDto) {
     if (!this.isConfigured()) {
       throw new ServiceUnavailableException('Browser notifications are not configured');
+    }
+    if (!this.isTrustedEndpoint(dto.endpoint)) {
+      throw new BadRequestException('This browser push service is not supported');
     }
 
     const existing = await this.prisma.pushSubscription.findUnique({
@@ -100,6 +112,27 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
     return { subscribed: false };
   }
 
+  async sendTest(userId: string) {
+    if (!this.isConfigured()) {
+      throw new ServiceUnavailableException('Browser notifications are not configured');
+    }
+
+    const subscriptions = await this.prisma.pushSubscription.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!subscriptions.length) return { queued: 0 };
+
+    await this.queue.addBulk(
+      subscriptions.map((subscription) => ({
+        name: 'deliver-test',
+        data: { test: true as const, userId, subscriptionId: subscription.id },
+        opts: { attempts: 1, removeOnComplete: true, removeOnFail: 100 },
+      })),
+    );
+    return { queued: subscriptions.length };
+  }
+
   async enqueueForNotification(notificationId: string) {
     if (!this.isConfigured()) return;
 
@@ -137,6 +170,8 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async deliver(job: PushJob) {
+    if ('test' in job) return this.deliverTest(job);
+
     const subscription = await this.prisma.pushSubscription.findUnique({
       where: { id: job.subscriptionId },
       select: {
@@ -155,6 +190,13 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
       },
     });
     if (!subscription || !subscription.user || !this.isPushEnabled(subscription.user)) return;
+    if (!this.isTrustedEndpoint(subscription.endpoint)) {
+      await this.prisma.pushSubscription.deleteMany({
+        where: { id: subscription.id, endpoint: subscription.endpoint },
+      });
+      this.logger.warn('Removed an unsupported browser push subscription');
+      return;
+    }
 
     const notification = await this.prisma.notification.findFirst({
       where: { id: job.notificationId, recipientId: subscription.user.id },
@@ -186,6 +228,55 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
       }
       throw error;
     }
+  }
+
+  private async deliverTest(job: Extract<PushJob, { test: true }>) {
+    const subscription = await this.prisma.pushSubscription.findUnique({
+      where: { id: job.subscriptionId },
+      select: {
+        id: true,
+        endpoint: true,
+        p256dh: true,
+        auth: true,
+        user: {
+          select: {
+            id: true,
+            status: true,
+            deletedAt: true,
+            notificationPreferences: true,
+          },
+        },
+      },
+    });
+    if (
+      !subscription ||
+      subscription.user?.id !== job.userId ||
+      !subscription.user ||
+      !this.isPushEnabled(subscription.user)
+    ) {
+      return;
+    }
+    if (!this.isTrustedEndpoint(subscription.endpoint)) {
+      await this.prisma.pushSubscription.deleteMany({
+        where: { id: subscription.id, endpoint: subscription.endpoint },
+      });
+      this.logger.warn('Removed an unsupported browser push subscription');
+      return;
+    }
+
+    await webpush.sendNotification(
+      {
+        endpoint: subscription.endpoint,
+        keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+      },
+      JSON.stringify({
+        title: 'CookTale',
+        body: 'Browser alerts are ready for your kitchen activity.',
+        url: '/notifications',
+        tag: `cooktale-browser-test-${subscription.id}`,
+      }),
+      { TTL: 60, urgency: 'normal' },
+    );
   }
 
   private isPushEnabled(user: {
@@ -248,6 +339,29 @@ export class NotificationPushService implements OnModuleInit, OnModuleDestroy {
         this.config.get('VAPID_PUBLIC_KEY', { infer: true }) &&
         this.config.get('VAPID_PRIVATE_KEY', { infer: true }),
     );
+  }
+
+  private isTrustedEndpoint(endpoint: string) {
+    try {
+      const url = new URL(endpoint);
+      if (
+        url.protocol !== 'https:' ||
+        url.port ||
+        url.username ||
+        url.password
+      ) {
+        return false;
+      }
+
+      const host = url.hostname.toLowerCase();
+      return this.config.get('PUSH_ALLOWED_HOSTS', { infer: true }).some((allowedHost) =>
+        allowedHost.startsWith('.')
+          ? host.endsWith(allowedHost) && host.length > allowedHost.length
+          : host === allowedHost,
+      );
+    } catch {
+      return false;
+    }
   }
 
   private configureWebPush() {

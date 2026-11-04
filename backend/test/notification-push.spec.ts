@@ -21,6 +21,12 @@ const configuredValues: Record<string, unknown> = {
   VAPID_SUBJECT: 'mailto:hello@cooktale.in',
   VAPID_PUBLIC_KEY: 'public-key',
   VAPID_PRIVATE_KEY: 'private-key',
+  PUSH_ALLOWED_HOSTS: [
+    'fcm.googleapis.com',
+    'updates.push.services.mozilla.com',
+    '.push.apple.com',
+    '.notify.windows.com',
+  ],
   REDIS_URL: 'redis://127.0.0.1:6379',
   FRONTEND_URL: 'http://localhost:3000',
 };
@@ -43,7 +49,7 @@ describe('NotificationPushService', () => {
     jest.clearAllMocks();
     prisma.pushSubscription.findUnique.mockResolvedValue({
       id: 'subscription-1',
-      endpoint: 'https://push.example.test/subscription-1',
+      endpoint: 'https://fcm.googleapis.com/fcm/send/subscription-1',
       p256dh: 'p256dh',
       auth: 'auth',
       user: {
@@ -90,13 +96,50 @@ describe('NotificationPushService', () => {
     await (service as any).deliver({ notificationId: 'notification-1', subscriptionId: 'subscription-1' });
 
     expect(webpush.sendNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ endpoint: 'https://push.example.test/subscription-1' }),
+      expect.objectContaining({ endpoint: 'https://fcm.googleapis.com/fcm/send/subscription-1' }),
       expect.stringContaining('Chef started following your kitchen.'),
       expect.objectContaining({ TTL: 86_400 }),
     );
     expect(prisma.pushSubscription.deleteMany).toHaveBeenCalledWith({
-      where: { id: 'subscription-1', endpoint: 'https://push.example.test/subscription-1' },
+      where: { id: 'subscription-1', endpoint: 'https://fcm.googleapis.com/fcm/send/subscription-1' },
     });
+  });
+
+  it('removes a subscription that points to a private address without sending a request', async () => {
+    prisma.pushSubscription.findUnique.mockResolvedValueOnce({
+      id: 'subscription-1',
+      endpoint: 'https://127.0.0.1/push',
+      p256dh: 'p256dh',
+      auth: 'auth',
+      user: {
+        id: 'user-1',
+        status: AccountStatus.ACTIVE,
+        deletedAt: null,
+        notificationPreferences: { push_activity: true },
+      },
+    });
+    const service = new NotificationPushService(config as never, prisma as never);
+
+    await (service as any).deliver({ notificationId: 'notification-1', subscriptionId: 'subscription-1' });
+
+    expect(webpush.sendNotification).not.toHaveBeenCalled();
+    expect(prisma.pushSubscription.deleteMany).toHaveBeenCalledWith({
+      where: { id: 'subscription-1', endpoint: 'https://127.0.0.1/push' },
+    });
+  });
+
+  it('rejects an untrusted endpoint before saving a subscription', async () => {
+    const service = new NotificationPushService(config as never, prisma as never);
+
+    await expect(
+      service.subscribe('user-1', {
+        endpoint: 'https://127.0.0.1/push',
+        p256dh: 'p256dh',
+        auth: 'auth',
+      }),
+    ).rejects.toThrow('This browser push service is not supported');
+
+    expect(prisma.pushSubscription.findUnique).not.toHaveBeenCalled();
   });
 
   it('uses a BullMQ-safe job ID when queuing a browser alert', async () => {
@@ -114,6 +157,21 @@ describe('NotificationPushService', () => {
         opts: expect.objectContaining({
           jobId: 'notification-notification-1-subscription-subscription-1',
         }),
+      }),
+    ]);
+  });
+
+  it('queues a real browser push test for the requesting user', async () => {
+    prisma.pushSubscription.findMany.mockResolvedValueOnce([{ id: 'subscription-1' }]);
+    const service = new NotificationPushService(config as never, prisma as never);
+    const addBulk = (service as any).queue.addBulk as jest.Mock;
+
+    await expect((service as any).sendTest('user-1')).resolves.toEqual({ queued: 1 });
+
+    expect(addBulk).toHaveBeenCalledWith([
+      expect.objectContaining({
+        name: 'deliver-test',
+        data: { test: true, userId: 'user-1', subscriptionId: 'subscription-1' },
       }),
     ]);
   });

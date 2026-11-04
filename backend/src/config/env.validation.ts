@@ -208,6 +208,15 @@ const envSchema = z.object({
   VAPID_SUBJECT: z.string().default('mailto:hello@cooktale.in'),
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
+  PUSH_ALLOWED_HOSTS: z
+    .string()
+    .default('fcm.googleapis.com,updates.push.services.mozilla.com,.push.apple.com,.notify.windows.com')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((host) => host.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('CookTale <noreply@cooktale.in>'),
   CONTACT_EMAIL_TO: z.string().email().default('contact@cooktale.in'),

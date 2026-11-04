@@ -95,6 +95,7 @@ describe('Community API', () => {
 
   it('returns a real snapshot and rejects invalid creation input', async () => {
     const chef = await user('leader', 100);
+    await prisma.user.update({ where: { id: chef.created.id }, data: { role: UserRole.CHEF } });
     await prisma.discussion.create({ data: { title: 'A real snapshot discussion', content: 'This record makes the public snapshot meaningful.', category: 'Showcase', slug: `snapshot-${Date.now()}`, authorId: chef.created.id } });
     const snapshot = await request(app.getHttpServer()).get('/api/v1/community/snapshot').expect(200);
     expect(snapshot.body.totalChefs).toBeGreaterThan(0);

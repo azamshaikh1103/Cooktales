@@ -53,13 +53,9 @@ const RegionalPick = () => {
 			setLoading(true);
 
 			try {
-				// ✅ CALL SERVER ACTION
 				const response = await getAllRecipesAction({
-					limit: 8,
-					tag:
-						selectedCuisine === "All"
-							? undefined
-							: selectedCuisine.toLowerCase(),
+					limit: 9,
+					cuisine: selectedCuisine === "All" ? undefined : selectedCuisine,
 					sortBy: "popular",
 				});
 
@@ -104,7 +100,7 @@ const RegionalPick = () => {
 						type="button"
 						key={cuisine}
 						aria-pressed={selectedCuisine === cuisine}
-						className={`shrink-0 rounded-full border px-5 py-2 text-sm font-bold whitespace-nowrap transition-colors ${
+						className={`shrink-0 cursor-pointer rounded-full border px-5 py-2 text-sm font-bold whitespace-nowrap transition-colors ${
 							selectedCuisine === cuisine
 								? "border-[#006C5E] bg-[#006C5E] text-white dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-[#0d1f1c]"
 								: "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
@@ -156,7 +152,7 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 	return (
 		<Link
 			href={`/recipe/${recipe.slug}`}
-			className="flex w-full items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
+			className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
 		>
 			{/* Image */}
 			<div className="relative h-16 w-16 min-w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100 lg:h-36 lg:w-36 dark:bg-white/10">

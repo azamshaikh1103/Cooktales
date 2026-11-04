@@ -1,11 +1,23 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { FaFire, FaTrophy, FaCommentDots, FaMedal } from 'react-icons/fa';
 import { MdVerified, MdForum, MdOutlineTimer, MdAccountCircle } from 'react-icons/md';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import imageLoader from "@/lib/loader";
 import { communityClient } from '@/lib/api/communityClient';
+
+export const metadata: Metadata = {
+  title: 'Community | CookTale',
+  description: 'Ask questions, share kitchen wins, and join practical cooking conversations on CookTale.',
+  alternates: { canonical: '/community' },
+  openGraph: {
+    title: 'CookTale Community',
+    description: 'Ask questions, share kitchen wins, and join practical cooking conversations on CookTale.',
+    url: '/community',
+  },
+};
 
 // Helper for "2h ago" format
 function timeAgo(date: Date | string) {

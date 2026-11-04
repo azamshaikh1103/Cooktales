@@ -237,18 +237,7 @@ const Footer = () => {
 				{/* --- BOTTOM SECTION: COPYRIGHT & SOCIALS --- */}
 				<div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 md:flex-row">
 					<div className="text-xs font-medium text-white/60">
-						<p>© 2026 COOKTALE. ALL RIGHTS RESERVED.</p>
-						<p className="mt-1 text-[10px] font-normal leading-relaxed text-white/50">
-							Founded and developed by Azam Ali Shaikh. For business and
-							editorial inquiries:{" "}
-							<a
-								href="mailto:azamshaikh1103@gmail.com"
-								className="underline transition-colors hover:text-white"
-							>
-								azamshaikh1103@gmail.com
-							</a>
-							.
-						</p>
+						© 2026 COOKTALE. ALL RIGHTS RESERVED.
 					</div>
 
 					<div className="flex gap-4">

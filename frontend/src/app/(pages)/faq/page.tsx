@@ -57,7 +57,7 @@ const FAQ_DATA = [
 			{
 				question: "How and when do creators get paid?",
 				answer:
-					"Payouts are settled on a monthly Net-30 schedule after ad revenue is finalized. Creators can receive funds via direct domestic transfer (UPI or bank in India) once reaching ₹500, or via PayPal Payouts internationally once reaching $50 USD.",
+					"Payouts are settled on a monthly Net-30 schedule after ad revenue is finalized. Creators can receive funds through available bank transfer or PayPal once reaching the applicable payout threshold.",
 			},
 			{
 				question:

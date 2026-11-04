@@ -6,9 +6,7 @@ import {
 	FaClock,
 	FaEnvelope,
 	FaHandshake,
-	FaMapMarkerAlt,
 	FaPaperPlane,
-	FaPhone,
 	FaWallet,
 } from "react-icons/fa";
 import { toast } from "sonner";
@@ -143,18 +141,6 @@ export default function ContactPage() {
 									title="Email"
 									value="contact@cooktale.in"
 									href="mailto:contact@cooktale.in"
-								/>
-								<ContactDetail
-									icon={FaMapMarkerAlt}
-									title="Location"
-									value="Mumbai, India"
-								/>
-								{/* shortcut: public verification phone, remove after Payoneer verification. */}
-								<ContactDetail
-									icon={FaPhone}
-									title="Founder & developer"
-									value="Azam Ali Shaikh · +91 98675 84687"
-									href="tel:+919867584687"
 								/>
 								<ContactDetail
 									icon={FaClock}

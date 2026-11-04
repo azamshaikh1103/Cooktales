@@ -127,7 +127,6 @@ export default async function RootLayout({
 				],
 				contactPoint: {
 					"@type": "ContactPoint",
-					telephone: "+91-9867584687",
 					contactType: "customer service",
 					email: "support@cooktale.in",
 				},

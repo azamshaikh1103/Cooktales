@@ -74,7 +74,7 @@ export const wrapEmail = (
           <!-- FOOTER -->
           <div style="margin-top: 24px; text-align: center; color: #9ca3af; font-size: 12px;">
             <p style="margin: 0 0 10px;">© 2026 CookTale Inc. All rights reserved.</p>
-            <p style="margin: 0;">Made with <span style="color: ${BRAND_COLOR}; font-size: 14px;">&hearts;</span> by Chefs in Mumbai.</p>
+            <p style="margin: 0;">Made with <span style="color: ${BRAND_COLOR}; font-size: 14px;">&hearts;</span> for home cooks everywhere.</p>
             <div style="margin-top: 12px;">
                <a href="https://cooktale.in" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Website</a> •
                <a href="https://www.instagram.com/cooktale_in/" style="color: #9ca3af; text-decoration: none; margin: 0 8px;">Instagram</a>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaClock, FaLeaf, FaStar, FaUtensils } from "react-icons/fa";
+import { FaClock, FaStar, FaUtensils } from "react-icons/fa";
 import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -208,9 +208,11 @@ export default function RecipePageClient({
 							<p className="text-sm">Try selecting a different category.</p>
 						</div>
 					) : (
-						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-							{recipes.map((recipe) => (
-								<RecipeMasonryCard key={recipe.id} recipe={recipe} />
+						<div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
+							{recipes.map((recipe, index) => (
+								<div key={recipe.id} className="mb-5 break-inside-avoid">
+									<RecipeMasonryCard recipe={recipe} index={index} />
+								</div>
 							))}
 						</div>
 					)}
@@ -235,43 +237,64 @@ export default function RecipePageClient({
 }
 
 // --- SUB COMPONENT ---
-const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
+const IMAGE_ASPECTS = [
+	"aspect-[4/5]",
+	"aspect-square",
+	"aspect-[4/3]",
+	"aspect-[3/4]",
+	"aspect-[5/4]",
+];
+
+const RecipeMasonryCard = ({
+	recipe,
+	index,
+}: {
+	recipe: Recipe;
+	index: number;
+}) => {
 	const href = `/recipe/${recipe.slug}`;
+	const imageAspect = IMAGE_ASPECTS[index % IMAGE_ASPECTS.length];
 
 	return (
 		<Link
 			href={href}
-			className="group inline-flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#006c5e]/40 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/40"
+			className="group inline-flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-[#006c5e]/50 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/50"
 		>
 			{recipe.mainImage && (
-				<div className="relative aspect-[4/3] w-full bg-slate-100 dark:bg-slate-900/50">
+				<div
+					className={`relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900/50 ${imageAspect}`}
+				>
 					<Image
 						src={recipe.mainImage}
 						alt={recipe.name}
 						fill
 						sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
-						className="object-cover"
+						className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
 						loader={imageLoader}
 					/>
+					{recipe.ratingCount > 0 && recipe.ratings != null && (
+						<span className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-gray-900 dark:bg-[#0d1f1c]/95 dark:text-white">
+							<FaStar className="text-yellow-400" />
+							{formatters.rating(recipe.ratings)}
+						</span>
+					)}
 				</div>
 			)}
 
-			<div className="flex flex-1 flex-col p-5">
-				{recipe.ratingCount > 0 && recipe.ratings != null && (
-					<div className="mb-3 flex">
-						<span className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-900 dark:bg-white/10 dark:text-white">
-							<FaStar className="text-yellow-400" />{" "}
-							{formatters.rating(recipe.ratings)}
-						</span>
-					</div>
-				)}
-
-				<h3 className="line-clamp-2 text-xl leading-tight font-black text-gray-900 dark:text-white">
+			<div className="flex flex-col p-4">
+				<div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[0.12em] text-[#006c5e] uppercase dark:text-[#4ade80]">
+					{recipe.cuisine && <span>{recipe.cuisine}</span>}
+					{recipe.diet && (
+						<span className="text-gray-400 dark:text-gray-500">•</span>
+					)}
+					{recipe.diet && <span>{recipe.diet}</span>}
+				</div>
+				<h3 className="text-lg leading-snug font-bold text-gray-900 dark:text-white">
 					{recipe.name}
 				</h3>
 
 				<div className="mt-4">
-					<div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-300">
+					<div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs font-semibold text-gray-500 dark:text-gray-300">
 						{recipe.totalTimeReq && (
 							<span className="flex items-center gap-1">
 								<FaClock /> {recipe.totalTimeReq}m
@@ -282,15 +305,10 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 								<FaUtensils /> {recipe.yield}
 							</span>
 						)}
-						{recipe.diet && (
-							<span className="flex items-center gap-1">
-								<FaLeaf /> {recipe.diet}
-							</span>
-						)}
 					</div>
 
 					{recipe.author && (
-						<div className="mt-4 flex items-center gap-3 border-t border-gray-200 pt-4 dark:border-white/20">
+						<div className="mt-4 flex items-center gap-2.5 border-t border-gray-200 pt-3 dark:border-white/10">
 							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-300 bg-gray-100 dark:border-white/50 dark:bg-white/10">
 								{recipe.author.image && (
 									<Image

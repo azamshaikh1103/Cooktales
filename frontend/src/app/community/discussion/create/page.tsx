@@ -7,8 +7,6 @@ import { BiLoaderAlt } from "react-icons/bi";
 import {
 	FaArrowLeft,
 	FaBookOpen,
-	FaImage,
-	FaLink,
 	FaPaperPlane,
 	FaSearch,
 	FaTimes,
@@ -22,6 +20,7 @@ import { type SearchResult, searchClient } from "@/lib/api/searchClient";
 import { DISCUSSION_CATEGORIES } from "@/lib/community/discussionCategories";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import imageLoader from "@/lib/loader";
+import { DiscussionEditor } from "./DiscussionEditor";
 
 // --- TYPES ---
 interface AttachedItem {
@@ -185,21 +184,29 @@ export default function CreateDiscussion() {
 						</div>
 
 						<div className="space-y-4">
+							<label
+								htmlFor="discussion-title"
+								className="text-sm font-semibold text-gray-900 dark:text-white"
+							>
+								Title
+							</label>
 							<input
+								id="discussion-title"
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
-								placeholder="What's on your mind?"
+								placeholder="Give your discussion a clear title"
 								className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-xl font-semibold text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
 							/>
-							<textarea
+							<label className="text-sm font-semibold text-gray-900 dark:text-white">
+								Details
+							</label>
+							<DiscussionEditor
 								value={body}
-								onChange={(e) => {
-									setBody(e.target.value);
-									e.target.style.height = "auto";
-									e.target.style.height = `${e.target.scrollHeight}px`;
-								}}
-								placeholder="Share your details, questions, or story..."
-								className="min-h-[220px] w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-7 text-gray-700 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
+								onChange={setBody}
+								onAttachImage={() =>
+									document.getElementById("img-upload")?.click()
+								}
+								onAttachContent={() => setShowLinker(true)}
 							/>
 						</div>
 
@@ -254,7 +261,7 @@ export default function CreateDiscussion() {
 							</div>
 						)}
 
-						<div className="flex items-center gap-2 border-t border-gray-200 pt-5 dark:border-white/10">
+						<div className="hidden">
 							<input
 								type="file"
 								id="img-upload"
@@ -262,24 +269,6 @@ export default function CreateDiscussion() {
 								accept="image/*"
 								onChange={handleImageUpload}
 							/>
-							<label
-								htmlFor="img-upload"
-								className="cursor-pointer rounded-xl bg-gray-100 p-3 text-gray-500 transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-							>
-								<FaImage className="text-lg" />
-							</label>
-
-							<button
-								type="button"
-								onClick={() => setShowLinker(true)}
-								className="cursor-pointer rounded-xl bg-gray-100 p-3 text-gray-500 transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-							>
-								<FaLink className="text-lg" />
-							</button>
-
-							<span className="ml-auto hidden text-xs text-gray-400 sm:block">
-								Markdown Supported
-							</span>
 						</div>
 					</div>
 				</div>

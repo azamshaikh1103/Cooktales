@@ -4,9 +4,9 @@
 
 - Date: 2026-11-04
 - Decision: use Cloudflare Authenticated Origin Pulls (AOP) for origin protection.
-- Implementation status: Cloudflare global AOP is enabled. The matching Caddy
-  enforcement code is ready but the production release is waiting for a
-  server-file ownership repair before it can be verified live.
+- Implementation status: Cloudflare global AOP is enabled at Cloudflare, but
+  Caddy enforcement is paused after it caused a production origin error. Test
+  the exact certificate chain on staging before enforcing it again.
 - Review scope: authentication source code, production Compose files, Caddy configuration, and deployment documentation.
 - Review limit: source review only. No production or hosted-environment attack was performed.
 

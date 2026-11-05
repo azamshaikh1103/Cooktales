@@ -21,8 +21,9 @@ new work before it reaches real users.
 - Use provider test settings only. Live email, billing, payouts, notifications,
   analytics, and ads stay off.
 - The staging proxy sends `noindex` so search engines do not list it.
-- Cloudflare Authenticated Origin Pulls protects staging in the same way as
-  production. Direct traffic to the server remains blocked.
+- Test Cloudflare Authenticated Origin Pulls on staging before enabling Caddy
+  certificate enforcement in production. Direct traffic to the staging server
+  remains blocked by its firewall.
 
 ## Test data
 

@@ -1,0 +1,79 @@
+name: Deploy staging
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-deployment
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      vars.STAGING_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Confirm this commit is on main
+        id: release
+        env:
+          COMMIT: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -eu
+          git fetch origin main
+          git merge-base --is-ancestor "$COMMIT" origin/main
+          printf 'commit=%s\n' "$COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS access through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_STAGING_DEPLOY_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Deploy the approved commit through SSM
+        env:
+          COMMIT: ${{ steps.release.outputs.commit }}
+          INSTANCE_ID: ${{ secrets.AWS_STAGING_INSTANCE_ID }}
+        run: |
+          set -eu
+          command_id="$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "CookTale staging deployment $COMMIT" \
+            --parameters "commands=[\"set -eu; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale diff --cached --quiet; sudo -u ec2-user git -C /home/ec2-user/cooktale fetch --prune origin main; sudo -u ec2-user git -C /home/ec2-user/cooktale cat-file -e $COMMIT^{commit}; sudo -u ec2-user git -C /home/ec2-user/cooktale merge-base --is-ancestor $COMMIT origin/main; sudo -u ec2-user git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-production.sh > /tmp/cooktale-deploy-$COMMIT.sh; sudo -u ec2-user git -C /home/ec2-user/cooktale show $COMMIT:deploy/deploy-staging.sh > /tmp/cooktale-deploy-staging-$COMMIT.sh; COOKTALE_DEPLOY_SCRIPT=/tmp/cooktale-deploy-$COMMIT.sh sh /tmp/cooktale-deploy-staging-$COMMIT.sh $COMMIT; grep -Fx $COMMIT /home/ec2-user/cooktale/deploy/.state-staging/current-deploy-commit; rm -f /tmp/cooktale-deploy-$COMMIT.sh /tmp/cooktale-deploy-staging-$COMMIT.sh\"]" \
+            --query 'Command.CommandId' \
+            --output text)"
+
+          for attempt in $(seq 1 60); do
+            status="$(aws ssm get-command-invocation \
+              --command-id "$command_id" \
+              --instance-id "$INSTANCE_ID" \
+              --query Status \
+              --output text 2>/dev/null || true)"
+            case "$status" in
+              Success) exit 0 ;;
+              Failed|Cancelled|TimedOut|Cancelling)
+                aws ssm get-command-invocation --command-id "$command_id" --instance-id "$INSTANCE_ID" --output json
+                exit 1 ;;
+            esac
+            echo "Waiting for the staging deployment (attempt $attempt/60)..."
+            sleep 10
+          done
+
+          echo "Staging deployment did not finish within 10 minutes. Check AWS Systems Manager."
+          exit 1

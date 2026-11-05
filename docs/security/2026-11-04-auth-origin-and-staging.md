@@ -4,7 +4,9 @@
 
 - Date: 2026-11-04
 - Decision: use Cloudflare Authenticated Origin Pulls (AOP) for origin protection.
-- Implementation status: not started.
+- Implementation status: Cloudflare global AOP is enabled. The matching Caddy
+  enforcement code is ready but the production release is waiting for a
+  server-file ownership repair before it can be verified live.
 - Review scope: authentication source code, production Compose files, Caddy configuration, and deployment documentation.
 - Review limit: source review only. No production or hosted-environment attack was performed.
 
@@ -25,7 +27,9 @@ Relevant source:
 
 Use Cloudflare AOP and enforce it at Caddy. AOP uses a client certificate so the origin accepts HTTPS traffic only from Cloudflare. This prevents a direct request to the origin IP from bypassing Cloudflare.
 
-The production origin must use Full or Full (strict) Cloudflare TLS mode. Use a zone-level or per-hostname AOP certificate rather than treating Cloudflare proxying alone as origin protection.
+The production origin must use Full or Full (strict) Cloudflare TLS mode. The
+current setup uses Cloudflare's global AOP certificate. Cloudflare proxying
+alone is not origin protection.
 
 ## Rollout plan
 

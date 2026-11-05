@@ -1,6 +1,6 @@
 #!/bin/sh
-# Safe, manual production deployment entry point. It is called by GitHub Actions
-# through AWS Systems Manager, so production SSH does not need to be exposed.
+# Safe deployment entry point. Production calls this directly; staging uses the
+# small wrapper beside it with isolated environment and state files.
 set -eu
 
 if [ "$#" -ne 1 ]; then
@@ -9,13 +9,15 @@ if [ "$#" -ne 1 ]; then
 fi
 
 commit="$1"
-repo_dir="/home/ec2-user/cooktale"
-env_file="$repo_dir/.env.production"
+repo_dir="${COOKTALE_REPO_DIR:-/home/ec2-user/cooktale}"
+env_file="${COOKTALE_ENV_FILE:-$repo_dir/.env.production}"
 compose_file="$repo_dir/docker-compose.production.yml"
-state_dir="$repo_dir/deploy/.state"
+state_dir="${COOKTALE_STATE_DIR:-$repo_dir/deploy/.state}"
+deploy_label="${COOKTALE_DEPLOY_LABEL:-Production}"
+monitoring_compose="${COOKTALE_MONITORING_COMPOSE:-$repo_dir/deploy/monitoring/production/docker-compose.observability.yml}"
 
 if [ ! -d "$repo_dir/.git" ] || [ ! -r "$env_file" ] || [ ! -r "$compose_file" ]; then
-  echo "Production repository or private environment file is missing." >&2
+  echo "$deploy_label repository or private environment file is missing." >&2
   exit 1
 fi
 
@@ -103,9 +105,10 @@ docker compose --env-file "$env_file" -f "$compose_file" --profile maintenance r
 docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans --force-recreate \
   backend backend-worker frontend caddy
 
-# Keep production host metrics and Docker logs connected to the separate
-# monitoring instance. This compose file only joins the existing app network.
-docker compose -f "$repo_dir/deploy/monitoring/production/docker-compose.observability.yml" up -d
+# Only production joins the separate production monitoring stack.
+if [ -n "$monitoring_compose" ]; then
+  docker compose -f "$monitoring_compose" up -d
+fi
 
 wait_for "Frontend HTTP server" \
   docker compose --env-file "$env_file" -f "$compose_file" exec -T frontend \
@@ -156,4 +159,4 @@ until docker compose --env-file "$env_file" -f "$compose_file" exec -T backend \
 done
 
 printf '%s\n' "$commit" > "$state_dir/current-deploy-commit"
-echo "Production deployment successful: $commit"
+echo "$deploy_label deployment successful: $commit"

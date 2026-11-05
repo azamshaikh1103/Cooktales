@@ -1,0 +1,33 @@
+(cloudflare_origin_pull) {
+	tls {
+		client_auth {
+			mode require_and_verify
+			trust_pool file /etc/caddy/cloudflare-aop-client-ca.pem
+		}
+	}
+}
+
+{$DOMAIN} {
+	import cloudflare_origin_pull
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	reverse_proxy frontend:3000
+}
+
+www.{$DOMAIN} {
+	import cloudflare_origin_pull
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+{$API_DOMAIN} {
+	import cloudflare_origin_pull
+	encode zstd gzip
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+	reverse_proxy backend:4000 {
+		header_up X-CookTale-Client-IP {http.request.header.CF-Connecting-IP}
+		header_up -CF-Connecting-IP
+		header_up -X-Real-IP
+		header_up -X-Forwarded-For
+	}
+}

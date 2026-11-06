@@ -4,11 +4,6 @@
 	reverse_proxy frontend:3000
 }
 
-www.{$DOMAIN} {
-	header X-Robots-Tag "noindex, nofollow, noarchive"
-	redir https://{$DOMAIN}{uri} permanent
-}
-
 {$API_DOMAIN} {
 	encode zstd gzip
 	header X-Robots-Tag "noindex, nofollow, noarchive"

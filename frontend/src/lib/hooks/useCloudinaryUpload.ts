@@ -8,6 +8,7 @@ type MediaUploadContext =
   | 'USER_BANNER'
   | 'RECIPE_MAIN'
   | 'RECIPE_GALLERY'
+  | 'RECIPE_STEP'
   | 'RECIPE_VIDEO'
   | 'STORY_COVER'
   | 'STORY_CONTENT'

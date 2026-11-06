@@ -18,9 +18,12 @@ describe('Media service safety', () => {
     get: jest.fn((key: string) => values[key]),
   } as unknown as ConfigService<AppConfig, true>;
   const prisma = {
+    user: { findFirst: jest.fn() },
     recipe: { findFirst: jest.fn() },
+    recipeMedia: { findFirst: jest.fn() },
     blog: { findFirst: jest.fn() },
     story: { findFirst: jest.fn() },
+    storyMedia: { findFirst: jest.fn() },
     discussion: { findFirst: jest.fn() },
     pendingMediaUpload: {
       create: jest.fn(),
@@ -100,6 +103,19 @@ describe('Media service safety', () => {
       where: { id: 'recipe-1', authorId: 'user-1', deletedAt: null },
       select: { id: true },
     });
+  });
+
+  it('stores owned recipe step photos in the recipe step folder', async () => {
+    (prisma.recipe.findFirst as jest.Mock).mockResolvedValueOnce({ id: 'recipe-1' });
+
+    const signed = await service.createSignedUpload({
+      userId: 'user-1',
+      context: MediaUploadContext.RECIPE_STEP,
+      entityId: 'recipe-1',
+    });
+
+    expect(signed.folder).toBe('cooktale/recipes/recipe-1/steps');
+    expect(signed.resourceType).toBe(MediaResourceType.IMAGE);
   });
 
   it('requires story and thread ownership before signing their media', async () => {
@@ -232,8 +248,7 @@ describe('Media service safety', () => {
       },
     ]);
     renameSpy.mockResolvedValueOnce({
-      secure_url:
-        'https://res.cloudinary.com/cooktale-test-cloud/image/upload/v1/thread-image.jpg',
+      secure_url: 'https://res.cloudinary.com/cooktale-test-cloud/image/upload/v1/thread-image.jpg',
     });
 
     const moved = await service.relocateThreadUploads('user-1', 'thread-1', [
@@ -262,5 +277,13 @@ describe('Media service safety', () => {
       }),
       update: expect.objectContaining({ status: 'DELETE_PENDING' }),
     });
+  });
+
+  it('keeps an image when it is still attached to saved recipe media', async () => {
+    (prisma.recipeMedia.findFirst as jest.Mock).mockResolvedValueOnce({ id: 'media-1' });
+
+    await expect(service.isStillReferenced('cooktale/recipes/recipe-1/steps/photo')).resolves.toBe(
+      true,
+    );
   });
 });

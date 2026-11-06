@@ -48,6 +48,14 @@ export class MediaCleanupService implements OnModuleInit, OnModuleDestroy {
 
     for (const upload of uploads) {
       try {
+        if (await this.mediaService.isStillReferenced(upload.publicId)) {
+          await this.prisma.pendingMediaUpload.update({
+            where: { id: upload.id },
+            data: { status: PendingMediaStatus.ATTACHED, attachedAt: new Date() },
+          });
+          continue;
+        }
+
         await this.mediaService.deleteAsset({
           publicId: upload.publicId,
           resourceType: upload.resourceType.toLowerCase() as Exclude<

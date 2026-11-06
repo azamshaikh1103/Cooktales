@@ -34,6 +34,7 @@ describe('Abandoned media cleanup', () => {
   } as unknown as PrismaService;
   const media = {
     deleteAsset: jest.fn().mockResolvedValue({ result: 'ok' }),
+    isStillReferenced: jest.fn().mockResolvedValue(false),
   } as unknown as MediaService;
   const config = {
     get: jest.fn((key: string) => (key === 'APP_MODE' ? 'api' : 15)),
@@ -68,5 +69,18 @@ describe('Abandoned media cleanup', () => {
     const service = new MediaCleanupService(config, prisma, media);
     await expect(service.cleanupExpiredUploads()).resolves.toEqual({ checked: 1 });
     expect(prisma.pendingMediaUpload.update).not.toHaveBeenCalled();
+  });
+
+  it('does not delete media that is still referenced by saved content', async () => {
+    (media.isStillReferenced as jest.Mock).mockResolvedValueOnce(true);
+    const service = new MediaCleanupService(config, prisma, media);
+
+    await expect(service.cleanupExpiredUploads()).resolves.toEqual({ checked: 1 });
+
+    expect(media.deleteAsset).not.toHaveBeenCalled();
+    expect(prisma.pendingMediaUpload.update).toHaveBeenCalledWith({
+      where: { id: expiredUpload.id },
+      data: { status: PendingMediaStatus.ATTACHED, attachedAt: expect.any(Date) },
+    });
   });
 });

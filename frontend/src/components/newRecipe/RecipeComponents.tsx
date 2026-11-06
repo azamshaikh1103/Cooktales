@@ -11,7 +11,7 @@ import type { NewRecipe } from "@/lib/Slices/NewRecipeData";
 // ... (Interfaces remain same) ...
 interface HeaderImageUploadProps {
 	currentImage?: string | null;
-	onImageSelect: (file: File, base64: string) => void;
+	onImageSelect: (file: File, preview: string) => void;
 	readAsDataUrl?: boolean;
 }
 interface BasicInfoEditorProps {
@@ -44,6 +44,9 @@ interface IngredientsEditorProps {
 interface StepsEditorProps {
 	steps: NewRecipe["steps"];
 	onChange: (steps: NewRecipe["steps"]) => void;
+	onUploadImage: (stepIndex: number, file: File) => Promise<boolean>;
+	onRemoveImage: (stepIndex: number) => void;
+	onRemoveStep: (stepIndex: number) => void;
 }
 interface TagEditorProps {
 	tags: string[];
@@ -65,15 +68,14 @@ export const HeaderImageUpload = ({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
-		if (file) {
-			if (!readAsDataUrl) {
-				onImageSelect(file, URL.createObjectURL(file));
-				return;
-			}
-			const reader = new FileReader();
-			reader.onloadend = () => onImageSelect(file, reader.result as string);
-			reader.readAsDataURL(file);
+		if (!file) return;
+		if (!readAsDataUrl) {
+			onImageSelect(file, URL.createObjectURL(file));
+			return;
 		}
+		const reader = new FileReader();
+		reader.onloadend = () => onImageSelect(file, reader.result as string);
+		reader.readAsDataURL(file);
 	};
 
 	return (
@@ -284,7 +286,10 @@ export const MetaDetailsEditor = ({
 			guideKey="category"
 			onGuide={onGuide}
 			onChange={(val: string) =>
-				onChange("recipeCategory", val ? (val as NewRecipe["recipeCategory"]) : null)
+				onChange(
+					"recipeCategory",
+					val ? (val as NewRecipe["recipeCategory"]) : null,
+				)
 			}
 			options={[
 				{ value: "", label: "Select" },
@@ -414,8 +419,6 @@ const CustomSelect = ({
 // ... existing imports
 import { BiLink, BiImageAdd, BiTime } from "react-icons/bi";
 import { FaTimes } from "react-icons/fa";
-import { useGCSUpload } from "@/lib/hooks/useGCSUpload";
-import { steps } from "framer-motion";
 import { toast } from "sonner";
 
 // ============ INGREDIENTS / EQUIPMENT EDITOR (With Links) ============
@@ -521,8 +524,13 @@ export const IngredientsEditor = ({
 };
 
 // ============ STEPS EDITOR (With Image & Time) ============
-export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
-	const { uploadFile } = useGCSUpload();
+export const StepsEditor = ({
+	steps,
+	onChange,
+	onUploadImage,
+	onRemoveImage,
+	onRemoveStep,
+}: StepsEditorProps) => {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
 	const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
@@ -551,8 +559,6 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 			},
 		]);
 
-	const remove = (idx: number) => onChange(steps.filter((_, i) => i !== idx));
-
 	// Handle Image Selection & Upload
 	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (activeStepIndex === null || !e.target.files?.[0]) return;
@@ -560,16 +566,11 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 		const file = e.target.files[0];
 		const idx = activeStepIndex;
 
-		// Keep the file out of recipe state until Cloud Storage returns its URL.
-		// Otherwise autosave can send the whole image as recipe data.
 		setUploadingIndex(idx);
 		const loadingId = toast.loading(`Uploading image for Step ${idx + 1}...`);
 
 		try {
-			const res = await uploadFile(file);
-
-			if (res?.publicUrl) {
-				update(idx, "image", res.publicUrl);
+			if (await onUploadImage(idx, file)) {
 				toast.success("Step image uploaded!", { id: loadingId });
 			} else {
 				throw new Error("Upload returned no URL");
@@ -577,8 +578,6 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 		} catch (error) {
 			console.error(error);
 			toast.error("Failed to upload step image", { id: loadingId });
-
-			update(idx, "image", null);
 		} finally {
 			setUploadingIndex(null);
 			e.target.value = ""; // Reset input
@@ -628,7 +627,7 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 						</span>
 						<button
 							type="button"
-							onClick={() => remove(i)}
+							onClick={() => onRemoveStep(i)}
 							className="cursor-pointer text-gray-300 hover:text-red-500 dark:text-gray-600"
 						>
 							<BiTrash />
@@ -672,7 +671,7 @@ export const StepsEditor = ({ steps, onChange }: StepsEditorProps) => {
 							)}
 
 							<button
-								onClick={() => update(i, "image", null)}
+								onClick={() => onRemoveImage(i)}
 								className="absolute top-2 right-2 cursor-pointer rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-colors group-hover/image:opacity-100 hover:bg-red-500"
 							>
 								<FaTimes size={12} />
@@ -739,7 +738,9 @@ export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
 			e.preventDefault();
 			const newTag = e.currentTarget.value.trim();
 			if (newTag.length > maxTagLength) {
-				toast.error(`Tags can be up to ${maxTagLength} characters. This one has ${newTag.length}.`);
+				toast.error(
+					`Tags can be up to ${maxTagLength} characters. This one has ${newTag.length}.`,
+				);
 				return;
 			}
 			if (tags.length >= maxTags) {

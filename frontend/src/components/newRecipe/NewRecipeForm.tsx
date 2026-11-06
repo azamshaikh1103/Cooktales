@@ -15,8 +15,11 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import {
 	commitRecipeUpload,
+	commitRecipeStepUpload,
 	type NewRecipe,
 	type RecipeMediaAsset,
+	removeRecipeStep,
+	removeRecipeStepImage,
 	resetRecipeData,
 	setNewRecipeData,
 	updateRecipeDraftMeta,
@@ -63,6 +66,11 @@ const toRecipeMediaAsset = ({
 });
 
 const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
+	const stepMediaByPosition = new Map(
+		(server.media || [])
+			.filter((media) => media.kind === "STEP")
+			.map((media) => [media.position || 0, media]),
+	);
 	const urls = [server.mainImage, ...(server.moreImages || [])].filter(
 		(url): url is string => Boolean(url),
 	);
@@ -97,12 +105,13 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 			link: item.link || null,
 			regionalName: null,
 		})),
-		steps: (server.steps || []).map((step) => ({
+		steps: (server.steps || []).map((step, position) => ({
 			name: step.name,
 			detail: step.detail || null,
 			timeReq: step.timeReq || null,
 			videoUrl: step.videoUrl || null,
 			image: step.image || null,
+			imagePublicId: stepMediaByPosition.get(position)?.publicId || null,
 			link: step.link || null,
 		})),
 		tipsAndTricks: server.tipsAndTricks || null,
@@ -333,7 +342,7 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 		steps:
 			recipe.steps
 				?.filter((step) => step.name?.trim())
-				.map((step) => ({
+				.map(({ imagePublicId: _imagePublicId, ...step }) => ({
 					...step,
 					name: step.name.trim(),
 					detail: step.detail?.trim() || null,
@@ -350,7 +359,16 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 					question: faq.question.trim(),
 					answer: faq.answer.trim(),
 				})) || [],
-		media: (recipe.media || []).map(toRecipeMediaAsset),
+		media: [
+			...(recipe.media || []).filter((media) => media.kind !== "STEP"),
+			...(recipe.steps || []).flatMap((step, position) => {
+				if (!step.name?.trim() || !step.imagePublicId) return [];
+				const media = recipe.media.find(
+					(item) => item.kind === "STEP" && item.publicId === step.imagePublicId,
+				);
+				return media ? [{ ...media, position }] : [];
+			}),
+		],
 	};
 };
 
@@ -415,6 +433,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const initialRecipeRef = useRef<NewRecipe | null>(null);
 	const hasLoadedDraftRef = useRef(false);
 	const isCreatingDraftRef = useRef(false);
+	const draftCreationPromiseRef = useRef<Promise<string> | null>(null);
 	const isSavingRef = useRef(false);
 	const [isUploading, setIsUploading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -451,6 +470,39 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		}),
 		[],
 	);
+
+	const ensureDraftForUpload = useCallback(async () => {
+		if (recipe.draftId) return recipe.draftId;
+		if (!draftCreationPromiseRef.current) {
+			isCreatingDraftRef.current = true;
+			const clientDraftId = recipe.clientDraftId || crypto.randomUUID();
+			draftCreationPromiseRef.current = recipeClient
+				.createDraft({
+					name: recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
+					clientDraftId,
+				})
+				.then((response) => {
+					dispatch(
+						updateRecipeDraftMeta({
+							index: 0,
+							draftId: response.recipe.id,
+							clientDraftId: response.recipe.clientDraftId || clientDraftId,
+							version: response.recipe.version,
+							serverUpdatedAt:
+								response.recipe.updatedAt ||
+								response.recipe.lastEditedAt ||
+								new Date().toISOString(),
+						}),
+					);
+					return response.recipe.id;
+				})
+				.finally(() => {
+					isCreatingDraftRef.current = false;
+					draftCreationPromiseRef.current = null;
+				});
+		}
+		return draftCreationPromiseRef.current;
+	}, [dispatch, recipe.clientDraftId, recipe.draftId, recipe.name]);
 
 	useEffect(() => {
 		if (status !== "authenticated" || !authUser?.id) return;
@@ -627,14 +679,20 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		return () => window.clearTimeout(timeout);
 	}, [dispatch, isSaving, lastSavedPayload, recipe, status]);
 
-	const handleImageUpload = async (file: File, isMain: boolean = false) => {
+	const handleImageUpload = async (
+		file: File,
+		isMain = false,
+		galleryPosition?: number,
+	) => {
 		setIsUploading(true);
 		const loadingId = toast.loading("Uploading to cloud...");
 
 		try {
+			const draftId = await ensureDraftForUpload();
 			const res = await uploadFile({
 				file,
-				context: "TEMP",
+				context: isMain ? "RECIPE_MAIN" : "RECIPE_GALLERY",
+				entityId: draftId,
 				resourceType: file.type.startsWith("video/") ? "video" : "image",
 			});
 			if (res) {
@@ -644,10 +702,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 					publicId: res.publicId,
 					resourceType: toApiResourceType(res.resourceType),
 					kind: isMain ? "MAIN" : "GALLERY",
-					position: isMain
-						? 0
-						: currentMedia.filter((media) => media.kind === "GALLERY").length +
-							1,
+					position:
+						isMain ? 0 : galleryPosition ?? currentMedia.filter((media) => media.kind === "GALLERY").length,
 					width: res.width,
 					height: res.height,
 					bytes: res.bytes,
@@ -660,6 +716,41 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		} catch (error) {
 			console.error(error);
 			toast.error("Upload failed", { id: loadingId });
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const handleStepImageUpload = async (stepIndex: number, file: File) => {
+		setIsUploading(true);
+		try {
+			const draftId = await ensureDraftForUpload();
+			const res = await uploadFile({
+				file,
+				context: "RECIPE_STEP",
+				entityId: draftId,
+				resourceType: "image",
+			});
+			if (!res) return false;
+
+			dispatch(
+				commitRecipeStepUpload({
+					index: 0,
+					stepIndex,
+					asset: {
+						url: res.publicUrl,
+						publicId: res.publicId,
+						resourceType: toApiResourceType(res.resourceType),
+						kind: "STEP",
+						position: stepIndex,
+						width: res.width,
+						height: res.height,
+						bytes: res.bytes,
+						format: res.format,
+					},
+				}),
+			);
+			return true;
 		} finally {
 			setIsUploading(false);
 		}
@@ -878,13 +969,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						</h2>
 						<HeaderImageUpload
 							currentImage={recipe.images?.[0]}
-							onImageSelect={(file: File, base64: string) => {
-								updateField("images", [
-									base64,
-									...(recipe.images?.slice(1) || []),
-								]);
-								handleImageUpload(file, true);
-							}}
+							readAsDataUrl={false}
+							onImageSelect={(file: File) => void handleImageUpload(file, true)}
 						/>
 					</section>
 
@@ -906,18 +992,12 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 						<GalleryUpload
 							images={recipe.images?.slice(1) || []}
 							onAdd={(files: FileList) => {
-								Array.from(files).forEach((file) => {
-									const reader = new FileReader();
-									reader.onloadend = () => {
-										const current = recipe.images || [];
-										updateField("images", [
-											...current,
-											reader.result as string,
-										]);
-									};
-									reader.readAsDataURL(file);
-									handleImageUpload(file, false);
-								});
+								const position = recipe.media.filter((media) => media.kind === "GALLERY").length;
+								void (async () => {
+									for (const [index, file] of Array.from(files).entries()) {
+										await handleImageUpload(file, false, position + index);
+									}
+								})();
 							}}
 						/>
 					</section>
@@ -967,6 +1047,13 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 							steps={recipe.steps || []}
 							onChange={(list: NewRecipe["steps"]) =>
 								updateField("steps", list)
+							}
+							onUploadImage={handleStepImageUpload}
+							onRemoveImage={(stepIndex) =>
+								dispatch(removeRecipeStepImage({ index: 0, stepIndex }))
+							}
+							onRemoveStep={(stepIndex) =>
+								dispatch(removeRecipeStep({ index: 0, stepIndex }))
 							}
 						/>
 					</section>

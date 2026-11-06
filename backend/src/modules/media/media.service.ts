@@ -148,7 +148,11 @@ export class MediaService {
     if (!uniquePublicIds.length) return new Map<string, { publicId: string; url: string }>();
 
     const uploads = await this.prisma.pendingMediaUpload.findMany({
-      where: { userId, publicId: { in: uniquePublicIds }, status: { in: [PendingMediaStatus.PENDING, PendingMediaStatus.UPLOADED] } },
+      where: {
+        userId,
+        publicId: { in: uniquePublicIds },
+        status: { in: [PendingMediaStatus.PENDING, PendingMediaStatus.UPLOADED] },
+      },
       select: { id: true, publicId: true, resourceType: true },
     });
     if (uploads.length !== uniquePublicIds.length) {
@@ -220,6 +224,27 @@ export class MediaService {
         }),
       ),
     );
+  }
+
+  async isStillReferenced(publicId: string) {
+    const [user, recipe, recipeMedia, story, storyMedia] = await Promise.all([
+      this.prisma.user.findFirst({
+        where: { OR: [{ imagePublicId: publicId }, { bannerImagePublicId: publicId }] },
+        select: { id: true },
+      }),
+      this.prisma.recipe.findFirst({
+        where: { mainImagePublicId: publicId, deletedAt: null },
+        select: { id: true },
+      }),
+      this.prisma.recipeMedia.findFirst({ where: { publicId }, select: { id: true } }),
+      this.prisma.story.findFirst({
+        where: { coverImagePublicId: publicId, deletedAt: null },
+        select: { id: true },
+      }),
+      this.prisma.storyMedia.findFirst({ where: { publicId }, select: { id: true } }),
+    ]);
+
+    return Boolean(user || recipe || recipeMedia || story || storyMedia);
   }
 
   async deleteOwnAsset(userId: string, input: DeleteAssetInput) {
@@ -315,6 +340,8 @@ export class MediaService {
         return `${this.rootFolder}/recipes/${this.requireEntityId(input)}/main`;
       case MediaUploadContext.RECIPE_GALLERY:
         return `${this.rootFolder}/recipes/${this.requireEntityId(input)}/gallery`;
+      case MediaUploadContext.RECIPE_STEP:
+        return `${this.rootFolder}/recipes/${this.requireEntityId(input)}/steps`;
       case MediaUploadContext.RECIPE_VIDEO:
         return `${this.rootFolder}/recipes/${this.requireEntityId(input)}/videos`;
       case MediaUploadContext.STORY_COVER:
@@ -375,6 +402,7 @@ export class MediaService {
     switch (input.context) {
       case MediaUploadContext.RECIPE_MAIN:
       case MediaUploadContext.RECIPE_GALLERY:
+      case MediaUploadContext.RECIPE_STEP:
       case MediaUploadContext.RECIPE_VIDEO: {
         const entityId = this.requireEntityId(input);
         const recipe = await this.prisma.recipe.findFirst({

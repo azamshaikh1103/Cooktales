@@ -27,6 +27,7 @@ interface Step {
 	timeReq: number | null;
 	videoUrl: string | null;
 	image: string | null;
+	imagePublicId?: string | null;
 	link: string | null;
 }
 
@@ -185,6 +186,61 @@ const NewRecipeDataSlice = createSlice({
 			recipe.media.push(asset);
 		},
 
+		commitRecipeStepUpload: (
+			state,
+			action: PayloadAction<{
+				index: number;
+				stepIndex: number;
+				asset: RecipeMediaAsset;
+			}>,
+		) => {
+			const { index, stepIndex, asset } = action.payload;
+			const recipe = state.NewRecipeData[index];
+			if (!recipe?.steps[stepIndex]) return;
+
+			recipe.steps[stepIndex].image = asset.url;
+			recipe.steps[stepIndex].imagePublicId = asset.publicId;
+			recipe.media = [
+				...recipe.media.filter(
+					(item) => !(item.kind === "STEP" && item.position === stepIndex),
+				),
+				asset,
+			];
+		},
+
+		removeRecipeStepImage: (
+			state,
+			action: PayloadAction<{ index: number; stepIndex: number }>,
+		) => {
+			const recipe = state.NewRecipeData[action.payload.index];
+			const step = recipe?.steps[action.payload.stepIndex];
+			if (!recipe || !step) return;
+
+			step.image = null;
+			step.imagePublicId = null;
+			recipe.media = recipe.media.filter(
+				(item) =>
+					!(item.kind === "STEP" && item.position === action.payload.stepIndex),
+			);
+		},
+
+		removeRecipeStep: (
+			state,
+			action: PayloadAction<{ index: number; stepIndex: number }>,
+		) => {
+			const recipe = state.NewRecipeData[action.payload.index];
+			if (!recipe?.steps[action.payload.stepIndex]) return;
+
+			recipe.steps.splice(action.payload.stepIndex, 1);
+			recipe.media = recipe.media.flatMap((item) => {
+				if (item.kind !== "STEP") return [item];
+				if (item.position === action.payload.stepIndex) return [];
+				return item.position > action.payload.stepIndex
+					? [{ ...item, position: item.position - 1 }]
+					: [item];
+			});
+		},
+
 		updateRecipeDraftMeta: (
 			state,
 			action: PayloadAction<{
@@ -221,6 +277,9 @@ export const {
 	updateImageUrls,
 	updateRecipeMedia,
 	commitRecipeUpload,
+	commitRecipeStepUpload,
+	removeRecipeStepImage,
+	removeRecipeStep,
 	updateRecipeDraftMeta,
 	resetRecipeData,
 } = NewRecipeDataSlice.actions;

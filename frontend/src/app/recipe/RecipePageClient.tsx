@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BsBookmark } from "react-icons/bs";
 import { FaClock, FaStar, FaUtensils } from "react-icons/fa";
 import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
@@ -209,9 +210,9 @@ export default function RecipePageClient({
 						</div>
 					) : (
 						<div className="columns-1 gap-5 sm:columns-2 xl:columns-3">
-							{recipes.map((recipe, index) => (
+							{recipes.map((recipe) => (
 								<div key={recipe.id} className="mb-5 break-inside-avoid">
-									<RecipeMasonryCard recipe={recipe} index={index} />
+									<RecipeMasonryCard recipe={recipe} />
 								</div>
 							))}
 						</div>
@@ -237,95 +238,81 @@ export default function RecipePageClient({
 }
 
 // --- SUB COMPONENT ---
-const IMAGE_ASPECTS = [
-	"aspect-[4/5]",
-	"aspect-square",
-	"aspect-[4/3]",
-	"aspect-[3/4]",
-	"aspect-[5/4]",
-];
-
-const RecipeMasonryCard = ({
-	recipe,
-	index,
-}: {
-	recipe: Recipe;
-	index: number;
-}) => {
+const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 	const href = `/recipe/${recipe.slug}`;
-	const imageAspect = IMAGE_ASPECTS[index % IMAGE_ASPECTS.length];
 
 	return (
 		<Link
 			href={href}
-			className="group inline-flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-[#006c5e]/50 dark:border-white/10 dark:bg-[#152a26] dark:hover:border-[#4ade80]/50"
+			className="group relative block w-full overflow-hidden rounded-2xl bg-[#152a26] outline-none focus-visible:ring-2 focus-visible:ring-[#006c5e] focus-visible:ring-offset-2 dark:focus-visible:ring-[#4ade80] dark:focus-visible:ring-offset-[#0d1f1c]"
 		>
 			{recipe.mainImage && (
-				<div
-					className={`relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900/50 ${imageAspect}`}
-				>
-					<Image
-						src={recipe.mainImage}
+				<>
+					{/* shortcut: use native image dimensions until recipe media stores width and height. */}
+					{/* biome-ignore lint/performance/noImgElement: Native dimensions preserve each source image ratio for masonry. */}
+					<img
+						src={imageLoader({ src: recipe.mainImage, width: 960 })}
 						alt={recipe.name}
-						fill
-						sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
-						className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-						loader={imageLoader}
+						loading="lazy"
+						className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
 					/>
+				</>
+			)}
+
+			<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071713]/95 via-[#071713]/45 to-transparent px-4 pt-16 pb-4 text-white">
+				<h3 className="text-lg leading-snug font-bold drop-shadow-sm">
+					{recipe.name}
+				</h3>
+			</div>
+
+			<div className="pointer-events-none absolute inset-0 bg-[#071713]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
+			<div className="pointer-events-none absolute inset-x-0 top-0 flex -translate-y-2 items-start justify-between p-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+				<div className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-bold tracking-[0.1em] uppercase backdrop-blur-sm">
+					{recipe.cuisine || "Recipe"}
+				</div>
+				<span
+					className="rounded-full bg-white/95 p-2 text-[#0d1f1c] shadow-sm"
+					aria-hidden="true"
+				>
+					<BsBookmark />
+				</span>
+			</div>
+			<div className="pointer-events-none absolute inset-x-0 top-14 -translate-y-2 px-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+				<div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs font-semibold">
+					{recipe.totalTimeReq && (
+						<span className="flex items-center gap-1">
+							<FaClock /> {recipe.totalTimeReq}m
+						</span>
+					)}
+					{recipe.yield && (
+						<span className="flex items-center gap-1">
+							<FaUtensils /> {recipe.yield}
+						</span>
+					)}
+					{recipe.diet && <span>{recipe.diet}</span>}
 					{recipe.ratingCount > 0 && recipe.ratings != null && (
-						<span className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-gray-900 dark:bg-[#0d1f1c]/95 dark:text-white">
-							<FaStar className="text-yellow-400" />
+						<span className="flex items-center gap-1">
+							<FaStar className="text-yellow-300" />
 							{formatters.rating(recipe.ratings)}
 						</span>
 					)}
 				</div>
-			)}
-
-			<div className="flex flex-col p-4">
-				<div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[0.12em] text-[#006c5e] uppercase dark:text-[#4ade80]">
-					{recipe.cuisine && <span>{recipe.cuisine}</span>}
-					{recipe.diet && (
-						<span className="text-gray-400 dark:text-gray-500">•</span>
-					)}
-					{recipe.diet && <span>{recipe.diet}</span>}
-				</div>
-				<h3 className="text-lg leading-snug font-bold text-gray-900 dark:text-white">
-					{recipe.name}
-				</h3>
-
-				<div className="mt-4">
-					<div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs font-semibold text-gray-500 dark:text-gray-300">
-						{recipe.totalTimeReq && (
-							<span className="flex items-center gap-1">
-								<FaClock /> {recipe.totalTimeReq}m
-							</span>
-						)}
-						{recipe.yield && (
-							<span className="flex items-center gap-1">
-								<FaUtensils /> {recipe.yield}
-							</span>
-						)}
-					</div>
-
-					{recipe.author && (
-						<div className="mt-4 flex items-center gap-2.5 border-t border-gray-200 pt-3 dark:border-white/10">
-							<div className="relative h-8 w-8 overflow-hidden rounded-full border border-gray-300 bg-gray-100 dark:border-white/50 dark:bg-white/10">
-								{recipe.author.image && (
-									<Image
-										src={recipe.author.image}
-										fill
-										alt=""
-										className="object-cover"
-										loader={imageLoader}
-									/>
-								)}
-							</div>
-							<span className="text-sm font-medium text-gray-700 dark:text-white">
-								by {recipe.author.name}
-							</span>
+				{recipe.author && (
+					<div className="flex items-center gap-2.5">
+						<div className="relative h-7 w-7 overflow-hidden rounded-full border border-white/70 bg-white/20">
+							{recipe.author.image && (
+								<Image
+									src={recipe.author.image}
+									fill
+									alt=""
+									className="object-cover"
+									loader={imageLoader}
+								/>
+							)}
 						</div>
-					)}
-				</div>
+						<span className="text-sm font-medium">{recipe.author.name}</span>
+					</div>
+				)}
 			</div>
 		</Link>
 	);

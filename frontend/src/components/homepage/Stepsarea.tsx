@@ -127,8 +127,9 @@ const Stepsarea = () => {
 							{/* Background Image */}
 							<Image
 								src="https://res.cloudinary.com/dtlfdwhnm/image/upload/v1762294545/gray-abstract-background_b1mxpl.jpg"
-								alt="Delicious Food"
+								alt=""
 								fill
+								sizes="(min-width: 1024px) 58vw, 100vw"
 								className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-40"
 								loader={imageLoader}
 							/>

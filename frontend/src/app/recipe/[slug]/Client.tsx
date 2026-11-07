@@ -14,7 +14,6 @@ import {
 	FaTimes,
 	FaChevronLeft,
 	FaChevronRight,
-	FaHashtag,
 	FaFire,
 	FaSearchPlus,
 	FaShoppingCart,
@@ -71,6 +70,19 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	];
 	const galleryImages = recipe.moreImages || [];
 	const hasCountedView = useRef(false);
+	const recipeDetails = [
+		{ label: "Diet", value: recipe.diet },
+		{
+			label: "Cuisine",
+			value: recipe.cuisine === "NA" ? null : recipe.cuisine,
+		},
+		{ label: "Category", value: recipe.recipeCategory },
+		{ label: "Difficulty", value: recipe.difficulty },
+		{
+			label: "Calories",
+			value: recipe.calories != null ? `${recipe.calories} cal` : null,
+		},
+	].filter(({ value }) => value != null && value !== "");
 
 	useEffect(() => {
 		if (status !== "authenticated") {
@@ -337,37 +349,24 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 
 			<div className="relative z-30 mx-2 -mt-20 min-h-[500px] rounded-[2.5rem] bg-white shadow-xl transition-colors duration-500 lg:mx-24 dark:border dark:border-white/5 dark:bg-[#152a26] dark:shadow-none">
 				<div className="border-b border-gray-100 px-4 py-5 lg:px-16 lg:py-14 dark:border-white/5">
-					<div className="mb-6 flex flex-wrap gap-2">
-						{recipe.diet && (
-							<span className="rounded-full bg-[#006C5E]/10 px-3 py-1 text-xs font-bold tracking-wider text-[#006C5E] uppercase dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]">
-								{recipe.diet}
-							</span>
-						)}
-						{recipe.cuisine && recipe.cuisine !== "NA" && (
-							<span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold tracking-wider text-orange-600 uppercase dark:bg-orange-500/10 dark:text-orange-400">
-								{recipe.cuisine}
-							</span>
-						)}
-						{recipe.recipeCategory && (
-							<span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold tracking-wider text-purple-600 uppercase dark:bg-purple-500/10 dark:text-purple-400">
-								{recipe.recipeCategory}
-							</span>
-						)}
-						{recipe.difficulty && (
-							<span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold tracking-wider text-blue-600 uppercase dark:bg-blue-500/10 dark:text-blue-400">
-								{recipe.difficulty}
-							</span>
-						)}
-						{recipe.calories && (
-							<span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold tracking-wider text-red-600 uppercase dark:bg-red-500/10 dark:text-red-400">
-								{recipe.calories} cal
-							</span>
-						)}
-					</div>
-
 					<h1 className="mb-6 text-2xl leading-tight font-black text-gray-900 lg:text-5xl dark:text-white">
 						{recipe.name}
 					</h1>
+
+					{recipeDetails.length > 0 && (
+						<dl className="mb-8 flex flex-wrap gap-x-8 gap-y-4 border-y border-gray-100 py-4 dark:border-white/10">
+							{recipeDetails.map(({ label, value }) => (
+								<div key={label} className="min-w-[5rem]">
+									<dt className="text-xs font-medium text-gray-600 dark:text-gray-400">
+										{label}
+									</dt>
+									<dd className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+										{value}
+									</dd>
+								</div>
+							))}
+						</dl>
+					)}
 
 					<div className="flex flex-col gap-8 font-medium text-gray-500 lg:flex-row lg:items-center dark:text-gray-500">
 						<div className="flex items-center gap-3">
@@ -420,21 +419,6 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 					>
 						<FaFire /> Start cooking
 					</button>
-
-					{recipe.tags && recipe.tags.length > 0 && (
-						<div className="mt-4 flex flex-wrap items-center gap-2">
-							<FaHashtag className="text-[#006C5E] dark:text-[#4ADE80]" />
-							{recipe.tags.map((tag, idx) => (
-								<button
-									key={idx}
-									onClick={() => router.push(`/recipe?tag=${tag}`)}
-									className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700 transition-colors hover:bg-[#006C5E] hover:text-white dark:bg-white/5 dark:text-gray-300 dark:hover:bg-[#4ADE80] dark:hover:text-black"
-								>
-									{tag}
-								</button>
-							))}
-						</div>
-					)}
 
 					{galleryImages.length > 0 && (
 						<section className="mt-10" aria-labelledby="recipe-gallery">

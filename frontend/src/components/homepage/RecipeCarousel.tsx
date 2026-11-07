@@ -10,6 +10,7 @@ interface RecipeCarouselProps {
 	subtitle?: string;
 	recipes: any[];
 	id?: string;
+	prioritizeFirstImage?: boolean;
 }
 
 const RecipeCarousel = ({
@@ -17,6 +18,7 @@ const RecipeCarousel = ({
 	subtitle = "Unleash your love with foods",
 	recipes,
 	id,
+	prioritizeFirstImage = false,
 }: RecipeCarouselProps) => {
 	const carouselId =
 		id || `carousel-${title.replace(/\s+/g, "-").toLowerCase()}`;
@@ -74,6 +76,10 @@ const RecipeCarousel = ({
 			);
 		}
 
+		const priorityIndex = prioritizeFirstImage
+			? recipes.slice(0, 2).findIndex((recipe) => recipe.mainImage)
+			: -1;
+
 		return (
 			<div
 				id={carouselId}
@@ -81,9 +87,9 @@ const RecipeCarousel = ({
 				className="no-scrollbar flex gap-5 overflow-x-auto px-6 py-4 md:py-5 lg:gap-8 lg:px-24 lg:pl-24"
 				style={{ scrollbarWidth: "none" }}
 			>
-				{recipes.map((recipe: any) => (
+				{recipes.map((recipe: any, index: number) => (
 					<div key={recipe.id} className="h-full shrink-0 snap-start">
-						<RecipeCard recipe={recipe} />
+						<RecipeCard recipe={recipe} imagePriority={index === priorityIndex} />
 					</div>
 				))}
 			</div>

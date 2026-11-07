@@ -22,6 +22,7 @@ interface Recipe {
 
 interface RecipeCardProps {
   recipe: Recipe;
+  imagePriority?: boolean;
 }
 
 interface AuthorType {
@@ -110,7 +111,7 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
   );
 };
 
-export const RecipeCard = ({ recipe }: RecipeCardProps) => {
+export const RecipeCard = ({ recipe, imagePriority = false }: RecipeCardProps) => {
   const href = `/recipe/${recipe.slug}`;
   const hasRating = (recipe.ratingCount ?? 0) > 0;
 
@@ -125,6 +126,8 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
               alt={recipe.name}
               fill
               loader={imageLoader}
+              loading={imagePriority ? 'eager' : 'lazy'}
+              fetchPriority={imagePriority ? 'high' : undefined}
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 300px"
               className="object-cover"
             />

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaClock, FaLeaf, FaStar, FaUtensils } from "react-icons/fa";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
 import { formatters } from "@/lib/formatters";
@@ -47,35 +47,72 @@ const RegionalPick = () => {
 	const [recipes, setRecipes] = useState<Recipe[]>([]);
 	const [selectedCuisine, setSelectedCuisine] = useState("All");
 	const [loading, setLoading] = useState(true);
+	const [request, setRequest] = useState({ page: 1 });
+	const [hasMore, setHasMore] = useState(false);
+	const [fetchError, setFetchError] = useState(false);
+	const loadingRef = useRef(true);
+	const listRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		let active = true;
+		const { page } = request;
 		const fetchRecipes = async () => {
 			setLoading(true);
+			setFetchError(false);
 
 			try {
 				const response = await getAllRecipesAction({
+					page,
 					limit: 9,
 					cuisine: selectedCuisine === "All" ? undefined : selectedCuisine,
 					sortBy: "popular",
 				});
 
+				if (!active) return;
 				if (response.success && response.data) {
-					// Cast the data to match our UI interface if needed
-					// (Your server action returns a slightly richer object, which is fine)
-					setRecipes(response.data as Recipe[]);
+					const next = response.data as Recipe[];
+					setRecipes((previous) => {
+						if (page === 1) return next;
+						const existing = new Set(previous.map((recipe) => recipe.id));
+						return [
+							...previous,
+							...next.filter((recipe) => !existing.has(recipe.id)),
+						];
+					});
+					setHasMore(Boolean(response.hasMore));
 				} else {
-					setRecipes([]);
+					if (page === 1) setRecipes([]);
+					setFetchError(true);
 				}
 			} catch (error) {
 				console.error("Fetch failed:", error);
-				setRecipes([]);
+				if (active && page === 1) setRecipes([]);
+				if (active) setFetchError(true);
 			} finally {
-				setLoading(false);
+				if (active) {
+					loadingRef.current = false;
+					setLoading(false);
+				}
 			}
 		};
 
 		fetchRecipes();
-	}, [selectedCuisine]);
+		return () => {
+			active = false;
+		};
+	}, [selectedCuisine, request]);
+
+	const loadMore = () => {
+		if (!hasMore || loadingRef.current || fetchError) return;
+		loadingRef.current = true;
+		setRequest((previous) => ({ page: previous.page + 1 }));
+	};
+
+	const retryFetch = () => {
+		loadingRef.current = true;
+		setLoading(true);
+		setRequest((previous) => ({ ...previous }));
+	};
 
 	return (
 		<section
@@ -105,7 +142,16 @@ const RegionalPick = () => {
 								? "border-[#006C5E] bg-[#006C5E] text-white dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-[#0d1f1c]"
 								: "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
 						}`}
-						onClick={() => setSelectedCuisine(cuisine)}
+						onClick={() => {
+							if (cuisine === selectedCuisine) return;
+							loadingRef.current = true;
+							setLoading(true);
+							setRecipes([]);
+							setHasMore(false);
+							setRequest({ page: 1 });
+							setSelectedCuisine(cuisine);
+							if (listRef.current) listRef.current.scrollTop = 0;
+						}}
 					>
 						{cuisine === "All" ? "All cuisines" : cuisine}
 					</button>
@@ -113,7 +159,7 @@ const RegionalPick = () => {
 			</div>
 
 			<div className="mx-6 rounded-2xl border border-gray-200 bg-white p-4 lg:mx-24 dark:border-white/10 dark:bg-[#152a26] sm:p-5">
-				{loading ? (
+				{loading && recipes.length === 0 ? (
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						{REGIONAL_SKELETONS.map((key) => (
 							<div
@@ -129,17 +175,53 @@ const RegionalPick = () => {
 							</div>
 						))}
 					</div>
+				) : fetchError && recipes.length === 0 ? (
+					<div className="flex min-h-64 flex-col items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+						<span>Could not load recipes.</span>
+						<button
+							type="button"
+							onClick={retryFetch}
+							className="font-semibold text-[#006C5E] dark:text-[#4ADE80]"
+						>
+							Try again
+						</button>
+					</div>
 				) : recipes.length === 0 ? (
 					<div className="flex min-h-64 flex-col items-center justify-center text-sm text-gray-500 dark:text-gray-400">
 						<span className="mb-2 text-4xl opacity-50 grayscale">🍽️</span>
 						No recipes found for {selectedCuisine}.
 					</div>
 				) : (
-					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-						{recipes.map((recipe) => (
-							<RegionalCard key={recipe.id} recipe={recipe} />
-						))}
-					</div>
+					<section
+						ref={listRef}
+						className="max-h-[572px] overflow-y-auto lg:max-h-[542px]"
+						aria-label="Cuisine recipes"
+						onScroll={(event) => {
+							const list = event.currentTarget;
+							if (list.scrollTop + list.clientHeight >= list.scrollHeight - 80)
+								loadMore();
+						}}
+					>
+						<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+							{recipes.map((recipe) => (
+								<RegionalCard key={recipe.id} recipe={recipe} />
+							))}
+						</div>
+						{(hasMore || fetchError) && (
+							<button
+								type="button"
+								onClick={fetchError ? retryFetch : loadMore}
+								disabled={loading}
+								className="mt-4 w-full rounded-xl p-3 text-sm font-semibold text-[#006C5E] dark:text-[#4ADE80]"
+							>
+								{loading
+									? "Loading recipes…"
+									: fetchError
+										? "Could not load more. Try again"
+										: "Load more recipes"}
+							</button>
+						)}
+					</section>
 				)}
 			</div>
 		</section>
@@ -152,7 +234,7 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 	return (
 		<Link
 			href={`/recipe/${recipe.slug}`}
-			className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
+			className="flex h-[82px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:h-[170px] lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
 		>
 			{/* Image */}
 			<div className="relative h-16 w-16 min-w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100 lg:h-36 lg:w-36 dark:bg-white/10">

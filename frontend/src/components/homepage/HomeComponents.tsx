@@ -19,6 +19,7 @@ const TodaysPick = ({ recipes }: { recipes: any[] }) => (
 const PopularRecipes = ({ recipes }: { recipes: any[] }) => (
 	<RecipeCarousel
 		title="Popular Recipes"
+		prioritizeFirstImage
 		subtitle="Discover amazing recipes tailored to your taste"
 		recipes={recipes}
 	/>

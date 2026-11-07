@@ -1175,7 +1175,7 @@ export class RecipesService {
   }
 
   private resolveOrderBy(sortBy?: string): Prisma.RecipeOrderByWithRelationInput[] {
-    if (sortBy === 'popular') return [{ popularityScore: 'desc' }, { views: 'desc' }];
+    if (sortBy === 'popular') return [{ popularityScore: 'desc' }, { views: 'desc' }, { id: 'asc' }];
     if (sortBy === 'rating') return [{ ratings: 'desc' }, { ratingCount: 'desc' }];
     return [{ publishedAt: 'desc' }, { createdAt: 'desc' }];
   }

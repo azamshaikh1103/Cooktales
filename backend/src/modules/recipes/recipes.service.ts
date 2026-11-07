@@ -356,7 +356,12 @@ export class RecipesService {
       }
 
       const saved = await tx.comment.create({
-        data: { recipeId: id, authorId: userId, content: dto.content.trim(), parentId: dto.parentId },
+        data: {
+          recipeId: id,
+          authorId: userId,
+          content: dto.content.trim(),
+          parentId: dto.parentId,
+        },
         include: commentInclude,
       });
       await tx.recipe.update({ where: { id }, data: { commentsCount: { increment: 1 } } });
@@ -367,7 +372,13 @@ export class RecipesService {
       where: { id },
       select: { authorId: true, name: true, slug: true },
     });
-    await this.points.award(userId, POINTS.COMMENT, 'Posted a comment', `recipe-comment:${comment.saved.id}`, POINTS.COMMENT_DAILY_LIMIT);
+    await this.points.award(
+      userId,
+      POINTS.COMMENT,
+      'Posted a comment',
+      `recipe-comment:${comment.saved.id}`,
+      POINTS.COMMENT_DAILY_LIMIT,
+    );
     if (recipe) {
       const isReply = Boolean(dto.parentId);
       await this.notifications.create({
@@ -443,7 +454,8 @@ export class RecipesService {
       select: { id: true, authorId: true },
     });
     if (!comment) throw new NotFoundException('Comment not found');
-    if (comment.authorId === userId) throw new ForbiddenException('You cannot like your own comment');
+    if (comment.authorId === userId)
+      throw new ForbiddenException('You cannot like your own comment');
     await this.prisma.like.createMany({ data: [{ userId, commentId }], skipDuplicates: true });
     return this.commentLikeState(userId, commentId);
   }
@@ -479,6 +491,155 @@ export class RecipesService {
     return { recipe: this.serializeRecipe(recipe) };
   }
 
+  async startEditDraft(userId: string, id: string) {
+    const recipe = await this.findOwnedRecipe(userId, id);
+    if (recipe.status !== RecipeStatus.PUBLISHED) {
+      throw new BadRequestException('Only published recipes can be edited this way');
+    }
+
+    const draft = await this.prisma.recipeEditDraft.upsert({
+      where: { recipeId: id },
+      create: {
+        recipeId: id,
+        authorId: userId,
+        baseVersion: recipe.version,
+        data: this.recipeToEditDraftData(recipe),
+      },
+      update: {},
+    });
+
+    return { draft: this.serializeEditDraft(draft, recipe) };
+  }
+
+  async getEditDraft(userId: string, id: string) {
+    const recipe = await this.findOwnedRecipe(userId, id);
+    const draft = await this.prisma.recipeEditDraft.findFirst({
+      where: { recipeId: id, authorId: userId },
+    });
+    if (!draft) throw new NotFoundException('No saved changes found for this recipe');
+    return { draft: this.serializeEditDraft(draft, recipe) };
+  }
+
+  async updateEditDraft(userId: string, id: string, dto: UpdateRecipeDto) {
+    const recipe = await this.findOwnedRecipe(userId, id);
+    const draft = await this.prisma.recipeEditDraft.findFirst({
+      where: { recipeId: id, authorId: userId },
+    });
+    if (!draft) throw new NotFoundException('No saved changes found for this recipe');
+
+    const expectedVersion = dto.expectedVersion ?? draft.version;
+    if (expectedVersion !== draft.version) {
+      throw new ConflictException('These changes were updated elsewhere. Reload before saving.');
+    }
+
+    const currentData = this.editDraftData(draft.data);
+    const changes = { ...dto };
+    delete changes.expectedVersion;
+    const nextData = { ...currentData, ...changes } as UpdateRecipeDto;
+    await this.validateRecipeMediaUpdate(
+      userId,
+      recipe,
+      nextData,
+      this.editDraftPublicIds(currentData),
+    );
+
+    const updated = await this.prisma.recipeEditDraft.updateMany({
+      where: { id: draft.id, version: expectedVersion },
+      data: {
+        data: nextData as Prisma.InputJsonValue,
+        version: { increment: 1 },
+      },
+    });
+    if (updated.count !== 1) {
+      throw new ConflictException('These changes were updated elsewhere. Reload before saving.');
+    }
+
+    const removed = this.removedDraftMedia(recipe, currentData, nextData);
+    await this.mediaService.scheduleDeletion(userId, removed);
+    await this.mediaService.markAttached(userId, this.editDraftPublicIds(nextData));
+
+    const saved = await this.prisma.recipeEditDraft.findUniqueOrThrow({ where: { id: draft.id } });
+    return { draft: this.serializeEditDraft(saved, recipe) };
+  }
+
+  async publishEditDraft(userId: string, id: string) {
+    const recipe = await this.findOwnedRecipe(userId, id);
+    const draft = await this.prisma.recipeEditDraft.findFirst({
+      where: { recipeId: id, authorId: userId },
+    });
+    if (!draft) throw new NotFoundException('No saved changes found for this recipe');
+    if (recipe.version !== draft.baseVersion) {
+      throw new ConflictException('This recipe was updated elsewhere. Reload before publishing.');
+    }
+
+    const data = this.editDraftData(draft.data);
+    await this.validateRecipeMediaUpdate(userId, recipe, data, this.editDraftPublicIds(data));
+    this.assertPublishable({
+      ...recipe,
+      ...data,
+      ingredients: data.ingredients || [],
+      steps: data.steps || [],
+    });
+
+    const removedMedia = data.media
+      ? recipe.media
+          .filter((media) => !data.media?.some((next) => next.publicId === media.publicId))
+          .map((media) => ({ publicId: media.publicId, resourceType: media.resourceType }))
+      : [];
+    const removedMain =
+      data.mainImagePublicId !== undefined &&
+      recipe.mainImagePublicId &&
+      recipe.mainImagePublicId !== data.mainImagePublicId
+        ? [{ publicId: recipe.mainImagePublicId, resourceType: CloudinaryResourceType.IMAGE }]
+        : [];
+    const scalarData = this.resolveRecipeData(data);
+
+    const published = await this.prisma.$transaction(async (tx) => {
+      const claimedDraft = await tx.recipeEditDraft.deleteMany({
+        where: { id: draft.id, version: draft.version },
+      });
+      if (claimedDraft.count !== 1) {
+        throw new ConflictException('These changes were updated elsewhere. Reload before publishing.');
+      }
+      await this.replaceRecipeRelations(tx, id, data);
+      const updated = await tx.recipe.updateMany({
+        where: { id, authorId: userId, deletedAt: null, version: draft.baseVersion },
+        data: {
+          ...scalarData,
+          lastEditedAt: new Date(),
+          version: { increment: 1 },
+        },
+      });
+      if (updated.count !== 1) {
+        throw new ConflictException('This recipe was updated elsewhere. Reload before publishing.');
+      }
+      return tx.recipe.findUniqueOrThrow({ where: { id }, include: recipeInclude });
+    });
+
+    await this.mediaService.scheduleDeletion(userId, [...removedMedia, ...removedMain]);
+    await this.mediaService.markAttached(userId, [
+      published.mainImagePublicId,
+      ...published.media.map((media) => media.publicId),
+    ]);
+
+    return { recipe: this.serializeRecipe(published) };
+  }
+
+  async discardEditDraft(userId: string, id: string) {
+    const recipe = await this.findOwnedRecipe(userId, id);
+    const draft = await this.prisma.recipeEditDraft.findFirst({
+      where: { recipeId: id, authorId: userId },
+    });
+    if (!draft) return { message: 'No saved changes to discard' };
+
+    await this.prisma.recipeEditDraft.delete({ where: { id: draft.id } });
+    await this.mediaService.scheduleDeletion(
+      userId,
+      this.removedDraftMedia(recipe, this.editDraftData(draft.data), {}),
+    );
+    return { message: 'Saved changes discarded' };
+  }
+
   async update(userId: string, id: string, dto: UpdateRecipeDto) {
     const current = await this.findOwnedRecipe(userId, id);
     await this.validateRecipeMediaUpdate(userId, current, dto);
@@ -497,91 +658,7 @@ export class RecipesService {
         : [];
 
     const recipe = await this.prisma.$transaction(async (tx) => {
-      if (dto.ingredients) {
-        await tx.ingredient.deleteMany({ where: { recipeId: id } });
-        if (dto.ingredients.length) {
-          await tx.ingredient.createMany({
-            data: dto.ingredients.map((ingredient, position) => ({
-              recipeId: id,
-              name: ingredient.name.trim(),
-              detail: ingredient.detail?.trim() || null,
-              image: ingredient.image || null,
-              link: ingredient.link || null,
-              regionalName: Prisma.JsonNull,
-              position,
-            })),
-          });
-        }
-      }
-
-      if (dto.equipments) {
-        await tx.equipment.deleteMany({ where: { recipeId: id } });
-        if (dto.equipments.length) {
-          await tx.equipment.createMany({
-            data: dto.equipments.map((equipment, position) => ({
-              recipeId: id,
-              name: equipment.name.trim(),
-              detail: equipment.detail?.trim() || null,
-              image: equipment.image || null,
-              link: equipment.link || null,
-              regionalName: Prisma.JsonNull,
-              position,
-            })),
-          });
-        }
-      }
-
-      if (dto.steps) {
-        await tx.step.deleteMany({ where: { recipeId: id } });
-        if (dto.steps.length) {
-          await tx.step.createMany({
-            data: dto.steps.map((step, position) => ({
-              recipeId: id,
-              name: step.name.trim(),
-              detail: step.detail?.trim() || null,
-              timeReq: step.timeReq || null,
-              videoUrl: step.videoUrl || null,
-              image: step.image || null,
-              link: step.link || null,
-              position,
-            })),
-          });
-        }
-      }
-
-      if (dto.faqs) {
-        await tx.fAQ.deleteMany({ where: { recipeId: id } });
-        if (dto.faqs.length) {
-          await tx.fAQ.createMany({
-            data: dto.faqs.map((faq, position) => ({
-              recipeId: id,
-              question: faq.question.trim(),
-              answer: faq.answer.trim(),
-              position,
-            })),
-          });
-        }
-      }
-
-      if (dto.media) {
-        await tx.recipeMedia.deleteMany({ where: { recipeId: id } });
-        if (dto.media.length) {
-          await tx.recipeMedia.createMany({
-            data: dto.media.map((media) => ({
-              recipeId: id,
-              publicId: media.publicId,
-              url: media.url,
-              resourceType: media.resourceType || CloudinaryResourceType.IMAGE,
-              kind: media.kind,
-              position: media.position || 0,
-              width: media.width,
-              height: media.height,
-              bytes: media.bytes,
-              format: media.format,
-            })),
-          });
-        }
-      }
+      await this.replaceRecipeRelations(tx, id, dto);
 
       const updated = await tx.recipe.updateMany({
         where: { id, authorId: userId, deletedAt: null, version: expectedVersion },
@@ -624,7 +701,12 @@ export class RecipesService {
       include: recipeInclude,
     });
 
-    await this.points.award(userId, POINTS.RECIPE_PUBLISHED, 'Published a recipe', `recipe-published:${id}`);
+    await this.points.award(
+      userId,
+      POINTS.RECIPE_PUBLISHED,
+      'Published a recipe',
+      `recipe-published:${id}`,
+    );
 
     return { recipe: this.serializeRecipe(published) };
   }
@@ -684,7 +766,12 @@ export class RecipesService {
       });
       if (recipe) {
         if (recipe.authorId !== userId) {
-          await this.points.award(recipe.authorId, POINTS.RECEIVED_LIKE, 'Recipe received a like', `recipe-like:${userId}:${id}`);
+          await this.points.award(
+            recipe.authorId,
+            POINTS.RECEIVED_LIKE,
+            'Recipe received a like',
+            `recipe-like:${userId}:${id}`,
+          );
         }
         await this.notifications.create({
           recipientId: recipe.authorId,
@@ -797,7 +884,12 @@ export class RecipesService {
       where: { id },
       select: { authorId: true, name: true, slug: true },
     });
-    await this.points.award(userId, POINTS.RECIPE_REVIEW, 'Wrote a recipe review', `recipe-review:${review.id}`);
+    await this.points.award(
+      userId,
+      POINTS.RECIPE_REVIEW,
+      'Wrote a recipe review',
+      `recipe-review:${review.id}`,
+    );
     if (recipe) {
       await this.notifications.create({
         recipientId: recipe.authorId,
@@ -947,6 +1039,203 @@ export class RecipesService {
     return this.recipeInteractionState(userId, id);
   }
 
+  private async replaceRecipeRelations(
+    tx: Prisma.TransactionClient,
+    recipeId: string,
+    dto: UpdateRecipeDto,
+  ) {
+    if (dto.ingredients) {
+      await tx.ingredient.deleteMany({ where: { recipeId } });
+      if (dto.ingredients.length) {
+        await tx.ingredient.createMany({
+          data: dto.ingredients.map((ingredient, position) => ({
+            recipeId,
+            name: ingredient.name.trim(),
+            detail: ingredient.detail?.trim() || null,
+            image: ingredient.image || null,
+            link: ingredient.link || null,
+            regionalName: Prisma.JsonNull,
+            position,
+          })),
+        });
+      }
+    }
+
+    if (dto.equipments) {
+      await tx.equipment.deleteMany({ where: { recipeId } });
+      if (dto.equipments.length) {
+        await tx.equipment.createMany({
+          data: dto.equipments.map((equipment, position) => ({
+            recipeId,
+            name: equipment.name.trim(),
+            detail: equipment.detail?.trim() || null,
+            image: equipment.image || null,
+            link: equipment.link || null,
+            regionalName: Prisma.JsonNull,
+            position,
+          })),
+        });
+      }
+    }
+
+    if (dto.steps) {
+      await tx.step.deleteMany({ where: { recipeId } });
+      if (dto.steps.length) {
+        await tx.step.createMany({
+          data: dto.steps.map((step, position) => ({
+            recipeId,
+            name: step.name.trim(),
+            detail: step.detail?.trim() || null,
+            timeReq: step.timeReq || null,
+            videoUrl: step.videoUrl || null,
+            image: step.image || null,
+            link: step.link || null,
+            position,
+          })),
+        });
+      }
+    }
+
+    if (dto.faqs) {
+      await tx.fAQ.deleteMany({ where: { recipeId } });
+      if (dto.faqs.length) {
+        await tx.fAQ.createMany({
+          data: dto.faqs.map((faq, position) => ({
+            recipeId,
+            question: faq.question.trim(),
+            answer: faq.answer.trim(),
+            position,
+          })),
+        });
+      }
+    }
+
+    if (dto.media) {
+      await tx.recipeMedia.deleteMany({ where: { recipeId } });
+      if (dto.media.length) {
+        await tx.recipeMedia.createMany({
+          data: dto.media.map((media) => ({
+            recipeId,
+            publicId: media.publicId,
+            url: media.url,
+            resourceType: media.resourceType || CloudinaryResourceType.IMAGE,
+            kind: media.kind,
+            position: media.position || 0,
+            width: media.width,
+            height: media.height,
+            bytes: media.bytes,
+            format: media.format,
+          })),
+        });
+      }
+    }
+  }
+
+  private recipeToEditDraftData(
+    recipe: Awaited<ReturnType<RecipesService['findOwnedRecipe']>>,
+  ): Prisma.InputJsonValue {
+    return {
+      name: recipe.name,
+      about: recipe.about,
+      mainImage: recipe.mainImage,
+      mainImagePublicId: recipe.mainImagePublicId,
+      moreImages: recipe.moreImages,
+      totalTimeReq: recipe.totalTimeReq,
+      yield: recipe.yield,
+      calories: recipe.calories,
+      diet: recipe.diet,
+      cuisine: recipe.cuisine,
+      recipeCategory: recipe.recipeCategory,
+      difficulty: recipe.difficulty,
+      tipsAndTricks: recipe.tipsAndTricks,
+      storingFreezing: recipe.storingFreezing,
+      tags: recipe.tags,
+      equipments: recipe.equipments.map(({ name, detail, image, link }) => ({
+        name,
+        detail,
+        image,
+        link,
+      })),
+      ingredients: recipe.ingredients.map(({ name, detail, image, link }) => ({
+        name,
+        detail,
+        image,
+        link,
+      })),
+      steps: recipe.steps.map(({ name, detail, timeReq, videoUrl, image, link }) => ({
+        name,
+        detail,
+        timeReq,
+        videoUrl,
+        image,
+        link,
+      })),
+      faqs: recipe.faqs.map(({ question, answer }) => ({ question, answer })),
+      media: recipe.media,
+    } as Prisma.InputJsonValue;
+  }
+
+  private editDraftData(data: Prisma.JsonValue): UpdateRecipeDto {
+    return JSON.parse(JSON.stringify(data)) as UpdateRecipeDto;
+  }
+
+  private editDraftPublicIds(data: UpdateRecipeDto) {
+    return [data.mainImagePublicId, ...(data.media || []).map((media) => media.publicId)].filter(
+      (publicId): publicId is string => Boolean(publicId),
+    );
+  }
+
+  private removedDraftMedia(
+    recipe: Awaited<ReturnType<RecipesService['findOwnedRecipe']>>,
+    current: UpdateRecipeDto,
+    next: UpdateRecipeDto,
+  ) {
+    const sourceIds = new Set([
+      recipe.mainImagePublicId,
+      ...recipe.media.map((media) => media.publicId),
+    ]);
+    const nextIds = new Set(this.editDraftPublicIds(next));
+    const currentAssets = new Map(
+      (current.media || []).map((media) => [
+        media.publicId,
+        {
+          publicId: media.publicId,
+          resourceType: media.resourceType || CloudinaryResourceType.IMAGE,
+        },
+      ]),
+    );
+    if (current.mainImagePublicId) {
+      currentAssets.set(current.mainImagePublicId, {
+        publicId: current.mainImagePublicId,
+        resourceType: CloudinaryResourceType.IMAGE,
+      });
+    }
+    return [...currentAssets.values()].filter(
+      (asset) => !sourceIds.has(asset.publicId) && !nextIds.has(asset.publicId),
+    );
+  }
+
+  private serializeEditDraft(
+    draft: {
+      id: string;
+      recipeId: string;
+      baseVersion: number;
+      version: number;
+      updatedAt: Date;
+      data: Prisma.JsonValue;
+    },
+    recipe: Awaited<ReturnType<RecipesService['findOwnedRecipe']>>,
+  ) {
+    return {
+      id: draft.id,
+      recipeId: draft.recipeId,
+      baseVersion: draft.baseVersion,
+      version: draft.version,
+      updatedAt: draft.updatedAt,
+      recipe: { ...this.serializeRecipe(recipe), ...this.editDraftData(draft.data) },
+    };
+  }
+
   private async findOwnedRecipe(userId: string, id: string) {
     const recipe = await this.prisma.recipe.findFirst({
       where: { id, authorId: userId, deletedAt: null },
@@ -1004,7 +1293,14 @@ export class RecipesService {
     return { liked: Boolean(like), likes };
   }
 
-  private assertPublishable(recipe: Awaited<ReturnType<RecipesService['findOwnedRecipe']>>) {
+  private assertPublishable(recipe: {
+    name: string;
+    mainImage: string | null;
+    totalTimeReq: number;
+    recipeCategory: string | null;
+    ingredients: unknown[];
+    steps: unknown[];
+  }) {
     if (!recipe.name?.trim() || recipe.name === 'Untitled Recipe') {
       throw new BadRequestException('Recipe title is required');
     }
@@ -1050,6 +1346,7 @@ export class RecipesService {
     userId: string,
     current: Awaited<ReturnType<RecipesService['findOwnedRecipe']>>,
     dto: UpdateRecipeDto,
+    existingPublicIds: string[] = [],
   ) {
     const changesCover = dto.mainImage !== undefined || dto.mainImagePublicId !== undefined;
     if (changesCover) {
@@ -1063,6 +1360,7 @@ export class RecipesService {
     const existing = new Set([
       current.mainImagePublicId,
       ...current.media.map((media) => media.publicId),
+      ...existingPublicIds,
     ]);
     const requested = [dto.mainImagePublicId, ...(dto.media || []).map((media) => media.publicId)]
       .filter((publicId): publicId is string => Boolean(publicId))
@@ -1180,10 +1478,13 @@ export class RecipesService {
     return [{ publishedAt: 'desc' }, { createdAt: 'desc' }];
   }
 
-  private reviewOrderBy(sort: ListRecipeReviewsQueryDto['sort']): Prisma.ReviewOrderByWithRelationInput[] {
+  private reviewOrderBy(
+    sort: ListRecipeReviewsQueryDto['sort'],
+  ): Prisma.ReviewOrderByWithRelationInput[] {
     if (sort === 'highest') return [{ stars: 'desc' }, { createdAt: 'desc' }];
     if (sort === 'lowest') return [{ stars: 'asc' }, { createdAt: 'desc' }];
-    if (sort === 'helpful') return [{ upvotes: 'desc' }, { downvotes: 'asc' }, { createdAt: 'desc' }];
+    if (sort === 'helpful')
+      return [{ upvotes: 'desc' }, { downvotes: 'asc' }, { createdAt: 'desc' }];
     return [{ createdAt: 'desc' }];
   }
 
@@ -1195,9 +1496,9 @@ export class RecipesService {
     return output;
   }
 
-  private serializeComment<T extends { status: CommentStatus; content: string; replies?: unknown[] }>(
-    comment: T,
-  ) {
+  private serializeComment<
+    T extends { status: CommentStatus; content: string; replies?: unknown[] },
+  >(comment: T) {
     const output = this.serializeRecipe(comment) as T & { replies?: unknown[] };
     if (output.status === CommentStatus.REMOVED) output.content = 'Comment removed by its author.';
     if (output.replies) {

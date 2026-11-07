@@ -208,6 +208,24 @@ const NewRecipeDataSlice = createSlice({
 			];
 		},
 
+		removeRecipeGalleryImage: (
+			state,
+			action: PayloadAction<{ index: number; url: string; publicId?: string }>,
+		) => {
+			const recipe = state.NewRecipeData[action.payload.index];
+			if (!recipe) return;
+
+			if (action.payload.publicId) {
+				recipe.media = recipe.media.filter(
+					(item) => item.publicId !== action.payload.publicId,
+				);
+			}
+			recipe.images = recipe.images.filter((url) => url !== action.payload.url);
+			recipe.imageUrls = recipe.imageUrls.filter(
+				(url) => url !== action.payload.url,
+			);
+		},
+
 		removeRecipeStepImage: (
 			state,
 			action: PayloadAction<{ index: number; stepIndex: number }>,
@@ -278,6 +296,7 @@ export const {
 	updateRecipeMedia,
 	commitRecipeUpload,
 	commitRecipeStepUpload,
+	removeRecipeGalleryImage,
 	removeRecipeStepImage,
 	removeRecipeStep,
 	updateRecipeDraftMeta,

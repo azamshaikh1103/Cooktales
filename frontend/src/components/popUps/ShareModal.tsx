@@ -134,8 +134,9 @@ export default function ShareModal({
               </h3>
               <button
                 type="button"
+                aria-label="Close sharing options"
                 onClick={onClose}
-                className="rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+                className="cursor-pointer rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
               >
                 <FaTimes />
               </button>

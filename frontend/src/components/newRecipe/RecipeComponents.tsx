@@ -21,8 +21,9 @@ interface BasicInfoEditorProps {
 	onGuide?: (key: string) => void;
 }
 interface GalleryUploadProps {
-	images: string[];
+	images: Array<{ url: string; publicId?: string }>;
 	onAdd: (files: FileList) => void;
+	onRemove: (image: { url: string; publicId?: string }) => void;
 }
 interface MetaDetailsEditorProps {
 	totalTimeReq: number | null;
@@ -157,22 +158,34 @@ export const BasicInfoEditor = ({
 	</div>
 );
 
-export const GalleryUpload = ({ images, onAdd }: GalleryUploadProps) => {
+export const GalleryUpload = ({
+	images,
+	onAdd,
+	onRemove,
+}: GalleryUploadProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	return (
 		<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-			{images.map((img, i) => (
+			{images.map((image) => (
 				<div
-					key={i}
+					key={image.publicId || image.url}
 					className="group relative aspect-square overflow-hidden rounded-2xl border border-gray-100 dark:border-white/10"
 				>
 					<Image
-						src={img}
+						src={image.url}
 						fill
 						alt=""
 						className="object-cover"
 						loader={imageLoader}
 					/>
+					<button
+						type="button"
+						onClick={() => onRemove(image)}
+						aria-label="Remove gallery image"
+						className="absolute top-2 right-2 cursor-pointer rounded-full bg-black/60 p-2 text-white opacity-100 transition-colors hover:bg-red-600 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+					>
+						<BiTrash className="text-base" />
+					</button>
 				</div>
 			))}
 			<button

@@ -135,6 +135,17 @@ export type RecipeResponse = {
 	};
 };
 
+export type RecipeEditDraftResponse = {
+	draft: {
+		id: string;
+		recipeId: string;
+		baseVersion: number;
+		version: number;
+		updatedAt: string;
+		recipe: RecipeResponse["recipe"];
+	};
+};
+
 export type OwnedRecipesResponse = {
 	recipes: RecipeResponse["recipe"][];
 	page: number;
@@ -461,6 +472,41 @@ export const recipeClient = {
 		return request<RecipeResponse>(
 			`/recipes/${encodeURIComponent(id)}/manage`,
 			{ method: "GET" },
+		);
+	},
+
+	startEditDraft(id: string) {
+		return request<RecipeEditDraftResponse>(
+			`/recipes/${encodeURIComponent(id)}/edit-draft`,
+			{ method: "POST", body: JSON.stringify({}) },
+		);
+	},
+
+	getEditDraft(id: string) {
+		return request<RecipeEditDraftResponse>(
+			`/recipes/${encodeURIComponent(id)}/edit-draft`,
+			{ method: "GET" },
+		);
+	},
+
+	updateEditDraft(id: string, input: UpdateRecipeInput) {
+		return request<RecipeEditDraftResponse>(
+			`/recipes/${encodeURIComponent(id)}/edit-draft`,
+			{ method: "PATCH", body: JSON.stringify(input) },
+		);
+	},
+
+	publishEditDraft(id: string) {
+		return request<RecipeResponse>(
+			`/recipes/${encodeURIComponent(id)}/edit-draft/publish`,
+			{ method: "POST", body: JSON.stringify({}) },
+		);
+	},
+
+	discardEditDraft(id: string) {
+		return request<{ message: string }>(
+			`/recipes/${encodeURIComponent(id)}/edit-draft`,
+			{ method: "DELETE" },
 		);
 	},
 

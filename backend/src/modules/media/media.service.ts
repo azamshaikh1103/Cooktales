@@ -227,7 +227,7 @@ export class MediaService {
   }
 
   async isStillReferenced(publicId: string) {
-    const [user, recipe, recipeMedia, story, storyMedia] = await Promise.all([
+    const [user, recipe, recipeMedia, story, storyMedia, attachedUpload] = await Promise.all([
       this.prisma.user.findFirst({
         where: { OR: [{ imagePublicId: publicId }, { bannerImagePublicId: publicId }] },
         select: { id: true },
@@ -242,9 +242,13 @@ export class MediaService {
         select: { id: true },
       }),
       this.prisma.storyMedia.findFirst({ where: { publicId }, select: { id: true } }),
+      this.prisma.pendingMediaUpload.findFirst({
+        where: { publicId, status: PendingMediaStatus.ATTACHED },
+        select: { id: true },
+      }),
     ]);
 
-    return Boolean(user || recipe || recipeMedia || story || storyMedia);
+    return Boolean(user || recipe || recipeMedia || story || storyMedia || attachedUpload);
   }
 
   async deleteOwnAsset(userId: string, input: DeleteAssetInput) {

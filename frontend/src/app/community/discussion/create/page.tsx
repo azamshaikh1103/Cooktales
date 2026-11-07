@@ -100,7 +100,11 @@ export default function CreateDiscussion() {
 				title,
 				content: body,
 				category,
-				attachments,
+				attachments: attachments.map(({ type, id, publicId }) => ({
+					type,
+					id,
+					...(publicId ? { publicId } : {}),
+				})),
 			});
 
 			toast.success("Discussion posted! 🎉");
@@ -195,11 +199,11 @@ export default function CreateDiscussion() {
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								placeholder="Give your discussion a clear title"
-								className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-xl font-semibold text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
+								className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg font-semibold text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
 							/>
-							<label className="text-sm font-semibold text-gray-900 dark:text-white">
+							<p className="text-sm font-semibold text-gray-900 dark:text-white">
 								Details
-							</label>
+							</p>
 							<DiscussionEditor
 								value={body}
 								onChange={setBody}

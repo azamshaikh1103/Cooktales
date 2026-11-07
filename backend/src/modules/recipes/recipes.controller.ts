@@ -61,6 +61,42 @@ export class RecipesController {
     return this.recipesService.getOwnerRecipe(request.user.sub, id);
   }
 
+  @Post(':id/edit-draft')
+  @UseGuards(AuthGuard)
+  startEditDraft(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.recipesService.startEditDraft(request.user.sub, id);
+  }
+
+  @Get(':id/edit-draft')
+  @UseGuards(AuthGuard)
+  getEditDraft(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.recipesService.getEditDraft(request.user.sub, id);
+  }
+
+  @Patch(':id/edit-draft')
+  @UseGuards(AuthGuard)
+  updateEditDraft(
+    @Param('id') id: string,
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: UpdateRecipeDto,
+  ) {
+    return this.recipesService.updateEditDraft(request.user.sub, id, dto);
+  }
+
+  @Post(':id/edit-draft/publish')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  publishEditDraft(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.recipesService.publishEditDraft(request.user.sub, id);
+  }
+
+  @Delete(':id/edit-draft')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  discardEditDraft(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.recipesService.discardEditDraft(request.user.sub, id);
+  }
+
   @Get('mine/list')
   @UseGuards(AuthGuard)
   listOwned(@Query() query: ListOwnedRecipesQueryDto, @Req() request: AuthenticatedRequest) {
@@ -92,9 +128,7 @@ export class RecipesController {
     const commentIds = (ids || '')
       .split(',')
       .filter((value) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-          value,
-        ),
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value),
       )
       .slice(0, 100);
     return this.recipesService.commentViewerState(request.user.sub, id, commentIds);

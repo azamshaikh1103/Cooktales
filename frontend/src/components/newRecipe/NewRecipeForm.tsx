@@ -18,6 +18,7 @@ import {
 	commitRecipeStepUpload,
 	type NewRecipe,
 	type RecipeMediaAsset,
+	removeRecipeGalleryImage,
 	removeRecipeStep,
 	removeRecipeStepImage,
 	resetRecipeData,
@@ -65,7 +66,10 @@ const toRecipeMediaAsset = ({
 	format,
 });
 
-const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
+const recipeFromServer = (
+	server: RecipeResponse["recipe"],
+	draft?: { id: string; version: number; updatedAt: string },
+): NewRecipe => {
 	const stepMediaByPosition = new Map(
 		(server.media || [])
 			.filter((media) => media.kind === "STEP")
@@ -75,10 +79,11 @@ const recipeFromServer = (server: RecipeResponse["recipe"]): NewRecipe => {
 		(url): url is string => Boolean(url),
 	);
 	return {
-		draftId: server.id,
+		draftId: draft?.id || server.id,
 		clientDraftId: server.clientDraftId || null,
-		version: server.version,
-		serverUpdatedAt: server.updatedAt || server.lastEditedAt || null,
+		version: draft?.version || server.version,
+		serverUpdatedAt:
+			draft?.updatedAt || server.updatedAt || server.lastEditedAt || null,
 		name: server.name || "",
 		about: server.about || null,
 		images: urls,
@@ -511,11 +516,15 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 		const resolveDraft = async () => {
 			let serverRecipe: RecipeResponse["recipe"] | null = null;
+			let editDraft: {
+				id: string;
+				version: number;
+				updatedAt: string;
+			} | null = null;
 			if (recipeId) {
-				serverRecipe = await recipeClient
-					.getManage(recipeId)
-					.then((result) => result.recipe)
-					.catch(() => null);
+				const result = await recipeClient.startEditDraft(recipeId).catch(() => null);
+				serverRecipe = result?.draft.recipe || null;
+				editDraft = result?.draft || null;
 				if (!serverRecipe) {
 					if (!cancelled) {
 						setDraftLoadError(
@@ -540,11 +549,11 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			if (cancelled) return;
 			const resolved =
 				serverRecipe
-					? recipeFromServer(serverRecipe)
-					: {
-							...(initialRecipeRef.current as NewRecipe),
-							clientDraftId: crypto.randomUUID(),
-						};
+					? recipeFromServer(serverRecipe, editDraft || undefined)
+				: {
+						...(initialRecipeRef.current as NewRecipe),
+						clientDraftId: crypto.randomUUID(),
+					};
 			dispatch(setNewRecipeData([resolved]));
 			hasLoadedDraftRef.current = true;
 		};
@@ -591,9 +600,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				.catch((error) => {
 					console.error("Draft creation failed:", error);
 				const message = error instanceof Error ? error.message : "Could not create a draft.";
-				setSaveError(message);
+					setSaveError(message);
 					setSaveStatus("error");
-				toast.error(message);
+					toast.error(message);
 				})
 				.finally(() => {
 					isCreatingDraftRef.current = false;
@@ -620,23 +629,36 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			setIsSaving(true);
 			setSaveStatus("saving");
 			setSaveError(null);
-			recipeClient
-				.update(recipe.draftId as string, {
-					...payload,
-					expectedVersion: recipe.version || undefined,
-				})
+				(recipeId
+					? recipeClient
+							.updateEditDraft(recipeId, {
+								...payload,
+								expectedVersion: recipe.version || undefined,
+							})
+							.then(({ draft }) => ({
+								version: draft.version,
+								updatedAt: draft.updatedAt,
+							}))
+					: recipeClient
+							.update(recipe.draftId as string, {
+								...payload,
+								expectedVersion: recipe.version || undefined,
+							})
+							.then(({ recipe: savedRecipe }) => ({
+								version: savedRecipe.version,
+								updatedAt:
+									savedRecipe.updatedAt ||
+									savedRecipe.lastEditedAt ||
+									new Date().toISOString(),
+							})))
 				.then((response) => {
 					setLastSavedPayload(payloadKey);
-					const savedAt =
-						response.recipe.updatedAt ||
-						response.recipe.lastEditedAt ||
-						new Date().toISOString();
 					setSaveStatus("saved");
 					dispatch(
 						updateRecipeDraftMeta({
 							index: 0,
-							serverUpdatedAt: savedAt,
-							version: response.recipe.version,
+							serverUpdatedAt: response.updatedAt,
+							version: response.version,
 						}),
 					);
 				})
@@ -646,11 +668,19 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 					const message =
 						error instanceof Error ? error.message : "Could not save this recipe.";
 					if (error?.statusCode === 409) {
-						const latest = await recipeClient
-							.getManage(recipe.draftId as string)
-							.catch(() => null);
-						if (latest)
-							dispatch(setNewRecipeData([recipeFromServer(latest.recipe)]));
+						const latest = await (recipeId
+							? recipeClient.getEditDraft(recipeId)
+							: recipeClient.getManage(recipe.draftId as string)
+						).catch(() => null);
+						if (latest) {
+							dispatch(
+								setNewRecipeData([
+									"draft" in latest
+										? recipeFromServer(latest.draft.recipe, latest.draft)
+										: recipeFromServer(latest.recipe),
+								]),
+							);
+						}
 						toast.error(
 							"A newer edit was found. We loaded the latest version.",
 						);
@@ -677,7 +707,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		}, SERVER_SAVE_DELAY_MS);
 
 		return () => window.clearTimeout(timeout);
-	}, [dispatch, isSaving, lastSavedPayload, recipe, status]);
+	}, [dispatch, isSaving, lastSavedPayload, recipe, recipeId, status]);
 
 	const handleImageUpload = async (
 		file: File,
@@ -789,6 +819,29 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				);
 			}
 
+			if (recipeId) {
+				const saved = await recipeClient.updateEditDraft(recipeId, {
+					...validation.data,
+					expectedVersion: recipe.version || undefined,
+				});
+				dispatch(
+					updateRecipeDraftMeta({
+						index: 0,
+						version: saved.draft.version,
+						serverUpdatedAt: saved.draft.updatedAt,
+					}),
+				);
+				const published = await recipeClient.publishEditDraft(recipeId);
+				toast.success("Recipe updates published!", { id: loadingId });
+				setPublishedRecipe({
+					slug: published.recipe.slug || published.recipe.id,
+					title: published.recipe.name,
+					description: published.recipe.about || null,
+					image: published.recipe.mainImage || null,
+				});
+				return;
+			}
+
 			let draftId: string | null = recipe.draftId;
 			let createdDuringPublish = false;
 			try {
@@ -846,6 +899,22 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 		if (!publishedRecipe) return;
 		dispatch(resetRecipeData());
 		router.push(`/recipe/${publishedRecipe.slug}`);
+	};
+
+	const handleDiscardChanges = async () => {
+		if (!recipeId) return;
+		if (!window.confirm("Discard all unpublished changes to this recipe?")) return;
+
+		try {
+			await recipeClient.discardEditDraft(recipeId);
+			dispatch(resetRecipeData());
+			toast.success("Unpublished changes discarded.");
+			router.push("/studio/content");
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Could not discard saved changes.",
+			);
+		}
 	};
 
 	if (status === "loading") {
@@ -920,214 +989,236 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 	return (
 		<>
-		<div className="min-h-screen bg-[#fafafa] pb-32 transition-colors duration-500 dark:bg-[#0d1f1c]">
-			{/* HEADER */}
-			<div className="relative top-16 z-20 border-b border-gray-200 bg-white/90 px-6 py-4 backdrop-blur-md transition-colors dark:border-white/5 dark:bg-[#0d1f1c]/90">
-				<div className="container mx-auto flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<button
-							type="button"
-							onClick={() => router.back()}
-							className="cursor-pointer rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
-							aria-label="Go back"
-						>
-							<FaArrowLeft className="text-gray-500 dark:text-gray-500" />
-						</button>
-						<div>
-							<h1 className="text-lg leading-none font-black text-gray-900 lg:text-xl dark:text-white">
-								{recipe.name || "Untitled Recipe"}
-							</h1>
-							<p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-500">
-								{getSaveLabel(saveStatus, saveError)}
-							</p>
+			<div className="min-h-screen bg-[#fafafa] pb-32 transition-colors duration-500 dark:bg-[#0d1f1c]">
+				{/* HEADER */}
+				<div className="relative top-16 z-20 border-b border-gray-200 bg-white/90 px-6 py-4 backdrop-blur-md transition-colors dark:border-white/5 dark:bg-[#0d1f1c]/90">
+					<div className="container mx-auto flex items-center justify-between">
+						<div className="flex items-center gap-4">
+							<button
+								type="button"
+								onClick={() => router.back()}
+								className="cursor-pointer rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+								aria-label="Go back"
+							>
+								<FaArrowLeft className="text-gray-500 dark:text-gray-500" />
+							</button>
+							<div>
+								<h1 className="text-lg leading-none font-black text-gray-900 lg:text-xl dark:text-white">
+									{recipe.name || "Untitled Recipe"}
+								</h1>
+								<p className="mt-1 text-xs font-medium text-gray-500 dark:text-gray-500">
+									{getSaveLabel(saveStatus, saveError)}
+								</p>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-3">
+							{recipeId ? (
+								<button
+									type="button"
+									onClick={handleDiscardChanges}
+									disabled={isSaving || isUploading}
+									className="cursor-pointer rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+								>
+									Discard changes
+								</button>
+							) : null}
+							<button
+								type="button"
+								onClick={handlePublish}
+								disabled={isPublishingRef.current || isSaving || isUploading}
+								className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006C5E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74] dark:focus-visible:ring-[#4ADE80] dark:focus-visible:ring-offset-[#0d1f1c]"
+							>
+								{isPublishingRef.current ? (
+									<BiLoaderAlt className="animate-spin" />
+								) : (
+									<FaPaperPlane />
+								)}
+								<span>{recipeId ? "Publish updates" : "Publish"}</span>
+							</button>
 						</div>
 					</div>
-
-					<button
-						type="button"
-						onClick={handlePublish}
-						disabled={isPublishingRef.current || isUploading}
-						className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#006C5E] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006C5E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ADE80] dark:text-black dark:hover:bg-[#3ccb74] dark:focus-visible:ring-[#4ADE80] dark:focus-visible:ring-offset-[#0d1f1c]"
-					>
-						{isPublishingRef.current ? (
-							<BiLoaderAlt className="animate-spin" />
-						) : (
-							<FaPaperPlane />
-						)}
-						<span>Publish</span>
-					</button>
 				</div>
-			</div>
 
-			<div className="container mx-auto mt-24 grid grid-cols-1 gap-10 px-4 lg:grid-cols-12 lg:px-16 xl:px-24">
-				{/* LEFT: FORM AREA */}
-				<div className="space-y-12 lg:col-span-8">
-					{/* 1. Cover Image */}
-					<section {...bindGuide("cover")}>
-						<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
-							Cover Image
-						</h2>
-						<HeaderImageUpload
-							currentImage={recipe.images?.[0]}
-							readAsDataUrl={false}
-							onImageSelect={(file: File) => void handleImageUpload(file, true)}
-						/>
-					</section>
+				<div className="container mx-auto mt-24 grid grid-cols-1 gap-10 px-4 lg:grid-cols-12 lg:px-16 xl:px-24">
+					{/* LEFT: FORM AREA */}
+					<div className="space-y-12 lg:col-span-8">
+						{/* 1. Cover Image */}
+						<section {...bindGuide("cover")}>
+							<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
+								Cover Image
+							</h2>
+							<HeaderImageUpload
+								currentImage={recipe.images?.[0]}
+								readAsDataUrl={false}
+								onImageSelect={(file: File) => void handleImageUpload(file, true)}
+							/>
+						</section>
 
-					{/* 2. Story & Basics */}
-					<section {...bindGuide("title")}>
-						<BasicInfoEditor
-							name={recipe.name}
-							about={recipe.about}
-							onChange={updateField}
-							onGuide={handleGuide}
-						/>
-					</section>
+						{/* 2. Story & Basics */}
+						<section {...bindGuide("title")}>
+							<BasicInfoEditor
+								name={recipe.name}
+								about={recipe.about}
+								onChange={updateField}
+								onGuide={handleGuide}
+							/>
+						</section>
 
-					{/* 3. Gallery */}
-					<section {...bindGuide("gallery")}>
-						<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
-							Gallery
-						</h2>
-						<GalleryUpload
-							images={recipe.images?.slice(1) || []}
-							onAdd={(files: FileList) => {
-								const position = recipe.media.filter((media) => media.kind === "GALLERY").length;
-								void (async () => {
-									for (const [index, file] of Array.from(files).entries()) {
-										await handleImageUpload(file, false, position + index);
+						{/* 3. Gallery */}
+						<section {...bindGuide("gallery")}>
+							<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
+								Gallery
+							</h2>
+							<GalleryUpload
+								images={(recipe.imageUrls || []).slice(1).map((url) => ({
+									url,
+									publicId: recipe.media.find(
+										(media) => media.kind === "GALLERY" && media.url === url,
+									)?.publicId,
+								}))}
+								onAdd={(files: FileList) => {
+									const position = recipe.media.filter(
+										(media) => media.kind === "GALLERY",
+									).length;
+									void (async () => {
+										for (const [index, file] of Array.from(files).entries()) {
+											await handleImageUpload(file, false, position + index);
+										}
+									})();
+								}}
+								onRemove={(image) =>
+									dispatch(removeRecipeGalleryImage({ index: 0, ...image }))
+								}
+							/>
+						</section>
+
+						{/* 4. Meta Details */}
+						<section {...bindGuide("meta")}>
+							<MetaDetailsEditor
+								totalTimeReq={recipe.totalTimeReq}
+								yield={recipe.yield}
+								calories={recipe.calories}
+								difficulty={recipe.difficulty}
+								diet={recipe.diet}
+								cuisine={recipe.cuisine}
+								recipeCategory={recipe.recipeCategory}
+								onChange={updateField}
+								onGuide={handleGuide}
+							/>
+						</section>
+
+						{/* 5. Ingredients & Equipment */}
+						<div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+							<section {...bindGuide("ingredients")}>
+								<IngredientsEditor
+									title="Ingredients"
+									placeholder="e.g. 200g Flour"
+									items={recipe.ingredients || []}
+									onChange={(list: NewRecipe["ingredients"]) =>
+										updateField("ingredients", list)
 									}
-								})();
-							}}
-						/>
-					</section>
-
-					{/* 4. Meta Details */}
-					<section {...bindGuide("meta")}>
-						<MetaDetailsEditor
-							totalTimeReq={recipe.totalTimeReq}
-							yield={recipe.yield}
-							calories={recipe.calories}
-							difficulty={recipe.difficulty}
-							diet={recipe.diet}
-							cuisine={recipe.cuisine}
-							recipeCategory={recipe.recipeCategory}
-							onChange={updateField}
-							onGuide={handleGuide}
-						/>
-					</section>
-
-					{/* 5. Ingredients & Equipment */}
-					<div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-						<section {...bindGuide("ingredients")}>
-							<IngredientsEditor
-								title="Ingredients"
-								placeholder="e.g. 200g Flour"
-								items={recipe.ingredients || []}
-								onChange={(list: NewRecipe["ingredients"]) =>
-									updateField("ingredients", list)
-								}
-							/>
-						</section>
-						<section {...bindGuide("equipment")}>
-							<IngredientsEditor
-								title="Equipment"
-								placeholder="e.g. 9-inch Pan"
-								items={recipe.equipments || []}
-								onChange={(list: NewRecipe["equipments"]) =>
-									updateField("equipments", list)
-								}
-							/>
-						</section>
-					</div>
-
-					{/* 6. Steps */}
-					<section {...bindGuide("steps")}>
-						<StepsEditor
-							steps={recipe.steps || []}
-							onChange={(list: NewRecipe["steps"]) =>
-								updateField("steps", list)
-							}
-							onUploadImage={handleStepImageUpload}
-							onRemoveImage={(stepIndex) =>
-								dispatch(removeRecipeStepImage({ index: 0, stepIndex }))
-							}
-							onRemoveStep={(stepIndex) =>
-								dispatch(removeRecipeStep({ index: 0, stepIndex }))
-							}
-						/>
-					</section>
-
-					{/* 7. FAQ */}
-					<section {...bindGuide("faq")}>
-						<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
-							Help Your Readers
-						</h2>
-						<FAQEditor
-							faqs={recipe.faqs || []}
-							onChange={(list: NewRecipe["faqs"]) => updateField("faqs", list)}
-						/>
-					</section>
-
-					{/* 8. Finishing Touches */}
-					<div
-						{...bindGuide("tags")}
-						className="space-y-8 rounded-4xl border border-gray-100 bg-white p-8 dark:border-white/5 dark:bg-[#152a26]"
-					>
-						<TagEditor
-							tags={recipe.tags || []}
-							onChange={(tags: string[]) => updateField("tags", tags)}
-							onGuide={handleGuide}
-						/>
-
-						<div {...bindGuide("tips")}>
-							<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
-								Chef's Tips
-							</h3>
-							<textarea
-								value={recipe.tipsAndTricks || ""}
-								maxLength={1500}
-								onFocus={() => setActiveGuideKey("tips")}
-								onChange={(e) => updateField("tipsAndTricks", e.target.value)}
-								placeholder="Share your secrets..."
-								className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
-							/>
-							<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
-								{recipe.tipsAndTricks?.length || 0}/1500
-							</p>
+								/>
+							</section>
+							<section {...bindGuide("equipment")}>
+								<IngredientsEditor
+									title="Equipment"
+									placeholder="e.g. 9-inch Pan"
+									items={recipe.equipments || []}
+									onChange={(list: NewRecipe["equipments"]) =>
+										updateField("equipments", list)
+									}
+								/>
+							</section>
 						</div>
 
-						<div {...bindGuide("storage")}>
-							<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
-								Storing & Freezing
-							</h3>
-							<textarea
-								value={recipe.storingFreezing || ""}
-								maxLength={1500}
-								onFocus={() => setActiveGuideKey("storage")}
+						{/* 6. Steps */}
+						<section {...bindGuide("steps")}>
+							<StepsEditor
+								steps={recipe.steps || []}
+								onChange={(list: NewRecipe["steps"]) =>
+									updateField("steps", list)
+								}
+								onUploadImage={handleStepImageUpload}
+								onRemoveImage={(stepIndex) =>
+									dispatch(removeRecipeStepImage({ index: 0, stepIndex }))
+								}
+								onRemoveStep={(stepIndex) =>
+									dispatch(removeRecipeStep({ index: 0, stepIndex }))
+								}
+							/>
+						</section>
+
+						{/* 7. FAQ */}
+						<section {...bindGuide("faq")}>
+							<h2 className="mb-4 ml-1 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
+								Help Your Readers
+							</h2>
+							<FAQEditor
+								faqs={recipe.faqs || []}
+								onChange={(list: NewRecipe["faqs"]) => updateField("faqs", list)}
+							/>
+						</section>
+
+						{/* 8. Finishing Touches */}
+						<div
+							{...bindGuide("tags")}
+							className="space-y-8 rounded-4xl border border-gray-100 bg-white p-8 dark:border-white/5 dark:bg-[#152a26]"
+						>
+							<TagEditor
+								tags={recipe.tags || []}
+								onChange={(tags: string[]) => updateField("tags", tags)}
+								onGuide={handleGuide}
+							/>
+
+							<div {...bindGuide("tips")}>
+								<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
+									Chef's Tips
+								</h3>
+								<textarea
+									value={recipe.tipsAndTricks || ""}
+									maxLength={1500}
+									onFocus={() => setActiveGuideKey("tips")}
+									onChange={(e) => updateField("tipsAndTricks", e.target.value)}
+									placeholder="Share your secrets..."
+									className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
+								/>
+								<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
+									{recipe.tipsAndTricks?.length || 0}/1500
+								</p>
+							</div>
+
+							<div {...bindGuide("storage")}>
+								<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
+									Storing & Freezing
+								</h3>
+								<textarea
+									value={recipe.storingFreezing || ""}
+									maxLength={1500}
+									onFocus={() => setActiveGuideKey("storage")}
 								onChange={(e) => updateField("storingFreezing", e.target.value)}
-								placeholder="How to store leftovers or freeze for later..."
-								className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
-							/>
-							<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
-								{recipe.storingFreezing?.length || 0}/1500
-							</p>
+									placeholder="How to store leftovers or freeze for later..."
+									className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
+								/>
+								<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
+									{recipe.storingFreezing?.length || 0}/1500
+								</p>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<RecipeFieldGuide guide={RECIPE_FIELD_GUIDES[activeGuideKey]} />
+					<RecipeFieldGuide guide={RECIPE_FIELD_GUIDES[activeGuideKey]} />
+				</div>
 			</div>
-		</div>
-		<ShareModal
-			isOpen={Boolean(publishedRecipe)}
-			onClose={leavePublishedRecipe}
-			url={`https://cooktale.in/recipe/${publishedRecipe?.slug || ""}`}
-			title={publishedRecipe?.title || ""}
-			description={publishedRecipe?.description}
-			image={publishedRecipe?.image}
-			primaryAction={{ label: "View recipe", onClick: leavePublishedRecipe }}
-		/>
+			<ShareModal
+				isOpen={Boolean(publishedRecipe)}
+				onClose={leavePublishedRecipe}
+				url={`https://cooktale.in/recipe/${publishedRecipe?.slug || ""}`}
+				title={publishedRecipe?.title || ""}
+				description={publishedRecipe?.description}
+				image={publishedRecipe?.image}
+				primaryAction={{ label: "View recipe", onClick: leavePublishedRecipe }}
+			/>
 		</>
 	);
 }

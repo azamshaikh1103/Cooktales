@@ -3,15 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BsBookmark } from "react-icons/bs";
+import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import { FaClock, FaStar, FaUtensils } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { toast } from "sonner";
 import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
+import { recipeClient } from "@/lib/api/recipeClient";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { formatters } from "@/lib/formatters";
 import imageLoader from "@/lib/loader";
 import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
+import { setTab } from "@/lib/Slices/tabSlice";
 
 const RECIPE_CATEGORY_FILTERS = ["All", ...RECIPE_CATEGORIES] as const;
 const RECIPE_SKELETONS = [
@@ -240,80 +245,158 @@ export default function RecipePageClient({
 // --- SUB COMPONENT ---
 const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 	const href = `/recipe/${recipe.slug}`;
+	const { status, user } = useAuth();
+	const dispatch = useDispatch();
+	const [bookmarked, setBookmarked] = useState<boolean | null>(null);
+	const [saving, setSaving] = useState(false);
+	const cardRef = useRef<HTMLDivElement>(null);
+	const requestVersion = useRef(0);
+
+	useEffect(() => {
+		setBookmarked(null);
+		const version = ++requestVersion.current;
+		const card = cardRef.current;
+		if (status !== "authenticated" || !user?.id || !card) return;
+		let active = true;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				void recipeClient
+					.viewerState(recipe.id)
+					.then((state) => {
+						if (active && requestVersion.current === version)
+							setBookmarked(state.bookmarked);
+					})
+					.catch(() => {});
+			},
+			{ rootMargin: "200px" },
+		);
+		observer.observe(card);
+		return () => {
+			active = false;
+			observer.disconnect();
+		};
+	}, [status, user?.id, recipe.id]);
+
+	const toggleBookmark = async () => {
+		if (status === "unauthenticated") {
+			dispatch(setTab("login"));
+			return;
+		}
+		if (status !== "authenticated" || saving) return;
+		requestVersion.current += 1;
+		setSaving(true);
+		try {
+			const current =
+				bookmarked ?? (await recipeClient.viewerState(recipe.id)).bookmarked;
+			if (bookmarked === null && current) {
+				setBookmarked(true);
+				toast.success("Already saved to your library");
+				return;
+			}
+			const result = current
+				? await recipeClient.unbookmark(recipe.id)
+				: await recipeClient.bookmark(recipe.id);
+			setBookmarked(result.bookmarked);
+			toast.success(
+				result.bookmarked ? "Saved to library" : "Removed from library",
+			);
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Could not update bookmark",
+			);
+		} finally {
+			setSaving(false);
+		}
+	};
 
 	return (
-		<Link
-			href={href}
-			className="group relative block w-full overflow-hidden rounded-2xl bg-[#152a26] outline-none focus-visible:ring-2 focus-visible:ring-[#006c5e] focus-visible:ring-offset-2 dark:focus-visible:ring-[#4ade80] dark:focus-visible:ring-offset-[#0d1f1c]"
+		<div
+			ref={cardRef}
+			className="group relative w-full overflow-hidden rounded-2xl bg-[#152a26]"
 		>
-			{recipe.mainImage && (
-				<>
-					{/* shortcut: use native image dimensions until recipe media stores width and height. */}
-					{/* biome-ignore lint/performance/noImgElement: Native dimensions preserve each source image ratio for masonry. */}
-					<img
-						src={imageLoader({ src: recipe.mainImage, width: 960 })}
-						alt={recipe.name}
-						loading="lazy"
-						className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
-					/>
-				</>
-			)}
-
-			<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071713]/95 via-[#071713]/45 to-transparent px-4 pt-16 pb-4 text-white">
-				<h3 className="text-lg leading-snug font-bold drop-shadow-sm">
-					{recipe.name}
-				</h3>
-			</div>
-
-			<div className="pointer-events-none absolute inset-0 bg-[#071713]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
-			<div className="pointer-events-none absolute inset-x-0 top-0 flex -translate-y-2 items-start justify-between p-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-				<div className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-bold tracking-[0.1em] uppercase backdrop-blur-sm">
-					{recipe.cuisine || "Recipe"}
-				</div>
-				<span
-					className="rounded-full bg-white/95 p-2 text-[#0d1f1c] shadow-sm"
-					aria-hidden="true"
-				>
-					<BsBookmark />
-				</span>
-			</div>
-			<div className="pointer-events-none absolute inset-x-0 top-14 -translate-y-2 px-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-				<div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs font-semibold">
-					{recipe.totalTimeReq && (
-						<span className="flex items-center gap-1">
-							<FaClock /> {recipe.totalTimeReq}m
-						</span>
-					)}
-					{recipe.yield && (
-						<span className="flex items-center gap-1">
-							<FaUtensils /> {recipe.yield}
-						</span>
-					)}
-					{recipe.diet && <span>{recipe.diet}</span>}
-					{recipe.ratingCount > 0 && recipe.ratings != null && (
-						<span className="flex items-center gap-1">
-							<FaStar className="text-yellow-300" />
-							{formatters.rating(recipe.ratings)}
-						</span>
-					)}
-				</div>
-				{recipe.author && (
-					<div className="flex items-center gap-2.5">
-						<div className="relative h-7 w-7 overflow-hidden rounded-full border border-white/70 bg-white/20">
-							{recipe.author.image && (
-								<Image
-									src={recipe.author.image}
-									fill
-									alt=""
-									className="object-cover"
-									loader={imageLoader}
-								/>
-							)}
-						</div>
-						<span className="text-sm font-medium">{recipe.author.name}</span>
-					</div>
+			<Link
+				href={href}
+				className="relative block w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#006c5e] dark:focus-visible:ring-[#4ade80]"
+			>
+				{recipe.mainImage && (
+					<>
+						{/* shortcut: use native image dimensions until recipe media stores width and height. */}
+						{/* biome-ignore lint/performance/noImgElement: Native dimensions preserve each source image ratio for masonry. */}
+						<img
+							src={imageLoader({ src: recipe.mainImage, width: 960 })}
+							alt={recipe.name}
+							loading="lazy"
+							className="block h-auto w-full"
+						/>
+					</>
 				)}
-			</div>
-		</Link>
+
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071713]/95 via-[#071713]/45 to-transparent px-4 pt-16 pb-4 text-white">
+					<h3 className="text-lg leading-snug font-bold drop-shadow-sm">
+						{recipe.name}
+					</h3>
+				</div>
+
+				<div className="pointer-events-none absolute inset-0 bg-[#071713]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+				<div className="pointer-events-none absolute inset-x-0 top-0 flex -translate-y-2 items-start justify-between p-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
+					<div className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-bold tracking-[0.1em] uppercase backdrop-blur-sm">
+						{recipe.cuisine || "Recipe"}
+					</div>
+				</div>
+				<div className="pointer-events-none absolute inset-x-0 top-14 -translate-y-2 px-4 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
+					<div className="mb-3 flex flex-wrap gap-x-3 gap-y-1.5 text-xs font-semibold">
+						{recipe.totalTimeReq && (
+							<span className="flex items-center gap-1">
+								<FaClock /> {recipe.totalTimeReq}m
+							</span>
+						)}
+						{recipe.yield && (
+							<span className="flex items-center gap-1">
+								<FaUtensils /> {recipe.yield}
+							</span>
+						)}
+						{recipe.diet && <span>{recipe.diet}</span>}
+						{recipe.ratingCount > 0 && recipe.ratings != null && (
+							<span className="flex items-center gap-1">
+								<FaStar className="text-yellow-300" />
+								{formatters.rating(recipe.ratings)}
+							</span>
+						)}
+					</div>
+					{recipe.author && (
+						<div className="flex items-center gap-2.5">
+							<div className="relative h-7 w-7 overflow-hidden rounded-full border border-white/70 bg-white/20">
+								{recipe.author.image && (
+									<Image
+										src={recipe.author.image}
+										fill
+										alt=""
+										className="object-cover"
+										loader={imageLoader}
+									/>
+								)}
+							</div>
+							<span className="text-sm font-medium">{recipe.author.name}</span>
+						</div>
+					)}
+				</div>
+			</Link>
+			<button
+				type="button"
+				onClick={toggleBookmark}
+				disabled={saving || status === "loading"}
+				aria-label={
+					bookmarked
+						? `Remove ${recipe.name} from bookmarks`
+						: `Save ${recipe.name} to bookmarks`
+				}
+				aria-pressed={bookmarked ?? undefined}
+				className="absolute right-4 top-4 cursor-pointer rounded-full bg-white/95 p-2 text-[#0d1f1c] shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait"
+			>
+				{bookmarked ? <BsBookmarkFill /> : <BsBookmark />}
+			</button>
+		</div>
 	);
 };

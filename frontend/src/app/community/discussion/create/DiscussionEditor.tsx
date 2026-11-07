@@ -180,7 +180,7 @@ export function DiscussionEditor({
 						onChange(next);
 					});
 				}}
-				className="min-h-72 w-full px-5 py-4 text-base leading-7 text-gray-800 outline-none empty:before:pointer-events-none empty:before:text-gray-400 empty:before:content-[attr(data-placeholder)] [&_a]:text-[#006C5E] [&_a]:underline [&_em]:italic [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-6 [&_p]:mb-4 [&_strong]:font-bold [&_ul]:my-4 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6 dark:text-gray-100 dark:empty:before:text-gray-500 dark:[&_a]:text-[#4ADE80]"
+				className="min-h-60 w-full px-4 py-3 text-sm leading-6 text-gray-800 outline-none empty:before:pointer-events-none empty:before:text-gray-400 empty:before:content-[attr(data-placeholder)] [&_a]:text-[#006C5E] [&_a]:underline [&_em]:italic [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:font-bold [&_ul]:my-3 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 dark:text-gray-100 dark:empty:before:text-gray-500 dark:[&_a]:text-[#4ADE80]"
 			/>
 			<div className="flex flex-wrap items-center gap-1 border-t border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/10 dark:bg-white/5">
 				<button

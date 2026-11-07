@@ -304,8 +304,10 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 				/>
 				<div className="absolute top-24 left-0 z-20 flex w-full items-center justify-between px-6 text-white lg:px-24">
 					<button
+						type="button"
+						aria-label="Go back"
 						onClick={() => router.back()}
-						className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 backdrop-blur-md transition-all hover:bg-white/30"
+						className="flex cursor-pointer items-center gap-2 rounded-full bg-white/20 px-4 py-2 backdrop-blur-md transition-all hover:bg-white/30"
 					>
 						<FaArrowLeft /> <span className="hidden lg:inline">Back</span>
 					</button>
@@ -314,7 +316,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 							onClick={() => setIsShareOpen(true)}
 							aria-label="Share recipe"
 							type="button"
-							className="rounded-full bg-white/20 p-3 backdrop-blur-md transition-all hover:bg-white/30"
+							className="cursor-pointer rounded-full bg-white/20 p-3 backdrop-blur-md transition-all hover:bg-white/30"
 						>
 							<FaShare />
 						</button>
@@ -322,7 +324,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 							onClick={handleBookmark}
 							aria-label="Bookmark recipe"
 							type="button"
-							className="rounded-full bg-white/20 p-3 backdrop-blur-md transition-all hover:bg-white/30"
+							className="cursor-pointer rounded-full bg-white/20 p-3 backdrop-blur-md transition-all hover:bg-white/30"
 						>
 							{isBookmarked ? (
 								<BsBookmarkFill aria-label="Bookmarked" />
@@ -334,7 +336,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 							onClick={handleLike}
 							aria-label="Like recipe"
 							type="button"
-							className="flex items-center gap-2 rounded-full bg-white p-3 text-red-500 shadow-lg transition-transform hover:scale-110"
+							className="flex cursor-pointer items-center gap-2 rounded-full bg-white p-3 text-red-500 shadow-lg transition-transform hover:scale-110"
 						>
 							{isLiked ? (
 								<AiFillHeart aria-label="Liked" />

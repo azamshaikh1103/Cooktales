@@ -276,6 +276,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 							onClose={() => setIsMobileMenuOpen(false)}
 							onToggleTheme={toggleTheme}
 							onOpenSettings={() => dispatch(setSettingsPopup(true))}
+							onAuthAction={(mode) => dispatch(setTab(mode))}
 						/>
 					)}
 				</div>
@@ -626,10 +627,12 @@ const SmallWidthMenusPopup = ({
 	onClose,
 	onToggleTheme,
 	onOpenSettings,
+	onAuthAction,
 }: {
 	onClose: () => void;
 	onToggleTheme: () => void;
 	onOpenSettings: () => void;
+	onAuthAction: (mode: "login" | "signup") => void;
 }) => {
 	const { status, user } = useAuth();
 
@@ -661,6 +664,30 @@ const SmallWidthMenusPopup = ({
 
 			<div className="my-3 h-px bg-gray-100 dark:bg-white/10" />
 			<div className="grid gap-1">
+				{status === "unauthenticated" && (
+					<div className="grid grid-cols-2 gap-2 pb-2">
+						<button
+							type="button"
+							onClick={() => {
+								onClose();
+								onAuthAction("login");
+							}}
+							className="cursor-pointer rounded-xl border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5"
+						>
+							Log In
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								onClose();
+								onAuthAction("signup");
+							}}
+							className="cursor-pointer rounded-xl bg-[#006C5E] px-3 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e]"
+						>
+							Sign Up
+						</button>
+					</div>
+				)}
 				{status === "authenticated" && user?.username && (
 					<>
 						<Link

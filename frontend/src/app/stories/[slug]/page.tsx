@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
@@ -11,6 +10,7 @@ import {
 	StoryInlineImage,
 } from "@/components/stories/StoryImage";
 import { StoryRichText } from "@/components/stories/StoryRichText";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import type { Story } from "@/lib/api/storyClient";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -161,11 +161,13 @@ export default async function StoryDetailPage({ params }: PageProps) {
 								href={`/profile/${story.author.username}`}
 								className="cursor-pointer text-sm font-semibold text-slate-900 hover:text-[#006c5e] dark:text-white dark:hover:text-[#4ade80]"
 							>
-								{story.author.name || story.author.username} <VerifiedBadge verified={story.author.isVerifiedBadge} />
+								{story.author.name || story.author.username}{" "}
+								<VerifiedBadge verified={story.author.isVerifiedBadge} />
 							</Link>
 						) : (
 							<p className="text-sm font-semibold text-slate-900 dark:text-white">
-								{story.author?.name || "CookTale"} <VerifiedBadge verified={story.author?.isVerifiedBadge} />
+								{story.author?.name || "CookTale"}{" "}
+								<VerifiedBadge verified={story.author?.isVerifiedBadge} />
 							</p>
 						)}
 						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">

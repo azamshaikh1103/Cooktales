@@ -1,45 +1,45 @@
 "use client";
 
 import Image from "next/image";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import {
-	FaClock,
-	FaStar,
-	FaCheck,
-	FaShare,
 	FaArrowLeft,
-	FaTimes,
+	FaCheck,
 	FaChevronLeft,
 	FaChevronRight,
+	FaClock,
+	FaExternalLinkAlt,
 	FaFire,
 	FaSearchPlus,
+	FaShare,
 	FaShoppingCart,
-	FaExternalLinkAlt,
+	FaStar,
+	FaTimes,
 	FaUser,
 } from "react-icons/fa";
-import imageLoader from "@/lib/loader";
-import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { useDispatch } from "react-redux";
+import { toast } from "sonner";
+import ReviewModal from "@/components/popUps/ReviewModal";
+import ShareModal from "@/components/popUps/ShareModal";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { track } from "@/lib/analytics/track";
 import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
-import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
-import { setTab } from "@/lib/Slices/tabSlice";
-import ReviewModal from "@/components/popUps/ReviewModal";
-import ReviewItem from "./ReviewItem";
-import RecipeComments from "./RecipeComments";
-import ShareModal from "@/components/popUps/ShareModal";
 import {
-	recipeClient,
 	type PublicRecipe,
 	type RecipeReview,
+	recipeClient,
 } from "@/lib/api/recipeClient";
 import { useAuth } from "@/lib/auth/AuthContext";
+import imageLoader from "@/lib/loader";
+import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
+import { setTab } from "@/lib/Slices/tabSlice";
+import RecipeComments from "./RecipeComments";
+import ReviewItem from "./ReviewItem";
 
 export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	const { status, user } = useAuth();
@@ -84,7 +84,13 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 			cuisine: recipe.cuisine,
 			creator_id: recipe.author?.id,
 		});
-	}, [recipe.id, recipe.name, recipe.recipeCategory, recipe.cuisine, recipe.author?.id]);
+	}, [
+		recipe.id,
+		recipe.name,
+		recipe.recipeCategory,
+		recipe.cuisine,
+		recipe.author?.id,
+	]);
 	const recipeDetails = [
 		{ label: "Diet", value: recipe.diet },
 		{
@@ -715,7 +721,8 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								Recipe By
 							</div>
 							<h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
-								{recipe.author.name} <VerifiedBadge verified={recipe.author.isVerifiedBadge} />
+								{recipe.author.name}{" "}
+								<VerifiedBadge verified={recipe.author.isVerifiedBadge} />
 							</h3>
 							<p className="mx-auto max-w-lg text-sm text-gray-600 md:mx-0 dark:text-gray-300">
 								{recipe.author.about ||
@@ -796,7 +803,11 @@ const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
 	const toggleChecked = () => {
 		const next = !checked;
 		setChecked(next);
-		track("check_ingredient", { recipe_id: recipeId, context: "recipe_page", checked: next });
+		track("check_ingredient", {
+			recipe_id: recipeId,
+			context: "recipe_page",
+			checked: next,
+		});
 	};
 
 	return (
@@ -844,7 +855,10 @@ const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
 						try {
 							destination = new URL(item.link).hostname;
 						} catch {}
-						track("click_shop_ingredients", { recipe_id: recipeId, destination });
+						track("click_shop_ingredients", {
+							recipe_id: recipeId,
+							destination,
+						});
 					}}
 					className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
 				>

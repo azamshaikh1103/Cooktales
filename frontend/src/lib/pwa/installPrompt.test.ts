@@ -46,7 +46,14 @@ assert.equal(isInstallEngaged({ visits: 2, actions: 0 }), true);
 assert.equal(isInstallEngaged({ visits: 1, actions: 1 }), true);
 
 // Never interrupt: sensitive routes (and not look-alikes such as /cookies)
-for (const path of ["/cook", "/cook/abc", "/auth", "/auth/google/callback", "/payment/success", "/onboarding"]) {
+for (const path of [
+	"/cook",
+	"/cook/abc",
+	"/auth",
+	"/auth/google/callback",
+	"/payment/success",
+	"/onboarding",
+]) {
 	assert.equal(isInstallPromptSuppressedPath(path), true, path);
 }
 for (const path of ["/", "/recipe", "/cookies", "/authors", "/profile/chef"]) {

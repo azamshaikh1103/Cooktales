@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Plus, Share2, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { track } from "@/lib/analytics/track";
 import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/analytics/track";
 import {
 	canShowInstallPrompt,
 	INSTALL_ENGAGEMENT_EVENT,

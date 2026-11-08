@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaUtensils, FaBookOpen, FaStar } from "react-icons/fa";
+import { FaBookOpen, FaStar, FaUtensils } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
 
 const isSafeUrl = (value: string) => /^https?:\/\//i.test(value);

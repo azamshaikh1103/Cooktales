@@ -18,7 +18,8 @@ export function useScrollDepth(
 			frame = 0;
 			const scrollable = document.documentElement.scrollHeight;
 			if (scrollable <= 0) return;
-			const percent = ((window.scrollY + window.innerHeight) / scrollable) * 100;
+			const percent =
+				((window.scrollY + window.innerHeight) / scrollable) * 100;
 			for (const milestone of newScrollMilestones(percent, reported)) {
 				reported.add(milestone);
 				track("scroll_depth", {

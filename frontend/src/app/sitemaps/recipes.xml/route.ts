@@ -19,7 +19,7 @@ export async function GET() {
 					{
 						path: `/recipe/${recipe.slug}`,
 						lastModified: recipe.updatedAt,
-					images: [recipe.mainImage, ...(recipe.moreImages || [])].filter(
+						images: [recipe.mainImage, ...(recipe.moreImages || [])].filter(
 							(image): image is string => Boolean(image),
 						),
 					},

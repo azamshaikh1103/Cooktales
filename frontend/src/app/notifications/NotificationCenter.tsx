@@ -12,11 +12,11 @@ import {
 import { useAuth } from "@/lib/auth/AuthContext";
 import imageLoader from "@/lib/loader";
 import { useNotificationRealtime } from "@/lib/notifications/NotificationRealtimeProvider";
+import { NotificationTypeIcon } from "@/lib/notifications/NotificationTypeIcon";
 import {
 	notificationText,
 	relativeTime,
 } from "@/lib/notifications/presentation";
-import { NotificationTypeIcon } from "@/lib/notifications/NotificationTypeIcon";
 
 type Filter = "all" | "unread";
 
@@ -106,16 +106,26 @@ export default function NotificationCenter() {
 
 	useEffect(() => {
 		if (!lastEvent) return;
-		if (lastEvent.type === "notification.created" && lastEvent.data.notification) {
+		if (
+			lastEvent.type === "notification.created" &&
+			lastEvent.data.notification
+		) {
 			if (filter === "unread" || filter === "all") {
-				setNotifications((current) => [
-					lastEvent.data.notification!,
-					...current.filter((item) => item.id !== lastEvent.data.notification!.id),
-				].slice(0, 20));
+				setNotifications((current) =>
+					[
+						lastEvent.data.notification!,
+						...current.filter(
+							(item) => item.id !== lastEvent.data.notification!.id,
+						),
+					].slice(0, 20),
+				);
 			}
 			return;
 		}
-		if (lastEvent.type === "notification.read" && lastEvent.data.notificationId) {
+		if (
+			lastEvent.type === "notification.read" &&
+			lastEvent.data.notificationId
+		) {
 			if (filter === "unread") {
 				setNotifications((current) =>
 					current.filter((item) => item.id !== lastEvent.data.notificationId),
@@ -124,7 +134,10 @@ export default function NotificationCenter() {
 				setNotifications((current) =>
 					current.map((item) =>
 						item.id === lastEvent.data.notificationId
-							? { ...item, readAt: lastEvent.data.readAt || new Date().toISOString() }
+							? {
+									...item,
+									readAt: lastEvent.data.readAt || new Date().toISOString(),
+								}
 							: item,
 					),
 				);
@@ -136,9 +149,12 @@ export default function NotificationCenter() {
 				filter === "unread"
 					? []
 					: current.map((item) => ({
-						...item,
-						readAt: item.readAt || lastEvent.data.readAt || new Date().toISOString(),
-					})),
+							...item,
+							readAt:
+								item.readAt ||
+								lastEvent.data.readAt ||
+								new Date().toISOString(),
+						})),
 			);
 		}
 	}, [filter, lastEvent]);

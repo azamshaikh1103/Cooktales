@@ -6,6 +6,7 @@ import { BiLoaderAlt } from "react-icons/bi";
 import { FaArrowLeft, FaPaperPlane } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
+import ShareModal from "@/components/popUps/ShareModal";
 import {
 	type RecipeMediaInput,
 	type RecipeResponse,
@@ -14,8 +15,8 @@ import {
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import {
-	commitRecipeUpload,
 	commitRecipeStepUpload,
+	commitRecipeUpload,
 	type NewRecipe,
 	type RecipeMediaAsset,
 	removeRecipeGalleryImage,
@@ -30,7 +31,6 @@ import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
 import { setTab } from "@/lib/Slices/tabSlice";
 import type { RootState } from "@/lib/store";
 import { RecipePublishSchema } from "@/lib/validations/recipe";
-import ShareModal from "@/components/popUps/ShareModal";
 import {
 	BasicInfoEditor,
 	FAQEditor,
@@ -369,7 +369,8 @@ const normalizeRecipePayload = (recipe: NewRecipe) => {
 			...(recipe.steps || []).flatMap((step, position) => {
 				if (!step.name?.trim() || !step.imagePublicId) return [];
 				const media = recipe.media.find(
-					(item) => item.kind === "STEP" && item.publicId === step.imagePublicId,
+					(item) =>
+						item.kind === "STEP" && item.publicId === step.imagePublicId,
 				);
 				return media ? [{ ...media, position }] : [];
 			}),
@@ -446,9 +447,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const [saveError, setSaveError] = useState<string | null>(null);
 	const [publishedRecipe, setPublishedRecipe] =
 		useState<PublishedRecipe | null>(null);
-	const [lastSavedPayload, setLastSavedPayload] = useState<string | null>(
-		null,
-	);
+	const [lastSavedPayload, setLastSavedPayload] = useState<string | null>(null);
 	const [activeGuideKey, setActiveGuideKey] = useState<GuideKey>("cover");
 	const [draftLoadError, setDraftLoadError] = useState<string | null>(null);
 
@@ -483,7 +482,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			const clientDraftId = recipe.clientDraftId || crypto.randomUUID();
 			draftCreationPromiseRef.current = recipeClient
 				.createDraft({
-					name: recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
+					name:
+						recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
 					clientDraftId,
 				})
 				.then((response) => {
@@ -522,7 +522,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				updatedAt: string;
 			} | null = null;
 			if (recipeId) {
-				const result = await recipeClient.startEditDraft(recipeId).catch(() => null);
+				const result = await recipeClient
+					.startEditDraft(recipeId)
+					.catch(() => null);
 				serverRecipe = result?.draft.recipe || null;
 				editDraft = result?.draft || null;
 				if (!serverRecipe) {
@@ -547,9 +549,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			}
 
 			if (cancelled) return;
-			const resolved =
-				serverRecipe
-					? recipeFromServer(serverRecipe, editDraft || undefined)
+			const resolved = serverRecipe
+				? recipeFromServer(serverRecipe, editDraft || undefined)
 				: {
 						...(initialRecipeRef.current as NewRecipe),
 						clientDraftId: crypto.randomUUID(),
@@ -578,7 +579,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 			recipeClient
 				.createDraft({
-					name: recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
+					name:
+						recipe.name?.trim().length >= 3 ? recipe.name.trim() : undefined,
 					clientDraftId: recipe.clientDraftId || undefined,
 				})
 				.then((response) => {
@@ -599,7 +601,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				})
 				.catch((error) => {
 					console.error("Draft creation failed:", error);
-				const message = error instanceof Error ? error.message : "Could not create a draft.";
+					const message =
+						error instanceof Error
+							? error.message
+							: "Could not create a draft.";
 					setSaveError(message);
 					setSaveStatus("error");
 					toast.error(message);
@@ -629,28 +634,29 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			setIsSaving(true);
 			setSaveStatus("saving");
 			setSaveError(null);
-				(recipeId
-					? recipeClient
-							.updateEditDraft(recipeId, {
-								...payload,
-								expectedVersion: recipe.version || undefined,
-							})
-							.then(({ draft }) => ({
-								version: draft.version,
-								updatedAt: draft.updatedAt,
-							}))
-					: recipeClient
-							.update(recipe.draftId as string, {
-								...payload,
-								expectedVersion: recipe.version || undefined,
-							})
-							.then(({ recipe: savedRecipe }) => ({
-								version: savedRecipe.version,
-								updatedAt:
-									savedRecipe.updatedAt ||
-									savedRecipe.lastEditedAt ||
-									new Date().toISOString(),
-							})))
+			(recipeId
+				? recipeClient
+						.updateEditDraft(recipeId, {
+							...payload,
+							expectedVersion: recipe.version || undefined,
+						})
+						.then(({ draft }) => ({
+							version: draft.version,
+							updatedAt: draft.updatedAt,
+						}))
+				: recipeClient
+						.update(recipe.draftId as string, {
+							...payload,
+							expectedVersion: recipe.version || undefined,
+						})
+						.then(({ recipe: savedRecipe }) => ({
+							version: savedRecipe.version,
+							updatedAt:
+								savedRecipe.updatedAt ||
+								savedRecipe.lastEditedAt ||
+								new Date().toISOString(),
+						}))
+			)
 				.then((response) => {
 					setLastSavedPayload(payloadKey);
 					setSaveStatus("saved");
@@ -666,7 +672,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 					console.error("Recipe autosave failed:", error);
 					setLastSavedPayload(payloadKey);
 					const message =
-						error instanceof Error ? error.message : "Could not save this recipe.";
+						error instanceof Error
+							? error.message
+							: "Could not save this recipe.";
 					if (error?.statusCode === 409) {
 						const latest = await (recipeId
 							? recipeClient.getEditDraft(recipeId)
@@ -732,8 +740,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 					publicId: res.publicId,
 					resourceType: toApiResourceType(res.resourceType),
 					kind: isMain ? "MAIN" : "GALLERY",
-					position:
-						isMain ? 0 : galleryPosition ?? currentMedia.filter((media) => media.kind === "GALLERY").length,
+					position: isMain
+						? 0
+						: (galleryPosition ??
+							currentMedia.filter((media) => media.kind === "GALLERY").length),
 					width: res.width,
 					height: res.height,
 					bytes: res.bytes,
@@ -903,7 +913,8 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 	const handleDiscardChanges = async () => {
 		if (!recipeId) return;
-		if (!window.confirm("Discard all unpublished changes to this recipe?")) return;
+		if (!window.confirm("Discard all unpublished changes to this recipe?"))
+			return;
 
 		try {
 			await recipeClient.discardEditDraft(recipeId);
@@ -912,7 +923,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 			router.push("/studio/content");
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Could not discard saved changes.",
+				error instanceof Error
+					? error.message
+					: "Could not discard saved changes.",
 			);
 		}
 	};
@@ -1051,7 +1064,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 							<HeaderImageUpload
 								currentImage={recipe.images?.[0]}
 								readAsDataUrl={false}
-								onImageSelect={(file: File) => void handleImageUpload(file, true)}
+								onImageSelect={(file: File) =>
+									void handleImageUpload(file, true)
+								}
 							/>
 						</section>
 
@@ -1156,7 +1171,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 							</h2>
 							<FAQEditor
 								faqs={recipe.faqs || []}
-								onChange={(list: NewRecipe["faqs"]) => updateField("faqs", list)}
+								onChange={(list: NewRecipe["faqs"]) =>
+									updateField("faqs", list)
+								}
 							/>
 						</section>
 
@@ -1196,7 +1213,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 									value={recipe.storingFreezing || ""}
 									maxLength={1500}
 									onFocus={() => setActiveGuideKey("storage")}
-								onChange={(e) => updateField("storingFreezing", e.target.value)}
+									onChange={(e) =>
+										updateField("storingFreezing", e.target.value)
+									}
 									placeholder="How to store leftovers or freeze for later..."
 									className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
 								/>

@@ -4,11 +4,11 @@ import { Bookmark, Heart, MessageCircle, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics/track";
+import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
 import { storyClient } from "@/lib/api/storyClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { markInstallEngagement } from "@/lib/pwa/installPrompt";
-import { track } from "@/lib/analytics/track";
-import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
 
 type Props = {
 	storyId: string;

@@ -8,11 +8,11 @@ import { BsArrowReturnLeft } from "react-icons/bs";
 import { CiFaceFrown, CiSearch } from "react-icons/ci";
 import { PiBookOpenText, PiCookingPot } from "react-icons/pi";
 import { useDispatch, useSelector } from "react-redux";
+import { track } from "@/lib/analytics/track";
 import { type SearchResult, searchClient } from "@/lib/api/searchClient";
 import imageLoader from "@/lib/loader";
 import { setSearchTab } from "@/lib/Slices/searchTabSlice";
 import type { RootState } from "@/lib/store";
-import { track } from "@/lib/analytics/track";
 
 const SearchTab = () => {
 	const dispatch = useDispatch();
@@ -75,8 +75,14 @@ const SearchTab = () => {
 
 	const handleFullSearch = useCallback(() => {
 		if (!searchQuery.trim()) return;
-		track("search", { search_term: searchQuery.trim().slice(0, 80), results_count: results.length });
-		if (results.length === 0) track("search_no_results", { search_term: searchQuery.trim().slice(0, 80) });
+		track("search", {
+			search_term: searchQuery.trim().slice(0, 80),
+			results_count: results.length,
+		});
+		if (results.length === 0)
+			track("search_no_results", {
+				search_term: searchQuery.trim().slice(0, 80),
+			});
 		dispatch(setSearchTab(false));
 		router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
 	}, [searchQuery, router, dispatch, results]);

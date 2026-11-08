@@ -1,7 +1,7 @@
 import { ArrowRight, FileText } from "lucide-react";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { StoryCoverImage } from "@/components/stories/StoryImage";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 type StoryPreview = {
 	id: string;
@@ -42,7 +42,10 @@ export function StoryPreviewCard({
 		>
 			<div className={`min-w-0 ${compact ? "sm:self-center" : ""}`}>
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-					<span>{story.author?.name || "CookTale"} <VerifiedBadge verified={story.author?.isVerifiedBadge} /></span>
+					<span>
+						{story.author?.name || "CookTale"}{" "}
+						<VerifiedBadge verified={story.author?.isVerifiedBadge} />
+					</span>
 					{date && (
 						<>
 							<span aria-hidden="true">·</span>

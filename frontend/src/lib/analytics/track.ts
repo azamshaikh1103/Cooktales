@@ -1,7 +1,4 @@
-import type {
-	AnalyticsEventName,
-	AnalyticsEventParams,
-} from "./catalog";
+import type { AnalyticsEventName, AnalyticsEventParams } from "./catalog";
 
 declare global {
 	interface Window {

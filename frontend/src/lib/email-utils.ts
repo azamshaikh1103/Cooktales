@@ -1,17 +1,17 @@
-export const BRAND_COLOR = '#006C5E';
-export const BG_COLOR = '#f3f4f6';
-export const TEXT_COLOR = '#374151';
+export const BRAND_COLOR = "#006C5E";
+export const BG_COLOR = "#f3f4f6";
+export const TEXT_COLOR = "#374151";
 
 const LOGO_URL =
-  'https://res.cloudinary.com/dtlfdwhnm/image/upload/w_300,f_png/v1764539263/BlackCTCornered_ps5osj.svg';
+	"https://res.cloudinary.com/dtlfdwhnm/image/upload/w_300,f_png/v1764539263/BlackCTCornered_ps5osj.svg";
 
 export const wrapEmail = (
-  title: string,
-  contentHtml: string,
-  actionUrl: string,
-  actionText: string
+	title: string,
+	contentHtml: string,
+	actionUrl: string,
+	actionText: string,
 ) => {
-  return `
+	return `
   <!DOCTYPE html>
   <html>
   <head>

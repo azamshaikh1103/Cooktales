@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useAuth } from "@/lib/auth/AuthContext";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/lib/auth/AuthContext";
 import StudioSidebar from "./StudioSidebar";
 
 export default function StudioLayout({

@@ -93,7 +93,9 @@ export const notificationClient = {
 	},
 
 	pushConfig() {
-		return request<{ enabled: boolean; publicKey?: string }>("/notifications/push/config");
+		return request<{ enabled: boolean; publicKey?: string }>(
+			"/notifications/push/config",
+		);
 	},
 
 	subscribePush(input: {
@@ -102,17 +104,23 @@ export const notificationClient = {
 		auth: string;
 		expirationTime?: number | null;
 	}) {
-		return request<{ subscribed: boolean }>("/notifications/push/subscriptions", {
-			method: "POST",
-			body: JSON.stringify(input),
-		});
+		return request<{ subscribed: boolean }>(
+			"/notifications/push/subscriptions",
+			{
+				method: "POST",
+				body: JSON.stringify(input),
+			},
+		);
 	},
 
 	unsubscribePush(endpoint: string) {
-		return request<{ subscribed: boolean }>("/notifications/push/subscriptions", {
-			method: "DELETE",
-			body: JSON.stringify({ endpoint }),
-		});
+		return request<{ subscribed: boolean }>(
+			"/notifications/push/subscriptions",
+			{
+				method: "DELETE",
+				body: JSON.stringify({ endpoint }),
+			},
+		);
 	},
 
 	sendPushTest() {

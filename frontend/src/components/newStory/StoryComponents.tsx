@@ -2,8 +2,8 @@
 
 import {
 	Bold,
-	Code2,
 	ChevronDown,
+	Code2,
 	GripVertical,
 	ImageIcon,
 	Italic,
@@ -60,15 +60,24 @@ const markdownToEditorHtml = (value: string) => {
 		.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
 		.replace(/_([^_]+)_/g, "<em>$1</em>")
 		.replace(/`([^`]+)`/g, "<code>$1</code>")
-		.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)/g, (_match, label, url, description) => {
-			const accessibleDescription = description ? ` title="${description}" aria-label="${description}"` : "";
-			return `<a href="${url}"${accessibleDescription}>${label}</a>`;
-		});
+		.replace(
+			/\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)/g,
+			(_match, label, url, description) => {
+				const accessibleDescription = description
+					? ` title="${description}" aria-label="${description}"`
+					: "";
+				return `<a href="${url}"${accessibleDescription}>${label}</a>`;
+			},
+		);
 	const lines = escaped.split("\n");
-	const isList = lines.length > 0 && lines.every((line) => /^[-*]\s+/.test(line));
-	const isOrdered = lines.length > 0 && lines.every((line) => /^\d+[.)]\s+/.test(line));
-	if (isList) return `<ul>${lines.map((line) => `<li>${line.replace(/^[-*]\s+/, "")}</li>`).join("")}</ul>`;
-	if (isOrdered) return `<ol>${lines.map((line) => `<li>${line.replace(/^\d+[.)]\s+/, "")}</li>`).join("")}</ol>`;
+	const isList =
+		lines.length > 0 && lines.every((line) => /^[-*]\s+/.test(line));
+	const isOrdered =
+		lines.length > 0 && lines.every((line) => /^\d+[.)]\s+/.test(line));
+	if (isList)
+		return `<ul>${lines.map((line) => `<li>${line.replace(/^[-*]\s+/, "")}</li>`).join("")}</ul>`;
+	if (isOrdered)
+		return `<ol>${lines.map((line) => `<li>${line.replace(/^\d+[.)]\s+/, "")}</li>`).join("")}</ol>`;
 	return escaped.replace(/\n/g, "<br>");
 };
 
@@ -79,23 +88,45 @@ const editorHtmlToMarkdown = (html: string) => {
 		if (!(node instanceof HTMLElement)) return "";
 		const children = Array.from(node.childNodes).map(read).join("");
 		switch (node.tagName) {
-			case "STRONG": case "B": return `**${children}**`;
-			case "EM": case "I": return `_${children}_`;
-			case "CODE": return `\`${children}\``;
+			case "STRONG":
+			case "B":
+				return `**${children}**`;
+			case "EM":
+			case "I":
+				return `_${children}_`;
+			case "CODE":
+				return `\`${children}\``;
 			case "A": {
 				const href = (node as HTMLAnchorElement).href;
 				const description = (node as HTMLAnchorElement).getAttribute("title");
-				return href ? `[${children}](${href}${description ? ` "${description}"` : ""})` : children;
+				return href
+					? `[${children}](${href}${description ? ` "${description}"` : ""})`
+					: children;
 			}
-			case "BR": return "\n";
-			case "LI": return children;
-			case "UL": return Array.from(node.children).map((item) => `- ${read(item)}`).join("\n");
-			case "OL": return Array.from(node.children).map((item, index) => `${index + 1}. ${read(item)}`).join("\n");
-			case "DIV": case "P": return `${children}\n`;
-			default: return children;
+			case "BR":
+				return "\n";
+			case "LI":
+				return children;
+			case "UL":
+				return Array.from(node.children)
+					.map((item) => `- ${read(item)}`)
+					.join("\n");
+			case "OL":
+				return Array.from(node.children)
+					.map((item, index) => `${index + 1}. ${read(item)}`)
+					.join("\n");
+			case "DIV":
+			case "P":
+				return `${children}\n`;
+			default:
+				return children;
 		}
 	};
-	return Array.from(documentNode.body.childNodes).map(read).join("").replace(/\n{3,}/g, "\n\n").trim();
+	return Array.from(documentNode.body.childNodes)
+		.map(read)
+		.join("")
+		.replace(/\n{3,}/g, "\n\n")
+		.trim();
 };
 
 export function StoryBlockList({ content, onChange, onUpload }: Props) {
@@ -168,7 +199,9 @@ function RichTextEditor({
 	onChange: (value: string) => void;
 	placeholder: string;
 	editorRef: React.RefObject<HTMLDivElement | null>;
-	onFormat: (command: "bold" | "italic" | "insertUnorderedList" | "insertOrderedList") => void;
+	onFormat: (
+		command: "bold" | "italic" | "insertUnorderedList" | "insertOrderedList",
+	) => void;
 	onAddLink: () => void;
 	onSelectionChange: () => void;
 }) {
@@ -204,11 +237,26 @@ function RichTextEditor({
 			onKeyDown={(event) => {
 				if (!(event.metaKey || event.ctrlKey)) return;
 				const key = event.key.toLowerCase();
-				if (key === "b") { event.preventDefault(); onFormat("bold"); }
-				if (key === "i") { event.preventDefault(); onFormat("italic"); }
-				if (key === "k") { event.preventDefault(); onAddLink(); }
-				if (event.shiftKey && key === "8") { event.preventDefault(); onFormat("insertUnorderedList"); }
-				if (event.shiftKey && key === "7") { event.preventDefault(); onFormat("insertOrderedList"); }
+				if (key === "b") {
+					event.preventDefault();
+					onFormat("bold");
+				}
+				if (key === "i") {
+					event.preventDefault();
+					onFormat("italic");
+				}
+				if (key === "k") {
+					event.preventDefault();
+					onAddLink();
+				}
+				if (event.shiftKey && key === "8") {
+					event.preventDefault();
+					onFormat("insertUnorderedList");
+				}
+				if (event.shiftKey && key === "7") {
+					event.preventDefault();
+					onFormat("insertOrderedList");
+				}
 			}}
 			onKeyUp={onSelectionChange}
 			onMouseUp={onSelectionChange}
@@ -268,7 +316,9 @@ function StoryBlockRow({
 		if (!richTextRef.current) return;
 		onUpdate({ value: editorHtmlToMarkdown(richTextRef.current.innerHTML) });
 	};
-	const formatRichText = (command: "bold" | "italic" | "insertUnorderedList" | "insertOrderedList") => {
+	const formatRichText = (
+		command: "bold" | "italic" | "insertUnorderedList" | "insertOrderedList",
+	) => {
 		restoreSelection();
 		richTextRef.current?.focus();
 		document.execCommand(command);
@@ -276,7 +326,8 @@ function StoryBlockRow({
 	};
 	const saveSelection = () => {
 		const selection = window.getSelection();
-		if (selection?.rangeCount) savedRange.current = selection.getRangeAt(0).cloneRange();
+		if (selection?.rangeCount)
+			savedRange.current = selection.getRangeAt(0).cloneRange();
 	};
 	const restoreSelection = () => {
 		if (!savedRange.current) return;
@@ -335,18 +386,79 @@ function StoryBlockRow({
 	const inputClass = `w-full resize-none bg-transparent outline-none placeholder:text-gray-300 dark:text-gray-200 dark:placeholder:text-gray-600 ${block.type === "quote" ? "border-l-4 border-[#006c5e] pl-5 text-2xl italic dark:border-[#4ade80]" : block.type === "codeblock" ? "rounded-lg bg-slate-900 p-4 font-mono text-sm text-green-300" : "text-lg leading-relaxed text-gray-700"}`;
 
 	return (
-		<section onDragOver={(event) => event.preventDefault()} onDrop={onDrop} className="group relative rounded-2xl border border-transparent px-4 py-4 transition-colors hover:border-[#006c5e]/15 hover:bg-[#f4faf8] dark:hover:border-[#4ade80]/15 dark:hover:bg-white/[0.03] sm:px-6">
+		<section
+			onDragOver={(event) => event.preventDefault()}
+			onDrop={onDrop}
+			className="group relative rounded-2xl border border-transparent px-4 py-4 transition-colors hover:border-[#006c5e]/15 hover:bg-[#f4faf8] dark:hover:border-[#4ade80]/15 dark:hover:bg-white/[0.03] sm:px-6"
+		>
 			<div className="mb-4 flex items-center justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-1">
-					<button type="button" draggable onDragStart={onDragStart} aria-label="Drag to reorder block" title="Drag to reorder" className="cursor-grab rounded p-2 text-gray-400 opacity-0 transition hover:bg-gray-100 hover:text-[#006c5e] group-hover:opacity-100 focus:opacity-100 active:cursor-grabbing dark:hover:bg-white/10"><GripVertical size={16} /></button>
+					<button
+						type="button"
+						draggable
+						onDragStart={onDragStart}
+						aria-label="Drag to reorder block"
+						title="Drag to reorder"
+						className="cursor-grab rounded p-2 text-gray-400 opacity-0 transition hover:bg-gray-100 hover:text-[#006c5e] group-hover:opacity-100 focus:opacity-100 active:cursor-grabbing dark:hover:bg-white/10"
+					>
+						<GripVertical size={16} />
+					</button>
 					{canFormat && (
 						<div className="flex flex-wrap items-center gap-1">
-							<button type="button" title="Bold (Ctrl/Cmd+B)" onMouseDown={(event) => event.preventDefault()} onClick={() => formatRichText("bold")} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><Bold size={15} /></button>
-							<button type="button" title="Italic (Ctrl/Cmd+I)" onMouseDown={(event) => event.preventDefault()} onClick={() => formatRichText("italic")} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><Italic size={15} /></button>
-							<button type="button" title="Inline code" onMouseDown={(event) => event.preventDefault()} onClick={formatInlineCode} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><Code2 size={15} /></button>
-							<button type="button" title="Add link (Ctrl/Cmd+K)" onMouseDown={(event) => event.preventDefault()} onClick={openLinkEditor} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><Link2 size={15} /></button>
-							<button type="button" title="Bullet list (Ctrl/Cmd+Shift+8)" onMouseDown={(event) => event.preventDefault()} onClick={() => formatRichText("insertUnorderedList")} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><List size={15} /></button>
-							<button type="button" title="Numbered list (Ctrl/Cmd+Shift+7)" onMouseDown={(event) => event.preventDefault()} onClick={() => formatRichText("insertOrderedList")} className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"><ListOrdered size={15} /></button>
+							<button
+								type="button"
+								title="Bold (Ctrl/Cmd+B)"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => formatRichText("bold")}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<Bold size={15} />
+							</button>
+							<button
+								type="button"
+								title="Italic (Ctrl/Cmd+I)"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => formatRichText("italic")}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<Italic size={15} />
+							</button>
+							<button
+								type="button"
+								title="Inline code"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={formatInlineCode}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<Code2 size={15} />
+							</button>
+							<button
+								type="button"
+								title="Add link (Ctrl/Cmd+K)"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={openLinkEditor}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<Link2 size={15} />
+							</button>
+							<button
+								type="button"
+								title="Bullet list (Ctrl/Cmd+Shift+8)"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => formatRichText("insertUnorderedList")}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<List size={15} />
+							</button>
+							<button
+								type="button"
+								title="Numbered list (Ctrl/Cmd+Shift+7)"
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => formatRichText("insertOrderedList")}
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+							>
+								<ListOrdered size={15} />
+							</button>
 						</div>
 					)}
 				</div>
@@ -433,7 +545,15 @@ function StoryBlockRow({
 					className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none dark:border-white/15 dark:bg-white/5 dark:text-white"
 				/>
 			) : block.type === "paragraph" ? (
-				<RichTextEditor value={block.value} onChange={(value) => onUpdate({ value })} placeholder={placeholders.paragraph} editorRef={richTextRef} onFormat={formatRichText} onAddLink={openLinkEditor} onSelectionChange={saveSelection} />
+				<RichTextEditor
+					value={block.value}
+					onChange={(value) => onUpdate({ value })}
+					placeholder={placeholders.paragraph}
+					editorRef={richTextRef}
+					onFormat={formatRichText}
+					onAddLink={openLinkEditor}
+					onSelectionChange={saveSelection}
+				/>
 			) : (
 				<textarea
 					ref={textRef as React.RefObject<HTMLTextAreaElement>}
@@ -446,20 +566,102 @@ function StoryBlockRow({
 				/>
 			)}
 			{canFormat && linkMode && (
-						<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4" role="presentation">
-							<div role="dialog" aria-modal="true" aria-label="Add link" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#17312b]">
-								<div className="mb-4"><h3 className="text-base font-semibold text-gray-900 dark:text-white">Add a link</h3><p className="mt-1 text-sm text-gray-500 dark:text-gray-300">Use a clear label so readers know where the link goes.</p></div>
-								<label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-200">What to show<input autoFocus value={linkText} onChange={(event) => setLinkText(event.target.value)} placeholder="Read the full guide" className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white" /></label>
-								<label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-200">Link address<input value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://example.com" className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white" /></label>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Link description <span className="font-normal text-gray-400">optional</span><input value={linkDescription} onChange={(event) => setLinkDescription(event.target.value)} placeholder="Opens the CookTale guide" className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white" /></label>
-								<p className="mt-2 text-xs text-gray-500 dark:text-gray-300">This is the text-reader version of alt text. Image blocks will get their own alt text field separately.</p>
-								<div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setLinkMode(false)} className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10">Cancel</button><button type="button" onClick={applyLink} className="cursor-pointer rounded-lg bg-[#006c5e] px-3 py-2 text-sm font-medium text-white dark:bg-[#4ade80] dark:text-[#092019]">Add link</button></div>
-							</div>
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-4"
+					role="presentation"
+				>
+					<div
+						role="dialog"
+						aria-modal="true"
+						aria-label="Add link"
+						className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl dark:bg-[#17312b]"
+					>
+						<div className="mb-4">
+							<h3 className="text-base font-semibold text-gray-900 dark:text-white">
+								Add a link
+							</h3>
+							<p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+								Use a clear label so readers know where the link goes.
+							</p>
 						</div>
+						<label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
+							What to show
+							<input
+								autoFocus
+								value={linkText}
+								onChange={(event) => setLinkText(event.target.value)}
+								placeholder="Read the full guide"
+								className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white"
+							/>
+						</label>
+						<label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
+							Link address
+							<input
+								value={linkUrl}
+								onChange={(event) => setLinkUrl(event.target.value)}
+								placeholder="https://example.com"
+								className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white"
+							/>
+						</label>
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+							Link description{" "}
+							<span className="font-normal text-gray-400">optional</span>
+							<input
+								value={linkDescription}
+								onChange={(event) => setLinkDescription(event.target.value)}
+								placeholder="Opens the CookTale guide"
+								className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#006c5e] dark:border-white/15 dark:bg-white/5 dark:text-white"
+							/>
+						</label>
+						<p className="mt-2 text-xs text-gray-500 dark:text-gray-300">
+							This is the text-reader version of alt text. Image blocks will get
+							their own alt text field separately.
+						</p>
+						<div className="mt-5 flex justify-end gap-2">
+							<button
+								type="button"
+								onClick={() => setLinkMode(false)}
+								className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10"
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								onClick={applyLink}
+								className="cursor-pointer rounded-lg bg-[#006c5e] px-3 py-2 text-sm font-medium text-white dark:bg-[#4ade80] dark:text-[#092019]"
+							>
+								Add link
+							</button>
+						</div>
+					</div>
+				</div>
 			)}
 			<div className="relative mt-5 border-t border-gray-100 pt-4 dark:border-white/10">
-				<button type="button" onClick={() => setShowBlockMenu((open) => !open)} aria-expanded={showBlockMenu} className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#006c5e]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#006c5e] shadow-sm transition hover:border-[#006c5e] hover:bg-[#eaf6f2] dark:border-[#4ade80]/25 dark:bg-[#17312b] dark:text-[#86efac] dark:hover:bg-[#204239]"><Plus size={14} /> Add block below <ChevronDown size={14} /></button>
-				{showBlockMenu && <div className="absolute bottom-11 left-0 z-20 grid w-52 overflow-hidden rounded-xl border border-[#006c5e]/15 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17312b]">{blockOptions.map((option) => <button type="button" key={option.type} onClick={() => { onInsert(option.type); setShowBlockMenu(false); }} className="cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-[#eaf6f2] hover:text-[#006c5e] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-[#86efac]">{option.label}</button>)}</div>}
+				<button
+					type="button"
+					onClick={() => setShowBlockMenu((open) => !open)}
+					aria-expanded={showBlockMenu}
+					className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#006c5e]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#006c5e] shadow-sm transition hover:border-[#006c5e] hover:bg-[#eaf6f2] dark:border-[#4ade80]/25 dark:bg-[#17312b] dark:text-[#86efac] dark:hover:bg-[#204239]"
+				>
+					<Plus size={14} /> Add block below <ChevronDown size={14} />
+				</button>
+				{showBlockMenu && (
+					<div className="absolute bottom-11 left-0 z-20 grid w-52 overflow-hidden rounded-xl border border-[#006c5e]/15 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17312b]">
+						{blockOptions.map((option) => (
+							<button
+								type="button"
+								key={option.type}
+								onClick={() => {
+									onInsert(option.type);
+									setShowBlockMenu(false);
+								}}
+								className="cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-[#eaf6f2] hover:text-[#006c5e] dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-[#86efac]"
+							>
+								{option.label}
+							</button>
+						))}
+					</div>
+				)}
 			</div>
 		</section>
 	);

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
@@ -12,13 +11,14 @@ import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import CookingLoader from "@/components/ui/CookingLoader";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
+import { track } from "@/lib/analytics/track";
 import { recipeClient } from "@/lib/api/recipeClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { formatters } from "@/lib/formatters";
 import imageLoader from "@/lib/loader";
 import { markInstallEngagement } from "@/lib/pwa/installPrompt";
-import { track } from "@/lib/analytics/track";
 import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 import { setTab } from "@/lib/Slices/tabSlice";
 
@@ -306,7 +306,11 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 			setBookmarked(result.bookmarked);
 			if (result.bookmarked) {
 				markInstallEngagement();
-				track("save_recipe", { recipe_id: recipe.id, cuisine: recipe.cuisine, creator_id: recipe.author?.id });
+				track("save_recipe", {
+					recipe_id: recipe.id,
+					cuisine: recipe.cuisine,
+					creator_id: recipe.author?.id,
+				});
 			} else {
 				track("unsave_recipe", { recipe_id: recipe.id });
 			}
@@ -394,7 +398,10 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 									/>
 								)}
 							</div>
-							<span className="text-sm font-medium">{recipe.author.name} <VerifiedBadge verified={recipe.author.isVerifiedBadge} /></span>
+							<span className="text-sm font-medium">
+								{recipe.author.name}{" "}
+								<VerifiedBadge verified={recipe.author.isVerifiedBadge} />
+							</span>
 						</div>
 					)}
 				</div>

@@ -45,7 +45,10 @@ assert.deepEqual(pushed[2], { logged_in: true });
 
 // The committed GTM container must match the catalog (run `npm run analytics:gtm` after changes)
 const committed = JSON.parse(
-	readFileSync(join(__dirname, "../../../analytics/gtm-container.json"), "utf8"),
+	readFileSync(
+		join(__dirname, "../../../analytics/gtm-container.json"),
+		"utf8",
+	),
 );
 assert.deepEqual(
 	committed,

@@ -3,8 +3,8 @@ const GOOGLE_RETURN_TO_KEY = "cooktale.google-return-to";
 function isSafeReturnTo(value: string | null): value is string {
 	return Boolean(
 		value?.startsWith("/") &&
-		!value.startsWith("//") &&
-		!value.startsWith("/auth"),
+			!value.startsWith("//") &&
+			!value.startsWith("/auth"),
 	);
 }
 

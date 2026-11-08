@@ -5,7 +5,10 @@ export const revalidate = 3600;
 type Discussion = { slug: string; updatedAt: string };
 
 export async function GET() {
-	const discussions = await fetchAll<Discussion>("/community/discussions", "discussions");
+	const discussions = await fetchAll<Discussion>(
+		"/community/discussions",
+		"discussions",
+	);
 	return xmlResponse(
 		sitemapXml(
 			discussions.map((discussion) => ({

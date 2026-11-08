@@ -27,7 +27,9 @@ export const newsletterClient = {
 		if (!response.ok) {
 			const message = Array.isArray(payload.message)
 				? payload.message[0]
-				: payload.message || payload.error || "Newsletter signup is unavailable right now.";
+				: payload.message ||
+					payload.error ||
+					"Newsletter signup is unavailable right now.";
 			throw new ApiClientError(message, response.status);
 		}
 

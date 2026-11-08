@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { GiCookingPot, GiChefToque } from "react-icons/gi";
-import { IoSearch, IoArrowForward } from "react-icons/io5";
+import { GiChefToque, GiCookingPot } from "react-icons/gi";
+import { IoArrowForward, IoSearch } from "react-icons/io5";
 import { MdRestaurantMenu } from "react-icons/md";
 import imageLoader from "@/lib/loader";
 

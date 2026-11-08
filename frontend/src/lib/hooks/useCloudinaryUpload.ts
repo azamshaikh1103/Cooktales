@@ -1,224 +1,242 @@
-import { useState } from 'react';
-import { ApiClientError, authenticatedFetch } from '@/lib/api/authClient';
+import { useState } from "react";
+import { ApiClientError, authenticatedFetch } from "@/lib/api/authClient";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL =
+	process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
 type MediaUploadContext =
-  | 'USER_AVATAR'
-  | 'USER_BANNER'
-  | 'RECIPE_MAIN'
-  | 'RECIPE_GALLERY'
-  | 'RECIPE_STEP'
-  | 'RECIPE_VIDEO'
-  | 'STORY_COVER'
-  | 'STORY_CONTENT'
-  | 'THREAD_MEDIA'
-  | 'TEMP';
+	| "USER_AVATAR"
+	| "USER_BANNER"
+	| "RECIPE_MAIN"
+	| "RECIPE_GALLERY"
+	| "RECIPE_STEP"
+	| "RECIPE_VIDEO"
+	| "STORY_COVER"
+	| "STORY_CONTENT"
+	| "THREAD_MEDIA"
+	| "TEMP";
 
-type MediaResourceType = 'image' | 'video' | 'raw' | 'auto';
+type MediaResourceType = "image" | "video" | "raw" | "auto";
 
 type SignedUploadResponse = {
-  apiKey: string;
-  signature: string;
-  timestamp: number;
-  folder: string;
-  publicId: string;
-  resourceType: MediaResourceType;
-  uploadUrl: string;
-  params: {
-    folder: string;
-    public_id: string;
-    timestamp: number;
-    overwrite: boolean;
-    tags: string;
-    transformation: string;
-  };
+	apiKey: string;
+	signature: string;
+	timestamp: number;
+	folder: string;
+	publicId: string;
+	resourceType: MediaResourceType;
+	uploadUrl: string;
+	params: {
+		folder: string;
+		public_id: string;
+		timestamp: number;
+		overwrite: boolean;
+		tags: string;
+		transformation: string;
+	};
 };
 
 export type CloudinaryUploadResult = {
-  publicUrl: string;
-  publicId: string;
-  resourceType: MediaResourceType;
-  width?: number;
-  height?: number;
-  format?: string;
-  bytes?: number;
+	publicUrl: string;
+	publicId: string;
+	resourceType: MediaResourceType;
+	width?: number;
+	height?: number;
+	format?: string;
+	bytes?: number;
 };
 
 type CloudinaryUploadInput = {
-  file: File;
-  context: MediaUploadContext;
-  entityId?: string;
-  resourceType?: MediaResourceType;
+	file: File;
+	context: MediaUploadContext;
+	entityId?: string;
+	resourceType?: MediaResourceType;
 };
 
 type DeleteCloudinaryAssetInput = {
-  publicId: string;
-  resourceType?: Exclude<MediaResourceType, 'auto'>;
+	publicId: string;
+	resourceType?: Exclude<MediaResourceType, "auto">;
 };
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
-const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
-const VIDEO_TYPES = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
+const IMAGE_TYPES = new Set([
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+	"image/avif",
+]);
+const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 
 function withAutoOptimization(url: string, resourceType: MediaResourceType) {
-  const optimization = resourceType === 'video'
-    ? 'f_auto:video/q_auto/vc_auto'
-    : 'f_auto/q_auto';
+	const optimization =
+		resourceType === "video" ? "f_auto:video/q_auto/vc_auto" : "f_auto/q_auto";
 
-  if (!url.includes('/upload/') || url.includes(`/upload/${optimization}/`)) {
-    return url;
-  }
+	if (!url.includes("/upload/") || url.includes(`/upload/${optimization}/`)) {
+		return url;
+	}
 
-  return url.replace('/upload/', `/upload/${optimization}/`);
+	return url.replace("/upload/", `/upload/${optimization}/`);
 }
 
 function validateUploadFile(file: File, resourceType: MediaResourceType) {
-  const isVideo = resourceType === 'video';
-  const allowedTypes = isVideo ? VIDEO_TYPES : IMAGE_TYPES;
-  const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-  const label = isVideo ? 'video' : 'image';
+	const isVideo = resourceType === "video";
+	const allowedTypes = isVideo ? VIDEO_TYPES : IMAGE_TYPES;
+	const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+	const label = isVideo ? "video" : "image";
 
-  if (!allowedTypes.has(file.type)) {
-    throw new Error(
-      isVideo
-        ? 'Choose an MP4, WebM, or MOV video.'
-        : 'Choose a JPG, PNG, WebP, or AVIF image.',
-    );
-  }
+	if (!allowedTypes.has(file.type)) {
+		throw new Error(
+			isVideo
+				? "Choose an MP4, WebM, or MOV video."
+				: "Choose a JPG, PNG, WebP, or AVIF image.",
+		);
+	}
 
-  if (file.size > maxBytes) {
-    throw new Error(`This ${label} is too large. Maximum size is ${isVideo ? '100MB' : '12MB'}.`);
-  }
+	if (file.size > maxBytes) {
+		throw new Error(
+			`This ${label} is too large. Maximum size is ${isVideo ? "100MB" : "12MB"}.`,
+		);
+	}
 }
 
-async function requestSignedUpload(input: Omit<CloudinaryUploadInput, 'file'>) {
-  const response = await authenticatedFetch(`${API_URL}/media/sign-upload`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
+async function requestSignedUpload(input: Omit<CloudinaryUploadInput, "file">) {
+	const response = await authenticatedFetch(`${API_URL}/media/sign-upload`, {
+		method: "POST",
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(input),
+	});
 
-  const payload = await response.json().catch(() => ({}));
+	const payload = await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    const message = Array.isArray(payload.message)
-      ? payload.message[0]
-      : payload.message || payload.error || 'Could not prepare upload';
-    throw new ApiClientError(message, response.status);
-  }
+	if (!response.ok) {
+		const message = Array.isArray(payload.message)
+			? payload.message[0]
+			: payload.message || payload.error || "Could not prepare upload";
+		throw new ApiClientError(message, response.status);
+	}
 
-  return payload as SignedUploadResponse;
+	return payload as SignedUploadResponse;
 }
 
 async function confirmUpload(upload: CloudinaryUploadResult) {
-  const response = await authenticatedFetch(`${API_URL}/media/confirm-upload`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      publicId: upload.publicId,
-      url: upload.publicUrl,
-      resourceType: upload.resourceType,
-      width: upload.width,
-      height: upload.height,
-      bytes: upload.bytes,
-      format: upload.format,
-    }),
-  });
+	const response = await authenticatedFetch(`${API_URL}/media/confirm-upload`, {
+		method: "POST",
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			publicId: upload.publicId,
+			url: upload.publicUrl,
+			resourceType: upload.resourceType,
+			width: upload.width,
+			height: upload.height,
+			bytes: upload.bytes,
+			format: upload.format,
+		}),
+	});
 
-  if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    throw new ApiClientError(payload.message || 'Could not confirm upload', response.status);
-  }
+	if (!response.ok) {
+		const payload = await response.json().catch(() => ({}));
+		throw new ApiClientError(
+			payload.message || "Could not confirm upload",
+			response.status,
+		);
+	}
 }
 
 export function useCloudinaryUpload() {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const [uploading, setUploading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-  const deleteAsset = async ({ publicId, resourceType = 'image' }: DeleteCloudinaryAssetInput) => {
-    const response = await authenticatedFetch(`${API_URL}/media/asset`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ publicId, resourceType }),
-    });
+	const deleteAsset = async ({
+		publicId,
+		resourceType = "image",
+	}: DeleteCloudinaryAssetInput) => {
+		const response = await authenticatedFetch(`${API_URL}/media/asset`, {
+			method: "DELETE",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ publicId, resourceType }),
+		});
 
-    return response.ok;
-  };
+		return response.ok;
+	};
 
-  const uploadFile = async ({
-    file,
-    context,
-    entityId,
-    resourceType,
-  }: CloudinaryUploadInput): Promise<CloudinaryUploadResult | null> => {
-    setUploading(true);
-    setError(null);
+	const uploadFile = async ({
+		file,
+		context,
+		entityId,
+		resourceType,
+	}: CloudinaryUploadInput): Promise<CloudinaryUploadResult | null> => {
+		setUploading(true);
+		setError(null);
 
-    try {
-      const resolvedResourceType = resourceType || (file.type.startsWith('video/') ? 'video' : 'image');
-      validateUploadFile(file, resolvedResourceType);
-      const signed = await requestSignedUpload({
-        context,
-        entityId,
-        resourceType: resolvedResourceType,
-      });
-      const formData = new FormData();
+		try {
+			const resolvedResourceType =
+				resourceType || (file.type.startsWith("video/") ? "video" : "image");
+			validateUploadFile(file, resolvedResourceType);
+			const signed = await requestSignedUpload({
+				context,
+				entityId,
+				resourceType: resolvedResourceType,
+			});
+			const formData = new FormData();
 
-      formData.set('file', file);
-      formData.set('api_key', signed.apiKey);
-      formData.set('timestamp', String(signed.timestamp));
-      formData.set('signature', signed.signature);
-      formData.set('folder', signed.params.folder);
-      formData.set('public_id', signed.params.public_id);
-      formData.set('overwrite', String(signed.params.overwrite));
-      formData.set('tags', signed.params.tags);
-      formData.set('transformation', signed.params.transformation);
+			formData.set("file", file);
+			formData.set("api_key", signed.apiKey);
+			formData.set("timestamp", String(signed.timestamp));
+			formData.set("signature", signed.signature);
+			formData.set("folder", signed.params.folder);
+			formData.set("public_id", signed.params.public_id);
+			formData.set("overwrite", String(signed.params.overwrite));
+			formData.set("tags", signed.params.tags);
+			formData.set("transformation", signed.params.transformation);
 
-      const uploadResponse = await fetch(signed.uploadUrl, {
-        method: 'POST',
-        body: formData,
-      });
-      const uploaded = await uploadResponse.json().catch(() => ({}));
+			const uploadResponse = await fetch(signed.uploadUrl, {
+				method: "POST",
+				body: formData,
+			});
+			const uploaded = await uploadResponse.json().catch(() => ({}));
 
-      if (!uploadResponse.ok) {
-        throw new Error(uploaded.error?.message || 'Cloudinary upload failed');
-      }
+			if (!uploadResponse.ok) {
+				throw new Error(uploaded.error?.message || "Cloudinary upload failed");
+			}
 
-      const result: CloudinaryUploadResult = {
-        publicUrl: withAutoOptimization(uploaded.secure_url, signed.resourceType),
-        publicId: uploaded.public_id || signed.publicId,
-        resourceType: signed.resourceType,
-        width: uploaded.width,
-        height: uploaded.height,
-        format: uploaded.format,
-        bytes: uploaded.bytes,
-      };
-      await confirmUpload(result);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
-      setError(message);
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
+			const result: CloudinaryUploadResult = {
+				publicUrl: withAutoOptimization(
+					uploaded.secure_url,
+					signed.resourceType,
+				),
+				publicId: uploaded.public_id || signed.publicId,
+				resourceType: signed.resourceType,
+				width: uploaded.width,
+				height: uploaded.height,
+				format: uploaded.format,
+				bytes: uploaded.bytes,
+			};
+			await confirmUpload(result);
+			return result;
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Upload failed. Please try again.";
+			setError(message);
+			return null;
+		} finally {
+			setUploading(false);
+		}
+	};
 
-  return {
-    uploadFile,
-    deleteAsset,
-    uploading,
-    error,
-  };
+	return {
+		uploadFile,
+		deleteAsset,
+		uploading,
+		error,
+	};
 }

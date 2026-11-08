@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { RecipeCard, RecipeCardSkeleton } from "../BasicCard";
-import Link from "next/link";
 
 interface RecipeCarouselProps {
 	title: string;
@@ -89,7 +89,10 @@ const RecipeCarousel = ({
 			>
 				{recipes.map((recipe: any, index: number) => (
 					<div key={recipe.id} className="h-full shrink-0 snap-start">
-						<RecipeCard recipe={recipe} imagePriority={index === priorityIndex} />
+						<RecipeCard
+							recipe={recipe}
+							imagePriority={index === priorityIndex}
+						/>
 					</div>
 				))}
 			</div>

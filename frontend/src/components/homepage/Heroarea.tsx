@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { PrimaryActionLink } from "@/components/ui/PrimaryActionLink";

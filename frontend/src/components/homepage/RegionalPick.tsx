@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FaClock, FaLeaf, FaStar, FaUtensils } from "react-icons/fa";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
 import { formatters } from "@/lib/formatters";
 import imageLoader from "@/lib/loader";

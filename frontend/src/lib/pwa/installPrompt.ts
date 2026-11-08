@@ -38,8 +38,12 @@ export function parseInstallPromptState(
 	try {
 		const parsed = JSON.parse(value) as Partial<InstallPromptState>;
 		return {
-			dismissals: Number.isFinite(parsed.dismissals) ? Number(parsed.dismissals) : 0,
-			remindAt: Number.isFinite(parsed.remindAt) ? Number(parsed.remindAt) : null,
+			dismissals: Number.isFinite(parsed.dismissals)
+				? Number(parsed.dismissals)
+				: 0,
+			remindAt: Number.isFinite(parsed.remindAt)
+				? Number(parsed.remindAt)
+				: null,
 			never: parsed.never === true,
 		};
 	} catch {
@@ -73,7 +77,9 @@ export function remindLaterValue(now: number) {
 	return `later:${now + 30 * DAY_MS}`;
 }
 
-export function parseInstallEngagement(value: string | null): InstallEngagement {
+export function parseInstallEngagement(
+	value: string | null,
+): InstallEngagement {
 	try {
 		const parsed = JSON.parse(value ?? "") as Partial<InstallEngagement>;
 		return {
@@ -133,8 +139,7 @@ export const installPromptStorage = {
 	promptKey: PROMPT_KEY,
 	readPrompt: () => readStorage(PROMPT_KEY),
 	writePrompt: (value: string) => writeStorage(PROMPT_KEY, value),
-	readEngagement: () =>
-		parseInstallEngagement(readStorage(ENGAGEMENT_KEY)),
+	readEngagement: () => parseInstallEngagement(readStorage(ENGAGEMENT_KEY)),
 	writeEngagement: (value: InstallEngagement) =>
 		writeStorage(ENGAGEMENT_KEY, JSON.stringify(value)),
 };

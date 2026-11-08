@@ -2,13 +2,13 @@
 
 import {
 	createContext,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
-	type ReactNode,
 } from "react";
 import type { CookTaleNotification } from "@/lib/api/notificationClient";
 import { notificationClient } from "@/lib/api/notificationClient";
@@ -37,10 +37,16 @@ const NotificationRealtimeContext =
 const API_URL =
 	process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
-export function NotificationRealtimeProvider({ children }: { children: ReactNode }) {
+export function NotificationRealtimeProvider({
+	children,
+}: {
+	children: ReactNode;
+}) {
 	const { status, accessToken } = useAuth();
 	const [unreadCount, setUnreadCount] = useState<number | null>(null);
-	const [lastEvent, setLastEvent] = useState<NotificationRealtimeEvent | null>(null);
+	const [lastEvent, setLastEvent] = useState<NotificationRealtimeEvent | null>(
+		null,
+	);
 	const [connected, setConnected] = useState(false);
 	const reconnectTimer = useRef<number | null>(null);
 	const attempt = useRef(0);
@@ -72,7 +78,10 @@ export function NotificationRealtimeProvider({ children }: { children: ReactNode
 			if (reconnectTimer.current) window.clearTimeout(reconnectTimer.current);
 			const delay = Math.min(30_000, 1_000 * 2 ** attempt.current);
 			attempt.current += 1;
-			reconnectTimer.current = window.setTimeout(() => void connect(), delay + Math.random() * 500);
+			reconnectTimer.current = window.setTimeout(
+				() => void connect(),
+				delay + Math.random() * 500,
+			);
 		};
 
 		const handleEvent = (event: NotificationRealtimeEvent) => {
@@ -101,14 +110,16 @@ export function NotificationRealtimeProvider({ children }: { children: ReactNode
 					credentials: "include",
 					signal: activeController.signal,
 				});
-				if (!response.ok || !response.body) throw new Error("Notification stream is unavailable");
+				if (!response.ok || !response.body)
+					throw new Error("Notification stream is unavailable");
 
 				attempt.current = 0;
 				setConnected(true);
 				await consumeSse(response.body, (type, data) => {
 					if (type === "notification.ready") {
 						const ready = data as { unreadCount?: number };
-						if (typeof ready.unreadCount === "number") setUnreadCount(ready.unreadCount);
+						if (typeof ready.unreadCount === "number")
+							setUnreadCount(ready.unreadCount);
 						return;
 					}
 					if (
@@ -116,7 +127,10 @@ export function NotificationRealtimeProvider({ children }: { children: ReactNode
 						type === "notification.read" ||
 						type === "notification.read-all"
 					) {
-						handleEvent({ type, data: data as NotificationRealtimeEvent["data"] });
+						handleEvent({
+							type,
+							data: data as NotificationRealtimeEvent["data"],
+						});
 					}
 				});
 			} catch {
@@ -154,7 +168,10 @@ export function NotificationRealtimeProvider({ children }: { children: ReactNode
 			controller?.abort();
 			if (reconnectTimer.current) window.clearTimeout(reconnectTimer.current);
 			document.removeEventListener("visibilitychange", onVisibilityChange);
-			window.removeEventListener("cooktale-auth-changed", reconnectAfterAuthChange);
+			window.removeEventListener(
+				"cooktale-auth-changed",
+				reconnectAfterAuthChange,
+			);
 			window.removeEventListener("online", reconnectAfterAuthChange);
 		};
 	}, [accessToken, refreshUnreadCount, status]);
@@ -174,7 +191,9 @@ export function NotificationRealtimeProvider({ children }: { children: ReactNode
 export function useNotificationRealtime() {
 	const value = useContext(NotificationRealtimeContext);
 	if (!value) {
-		throw new Error("useNotificationRealtime must be used inside NotificationRealtimeProvider");
+		throw new Error(
+			"useNotificationRealtime must be used inside NotificationRealtimeProvider",
+		);
 	}
 	return value;
 }

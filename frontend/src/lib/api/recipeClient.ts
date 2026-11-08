@@ -1,5 +1,5 @@
-import { ApiClientError, authenticatedFetch } from "./authClient";
 import type { RecipeCategory } from "@/lib/recipeCategories";
+import { ApiClientError, authenticatedFetch } from "./authClient";
 
 const API_URL =
 	typeof window === "undefined"

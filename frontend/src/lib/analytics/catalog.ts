@@ -9,7 +9,13 @@
  */
 export const ANALYTICS_EVENTS = {
 	// Discovery
-	view_recipe: ["recipe_id", "recipe_name", "recipe_category", "cuisine", "creator_id"],
+	view_recipe: [
+		"recipe_id",
+		"recipe_name",
+		"recipe_category",
+		"cuisine",
+		"creator_id",
+	],
 	view_story: ["story_id", "story_title", "creator_id"],
 	scroll_depth: ["content_type", "content_id", "scroll_percent"],
 	filter_category: ["category", "list_name"],
@@ -23,7 +29,13 @@ export const ANALYTICS_EVENTS = {
 	share: ["content_type", "content_id", "method"],
 
 	// Cooking
-	start_cooking: ["recipe_id", "recipe_name", "recipe_category", "cuisine", "creator_id"],
+	start_cooking: [
+		"recipe_id",
+		"recipe_name",
+		"recipe_category",
+		"cuisine",
+		"creator_id",
+	],
 	cook_step: ["recipe_id", "step_number", "total_steps"],
 	finish_cooking: ["recipe_id", "total_steps"],
 	abandon_cooking: ["recipe_id", "step_number", "total_steps"],

@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import {
-	FaCheck,
-	FaTimes,
-	FaCrown,
-	FaStar,
-	FaArrowRight,
-	FaLock,
-	FaInfinity,
-} from "react-icons/fa";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import imageloader from "@/lib/loader";
+import Image from "next/image";
 import { redirect } from "next/navigation";
+import { useState } from "react";
+import {
+	FaArrowRight,
+	FaCheck,
+	FaCrown,
+	FaInfinity,
+	FaLock,
+	FaStar,
+	FaTimes,
+} from "react-icons/fa";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import UpgradeModal from "@/components/UpgradeModal";
+import imageloader from "@/lib/loader";
 
 // const PremiumItem = ({ text }: { text: string }) => (
 //   <li className="flex items-center gap-4">

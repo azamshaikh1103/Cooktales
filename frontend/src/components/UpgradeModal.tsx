@@ -1,8 +1,8 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaCrown, FaTimes, FaShieldAlt, FaCheck } from "react-icons/fa";
+import { FaCheck, FaCrown, FaShieldAlt, FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 import { paymentClient } from "@/lib/api/paymentClient";
 
@@ -30,7 +30,9 @@ export default function UpgradeModal({
 			const res = await paymentClient.createCheckout(plan);
 			window.location.href = res.url;
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Failed to load checkout");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to load checkout",
+			);
 		} finally {
 			setLoading(false);
 		}

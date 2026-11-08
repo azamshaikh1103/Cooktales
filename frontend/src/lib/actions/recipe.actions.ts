@@ -1,6 +1,5 @@
 "use server";
 
-
 type FetchRecipeParams = {
 	page?: number;
 	limit?: number;
@@ -30,7 +29,7 @@ export async function getAllRecipesAction({
 			sortBy: sortBy === "popular" || sortBy === "rating" ? sortBy : "latest",
 		});
 		if (tag && tag !== "All") query.set("tag", tag);
-	if (cuisine && cuisine !== "All") query.set("cuisine", cuisine);
+		if (cuisine && cuisine !== "All") query.set("cuisine", cuisine);
 		if (recipeCategory && recipeCategory !== "All")
 			query.set("recipeCategory", recipeCategory);
 		const response = await fetch(`${apiUrl}/recipes?${query.toString()}`, {

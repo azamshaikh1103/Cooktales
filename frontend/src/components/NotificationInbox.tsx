@@ -12,16 +12,19 @@ import {
 import { useAuth } from "@/lib/auth/AuthContext";
 import imageLoader from "@/lib/loader";
 import { useNotificationRealtime } from "@/lib/notifications/NotificationRealtimeProvider";
+import { NotificationTypeIcon } from "@/lib/notifications/NotificationTypeIcon";
 import {
 	notificationText,
 	relativeTime,
 } from "@/lib/notifications/presentation";
-import { NotificationTypeIcon } from "@/lib/notifications/NotificationTypeIcon";
 
 export default function NotificationInbox() {
 	const { status } = useAuth();
-	const { unreadCount: liveUnreadCount, lastEvent, refreshUnreadCount: refreshLiveUnreadCount } =
-		useNotificationRealtime();
+	const {
+		unreadCount: liveUnreadCount,
+		lastEvent,
+		refreshUnreadCount: refreshLiveUnreadCount,
+	} = useNotificationRealtime();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -56,18 +59,31 @@ export default function NotificationInbox() {
 
 	useEffect(() => {
 		if (!lastEvent) return;
-		if (lastEvent.type === "notification.created" && lastEvent.data.notification) {
-			setNotifications((current) => [
-				lastEvent.data.notification!,
-				...current.filter((item) => item.id !== lastEvent.data.notification!.id),
-			].slice(0, 20));
+		if (
+			lastEvent.type === "notification.created" &&
+			lastEvent.data.notification
+		) {
+			setNotifications((current) =>
+				[
+					lastEvent.data.notification!,
+					...current.filter(
+						(item) => item.id !== lastEvent.data.notification!.id,
+					),
+				].slice(0, 20),
+			);
 			return;
 		}
-		if (lastEvent.type === "notification.read" && lastEvent.data.notificationId) {
+		if (
+			lastEvent.type === "notification.read" &&
+			lastEvent.data.notificationId
+		) {
 			setNotifications((current) =>
 				current.map((item) =>
 					item.id === lastEvent.data.notificationId
-						? { ...item, readAt: lastEvent.data.readAt || new Date().toISOString() }
+						? {
+								...item,
+								readAt: lastEvent.data.readAt || new Date().toISOString(),
+							}
 						: item,
 				),
 			);
@@ -77,7 +93,8 @@ export default function NotificationInbox() {
 			setNotifications((current) =>
 				current.map((item) => ({
 					...item,
-					readAt: item.readAt || lastEvent.data.readAt || new Date().toISOString(),
+					readAt:
+						item.readAt || lastEvent.data.readAt || new Date().toISOString(),
 				})),
 			);
 		}
@@ -223,11 +240,19 @@ export default function NotificationInbox() {
 												className="h-9 w-9 rounded-full object-cover"
 											/>
 										) : (
-											<NotificationTypeIcon type={notification.type} size={17} className="h-9 w-9" />
+											<NotificationTypeIcon
+												type={notification.type}
+												size={17}
+												className="h-9 w-9"
+											/>
 										)}
 										{notification.actor?.image && (
 											<div className="absolute -right-1 -bottom-1 grid h-4 w-4 place-items-center rounded-full border-2 border-white dark:border-[#152a26]">
-												<NotificationTypeIcon type={notification.type} size={9} className="h-full w-full" />
+												<NotificationTypeIcon
+													type={notification.type}
+													size={9}
+													className="h-full w-full"
+												/>
 											</div>
 										)}
 									</div>

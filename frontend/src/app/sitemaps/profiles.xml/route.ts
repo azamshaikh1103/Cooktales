@@ -10,7 +10,12 @@ export async function GET() {
 		sitemapXml(
 			profiles.flatMap((profile) =>
 				profile.username
-					? [{ path: `/profile/${profile.username}`, lastModified: profile.updatedAt }]
+					? [
+							{
+								path: `/profile/${profile.username}`,
+								lastModified: profile.updatedAt,
+							},
+						]
 					: [],
 			),
 		),

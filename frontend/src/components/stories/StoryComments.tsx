@@ -1,10 +1,10 @@
 "use client";
 
 import { LoaderCircle, Reply, Send, Trash2 } from "lucide-react";
-import VerifiedBadge from "@/components/VerifiedBadge";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { type StoryComment, storyClient } from "@/lib/api/storyClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 
@@ -111,7 +111,8 @@ export default function StoryComments({ storyId }: { storyId: string }) {
 					<div className="min-w-0 flex-1">
 						<div className="flex flex-wrap items-baseline gap-x-2">
 							<span className="text-sm font-semibold text-slate-900 dark:text-white">
-								{displayName(comment)} <VerifiedBadge verified={comment.author.isVerifiedBadge} />
+								{displayName(comment)}{" "}
+								<VerifiedBadge verified={comment.author.isVerifiedBadge} />
 							</span>
 							<span className="text-xs text-slate-500 dark:text-slate-400">
 								{relativeTime(comment.createdAt)}

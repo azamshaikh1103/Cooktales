@@ -6,16 +6,28 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": ["**", "!analytics/gtm-container.json"]
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "tab",
+		"lineEnding": "auto"
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true
+		}
+	},
+	"json": {
+		"formatter": {
+			"enabled": false
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
 		}
 	},
 	"javascript": {

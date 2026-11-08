@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FaStar, FaQuoteRight, FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaQuoteRight, FaStar } from "react-icons/fa";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import imageLoader from "@/lib/loader";
 

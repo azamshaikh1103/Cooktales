@@ -17,10 +17,10 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@/lib/analytics/track";
 import type { PublicRecipe } from "@/lib/api/recipeClient";
 import imageloader from "@/lib/loader";
 import { markInstallEngagement } from "@/lib/pwa/installPrompt";
-import { track } from "@/lib/analytics/track";
 
 type CookProgress = {
 	stepIndex: number;

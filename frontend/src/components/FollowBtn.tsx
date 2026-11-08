@@ -5,9 +5,9 @@ import { useState } from "react";
 import { CgSpinner } from "react-icons/cg";
 import { FaCheck, FaUserPlus } from "react-icons/fa";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics/track";
 import { profileClient } from "@/lib/api/profileClient";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { track } from "@/lib/analytics/track";
 
 interface FollowButtonProps {
 	targetUserId: string;

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
 import Image from "next/image";
+import { useRef, useState } from "react";
 import { BiChevronDown, BiPlus, BiTrash } from "react-icons/bi";
 import { FaClock, FaFire, FaUserFriends } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
@@ -430,7 +430,7 @@ const CustomSelect = ({
 };
 
 // ... existing imports
-import { BiLink, BiImageAdd, BiTime } from "react-icons/bi";
+import { BiImageAdd, BiLink, BiTime } from "react-icons/bi";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "sonner";
 

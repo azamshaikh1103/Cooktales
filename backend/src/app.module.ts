@@ -17,6 +17,7 @@ import { StudioModule } from './modules/studio/studio.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AdminModule } from './modules/admin/admin.module';
     PaymentsModule,
     ContactModule,
     AdminModule,
+    ReportsModule,
     HealthModule,
   ],
 })

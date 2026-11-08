@@ -12,6 +12,8 @@ import { AdminStoriesService } from './admin-stories.service';
 import { AdminUserReasonDto, ListAdminUsersQueryDto } from './dto/admin-users.dto';
 import { AdminUsersService } from './admin-users.service';
 import { AdminCommunicationsService } from './admin-communications.service';
+import { AdminReportsService } from './admin-reports.service';
+import { ListAdminReportsQueryDto, ReportTargetParamsDto, ResolveAdminReportDto } from './dto/admin-reports.dto';
 import { ListAdminContactMessagesQueryDto, ListAdminNewsletterSubscribersQueryDto, UpdateAdminContactMessageDto } from './dto/admin-communications.dto';
 
 @Controller({ path: 'admin', version: '1' })
@@ -24,6 +26,7 @@ export class AdminController {
     private readonly stories: AdminStoriesService,
     private readonly users: AdminUsersService,
     private readonly communications: AdminCommunicationsService,
+    private readonly reports: AdminReportsService,
   ) {}
 
   @Get('analytics/overview')
@@ -117,5 +120,22 @@ export class AdminController {
   @Get('newsletter-subscribers')
   listNewsletterSubscribers(@Query() query: ListAdminNewsletterSubscribersQueryDto) {
     return this.communications.listNewsletterSubscribers(query);
+  }
+
+  @Get('reports')
+  listReports(@Query() query: ListAdminReportsQueryDto) {
+    return this.reports.list(query);
+  }
+
+  @Post('reports/:targetType/:targetId/dismiss')
+  @HttpCode(HttpStatus.OK)
+  dismissReports(@Param() params: ReportTargetParamsDto, @Req() request: AuthenticatedRequest, @Body() dto: ResolveAdminReportDto) {
+    return this.reports.dismiss(request.user.sub, params.targetType, params.targetId, dto.note);
+  }
+
+  @Post('reports/:targetType/:targetId/remove')
+  @HttpCode(HttpStatus.OK)
+  removeReported(@Param() params: ReportTargetParamsDto, @Req() request: AuthenticatedRequest, @Body() dto: ResolveAdminReportDto) {
+    return this.reports.remove(request.user.sub, params.targetType, params.targetId, dto.note);
   }
 }

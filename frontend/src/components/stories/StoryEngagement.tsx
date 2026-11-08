@@ -4,6 +4,7 @@ import { Bookmark, Heart, MessageCircle, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/report/ReportButton";
 import { track } from "@/lib/analytics/track";
 import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
 import { storyClient } from "@/lib/api/storyClient";
@@ -12,6 +13,7 @@ import { markInstallEngagement } from "@/lib/pwa/installPrompt";
 
 type Props = {
 	storyId: string;
+	authorId?: string;
 	initialLikes: number;
 	initialViews: number;
 	initialComments: number;
@@ -19,6 +21,7 @@ type Props = {
 
 export default function StoryEngagement({
 	storyId,
+	authorId,
 	initialLikes,
 	initialViews,
 	initialComments,
@@ -201,6 +204,12 @@ export default function StoryEngagement({
 				>
 					<Share2 size={18} /> Share
 				</button>
+				<ReportButton
+					variant="text"
+					targetType="STORY"
+					targetId={storyId}
+					authorId={authorId}
+				/>
 				<span className="ml-auto hidden text-xs text-slate-500 sm:inline dark:text-slate-400">
 					{views.toLocaleString()} reads
 				</span>

@@ -75,6 +75,7 @@ model User {
   invoices                Invoice[]
   likes                   Like[]
   pointHistory            PointHistory[]
+  reportsFiled            Report[]             @relation("ReportsFiled")
   ratings                 Rating[]
   recipes                 Recipe[]
   recipeEditDrafts        RecipeEditDraft[]
@@ -962,4 +963,47 @@ enum CookingIdentity {
   SERIOUS_HOME_COOK
   FOOD_CREATOR
   PROFESSIONAL_COOK
+}
+
+enum ReportTargetType {
+  DISCUSSION
+  COMMENT
+  RECIPE
+  STORY
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  MISINFORMATION
+  COPYRIGHT
+  INAPPROPRIATE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  DISMISSED
+  ACTIONED
+}
+
+/// A reader's report about a thread, comment, recipe or story. The target is polymorphic, so it is
+/// checked in the service instead of by a foreign key. One report per person per item.
+model Report {
+  id             String           @id @default(uuid())
+  reporterId     String
+  targetType     ReportTargetType
+  targetId       String
+  reason         ReportReason
+  details        String?
+  status         ReportStatus     @default(OPEN)
+  resolvedById   String?
+  resolvedAt     DateTime?
+  resolutionNote String?
+  createdAt      DateTime         @default(now())
+  reporter       User             @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, targetType, targetId])
+  @@index([targetType, targetId])
 }

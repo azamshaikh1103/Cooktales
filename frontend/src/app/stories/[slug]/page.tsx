@@ -208,6 +208,7 @@ export default async function StoryDetailPage({ params }: PageProps) {
 				)}
 				<StoryEngagement
 					storyId={story.id}
+					authorId={story.author?.id}
 					initialLikes={story.likes || 0}
 					initialViews={story.views || 0}
 					initialComments={story.commentsCount || 0}

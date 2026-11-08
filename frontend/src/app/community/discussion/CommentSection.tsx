@@ -4,8 +4,8 @@ import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaFlag } from "react-icons/fa";
 import { toast } from "sonner";
+import { ReportButton } from "@/components/report/ReportButton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MarkdownText } from "@/components/ui/MarkdownText";
 import { PrimaryActionButton } from "@/components/ui/PrimaryActionButton";
@@ -202,12 +202,14 @@ const CommentItem = ({ comment, discussionId, isReply, locked }: any) => {
 						</button>
 					)}
 
-					<button
-						type="button"
-						className="ml-auto opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
-					>
-						<FaFlag />
-					</button>
+					<div className="ml-auto">
+						<ReportButton
+							variant="icon"
+							targetType="COMMENT"
+							targetId={comment.id}
+							authorId={comment.author?.id}
+						/>
+					</div>
 				</div>
 
 				{/* Reply Input (Conditional) */}

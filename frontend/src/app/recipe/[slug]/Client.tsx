@@ -25,6 +25,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import ReviewModal from "@/components/popUps/ReviewModal";
 import ShareModal from "@/components/popUps/ShareModal";
+import { ReportButton } from "@/components/report/ReportButton";
 import { MarkdownText } from "@/components/ui/MarkdownText";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { track } from "@/lib/analytics/track";
@@ -366,6 +367,12 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								<BsBookmark aria-label="Bookmark" />
 							)}
 						</button>
+						<ReportButton
+							variant="overlay"
+							targetType="RECIPE"
+							targetId={recipe.id}
+							authorId={recipe.author?.id}
+						/>
 						<button
 							onClick={handleLike}
 							aria-label="Like recipe"

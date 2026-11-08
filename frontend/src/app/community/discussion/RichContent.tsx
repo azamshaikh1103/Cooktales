@@ -3,119 +3,146 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaBookOpen, FaStar, FaUtensils } from "react-icons/fa";
+import {
+	type InlineToken,
+	isSafeUrl,
+	parseBlocks,
+	tokenizeInline,
+} from "@/lib/community/discussionMarkdown";
 import imageLoader from "@/lib/loader";
 
-const isSafeUrl = (value: string) => /^https?:\/\//i.test(value);
+const LINK_CLASS = "text-[#006C5E] underline dark:text-[#4ADE80]";
 
-const renderInline = (value: string, key: string) =>
-	value
-		.split(
-			/(\*\*[^*]+\*\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+|@\w+)/g,
-		)
-		.map((part, index) => {
-			const childKey = `${key}-${index}`;
-			if (/^\*\*[^*]+\*\*$/.test(part))
-				return <strong key={childKey}>{part.slice(2, -2)}</strong>;
-			if (/^_[^_]+_$/.test(part))
-				return <em key={childKey}>{part.slice(1, -1)}</em>;
-			const markdownLink = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
-			if (markdownLink && isSafeUrl(markdownLink[2]))
+const renderTokens = (tokens: InlineToken[], key: string): React.ReactNode[] =>
+	tokens.map((token, position) => {
+		const childKey = `${key}-${position}`;
+		switch (token.type) {
+			case "text":
+				return token.value;
+			case "code":
+				return (
+					<code
+						key={childKey}
+						className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/10"
+					>
+						{token.value}
+					</code>
+				);
+			case "strong":
+				return (
+					<strong key={childKey}>
+						{renderTokens(token.children, childKey)}
+					</strong>
+				);
+			case "em":
+				return <em key={childKey}>{renderTokens(token.children, childKey)}</em>;
+			case "del":
+				return <s key={childKey}>{renderTokens(token.children, childKey)}</s>;
+			case "link":
 				return (
 					<a
 						key={childKey}
-						href={markdownLink[2]}
+						href={token.href}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-[#006C5E] underline dark:text-[#4ADE80]"
+						className={LINK_CLASS}
 					>
-						{markdownLink[1]}
+						{token.label}
 					</a>
 				);
-			if (isSafeUrl(part))
+			case "url":
 				return (
 					<a
 						key={childKey}
-						href={part}
+						href={token.href}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="break-all text-[#006C5E] underline dark:text-[#4ADE80]"
+						className={`break-all ${LINK_CLASS}`}
 					>
-						{part}
+						{token.href}
 					</a>
 				);
-			if (/^@\w+$/.test(part))
+			case "mention":
 				return (
 					<Link
 						key={childKey}
-						href={`/profile/@${part.slice(1)}`}
+						href={`/profile/${token.value}`}
 						className="font-bold text-[#006C5E] hover:underline dark:text-[#4ADE80]"
 					>
-						{part}
+						{token.value}
 					</Link>
 				);
-			return part;
-		});
+			default:
+				return null;
+		}
+	});
 
-const MarkdownText = ({ text, itemKey }: { text: string; itemKey: string }) => {
-	const lines = text.split("\n");
-	const blocks: React.ReactNode[] = [];
+const renderInline = (value: string, key: string) =>
+	renderTokens(tokenizeInline(value), key);
 
-	for (let index = 0; index < lines.length; ) {
-		const line = lines[index];
-		const unordered = /^[-*]\s+/.test(line);
-		const ordered = /^\d+[.)]\s+/.test(line);
-		if (unordered || ordered) {
-			const items: string[] = [];
-			while (
-				index < lines.length &&
-				(unordered
-					? /^[-*]\s+/.test(lines[index])
-					: /^\d+[.)]\s+/.test(lines[index]))
-			) {
-				items.push(
-					lines[index].replace(unordered ? /^[-*]\s+/ : /^\d+[.)]\s+/, ""),
-				);
-				index += 1;
+const HEADING_CLASS = {
+	1: "mt-8 mb-3 text-2xl font-black text-gray-900 dark:text-white",
+	2: "mt-6 mb-2 text-xl font-bold text-gray-900 dark:text-white",
+	3: "mt-5 mb-2 text-lg font-bold text-gray-900 dark:text-white",
+} as const;
+
+const MarkdownText = ({ text, itemKey }: { text: string; itemKey: string }) => (
+	<>
+		{parseBlocks(text).map((block, blockPosition) => {
+			const blockKey = `${itemKey}-${block.type}-${blockPosition}`;
+			switch (block.type) {
+				case "heading": {
+					const Heading = `h${block.level + 1}` as "h2" | "h3" | "h4";
+					return (
+						<Heading key={blockKey} className={HEADING_CLASS[block.level]}>
+							{renderInline(block.text, blockKey)}
+						</Heading>
+					);
+				}
+				case "quote":
+					return (
+						<blockquote
+							key={blockKey}
+							className="my-4 rounded-xl bg-gray-100 px-4 py-3 text-gray-700 dark:bg-white/5 dark:text-gray-300"
+						>
+							{renderInline(block.lines.join("\n"), blockKey)}
+						</blockquote>
+					);
+				case "code":
+					return (
+						<pre
+							key={blockKey}
+							className="my-4 overflow-x-auto rounded-xl bg-gray-900 p-4 font-mono text-[13px] leading-6 text-gray-100"
+						>
+							<code>{block.text}</code>
+						</pre>
+					);
+				case "list": {
+					const List = block.ordered ? "ol" : "ul";
+					return (
+						<List
+							key={blockKey}
+							className={`my-4 space-y-1 pl-6 ${block.ordered ? "list-decimal" : "list-disc"}`}
+						>
+							{block.items.map((item, itemPosition) => {
+								const listKey = `${blockKey}-${itemPosition}`;
+								return <li key={listKey}>{renderInline(item, listKey)}</li>;
+							})}
+						</List>
+					);
+				}
+				case "paragraph":
+					return (
+						<p key={blockKey} className="mb-4 whitespace-pre-line">
+							{renderInline(block.lines.join("\n"), blockKey)}
+						</p>
+					);
+				default:
+					return null;
 			}
-			const List = unordered ? "ul" : "ol";
-			blocks.push(
-				<List
-					key={`${itemKey}-list-${index}`}
-					className={`my-4 space-y-1 pl-6 ${unordered ? "list-disc" : "list-decimal"}`}
-				>
-					{items.map((item, itemIndex) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
-						<li key={itemIndex}>
-							{renderInline(item, `${itemKey}-list-${itemIndex}`)}
-						</li>
-					))}
-				</List>,
-			);
-			continue;
-		}
-		if (!line.trim()) {
-			index += 1;
-			continue;
-		}
-		const paragraph: string[] = [];
-		while (
-			index < lines.length &&
-			lines[index].trim() &&
-			!/^[-*]\s+/.test(lines[index]) &&
-			!/^\d+[.)]\s+/.test(lines[index])
-		) {
-			paragraph.push(lines[index]);
-			index += 1;
-		}
-		blocks.push(
-			<p key={`${itemKey}-paragraph-${index}`} className="mb-4">
-				{renderInline(paragraph.join("\n"), `${itemKey}-paragraph-${index}`)}
-			</p>,
-		);
-	}
-
-	return <>{blocks}</>;
-};
+		})}
+	</>
+);
 
 const parseContent = (text: string, attachments: any) => {
 	const splitRegex =

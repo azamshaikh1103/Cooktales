@@ -1,17 +1,10 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { BiLoaderAlt } from "react-icons/bi";
-import {
-	FaArrowLeft,
-	FaBookOpen,
-	FaPaperPlane,
-	FaSearch,
-	FaTimes,
-	FaUtensils,
-} from "react-icons/fa";
+import { type FormEvent, useState } from "react";
+import { FaBookOpen, FaSearch, FaTimes, FaUtensils } from "react-icons/fa";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PrimaryActionButton } from "@/components/ui/PrimaryActionButton";
@@ -21,8 +14,14 @@ import { DISCUSSION_CATEGORIES } from "@/lib/community/discussionCategories";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 import imageLoader from "@/lib/loader";
 import { DiscussionEditor } from "./DiscussionEditor";
+import { TopicSelect } from "./TopicSelect";
 
-// --- TYPES ---
+// Limits mirror the API (CreateDiscussionDto).
+const TITLE_MIN = 5;
+const TITLE_MAX = 140;
+const BODY_MIN = 20;
+const BODY_MAX = 12000;
+
 interface AttachedItem {
 	type: "image" | "recipe" | "story";
 	id: string; // URL for image, ID for recipe/blog
@@ -35,17 +34,33 @@ export default function CreateDiscussion() {
 	const router = useRouter();
 	const { uploadFile } = useCloudinaryUpload();
 
-	// State
 	const [title, setTitle] = useState("");
 	const [body, setBody] = useState("");
 	const [category, setCategory] = useState<string>(DISCUSSION_CATEGORIES[0]);
 	const [attachments, setAttachments] = useState<AttachedItem[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
-	// Search Modal State (For linking recipes)
+	const [touched, setTouched] = useState({ title: false, body: false });
 	const [showLinker, setShowLinker] = useState(false);
 
-	// Handlers
+	const titleLength = title.trim().length;
+	const bodyLength = body.trim().length;
+	const titleError =
+		touched.title && titleLength < TITLE_MIN
+			? `Titles need at least ${TITLE_MIN} characters.`
+			: null;
+	const bodyError =
+		bodyLength > BODY_MAX
+			? "That is over the 12,000 character limit."
+			: touched.body && bodyLength < BODY_MIN
+				? `Add a little more detail (at least ${BODY_MIN} characters).`
+				: null;
+	const canPost =
+		titleLength >= TITLE_MIN &&
+		titleLength <= TITLE_MAX &&
+		bodyLength >= BODY_MIN &&
+		bodyLength <= BODY_MAX &&
+		!isSubmitting;
+
 	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
@@ -67,6 +82,8 @@ export default function CreateDiscussion() {
 			}
 		} catch {
 			toast.error("Upload failed", { id: toastId });
+		} finally {
+			e.target.value = "";
 		}
 	};
 
@@ -90,14 +107,15 @@ export default function CreateDiscussion() {
 		setAttachments((prev) => prev.filter((_, i) => i !== index));
 	};
 
-	const handleSubmit = async () => {
-		if (!title.trim() || !body.trim())
-			return toast.error("Please add a title and description.");
+	const handleSubmit = async (event: FormEvent) => {
+		event.preventDefault();
+		setTouched({ title: true, body: true });
+		if (!canPost) return;
 
 		setIsSubmitting(true);
 		try {
 			const { discussion } = await communityClient.createDiscussion({
-				title,
+				title: title.trim(),
 				content: body,
 				category,
 				attachments: attachments.map(({ type, id, publicId }) => ({
@@ -107,7 +125,7 @@ export default function CreateDiscussion() {
 				})),
 			});
 
-			toast.success("Discussion posted! 🎉");
+			toast.success("Discussion posted");
 			router.push(`/community/discussion/${discussion.slug}`);
 		} catch (error) {
 			toast.error(
@@ -118,167 +136,149 @@ export default function CreateDiscussion() {
 		}
 	};
 
+	const fieldLabel =
+		"mb-2 block text-sm font-semibold text-gray-900 dark:text-white";
+
 	return (
 		<div className="min-h-screen bg-[#fafafa] text-gray-900 transition-colors duration-500 dark:bg-[#0d1f1c] dark:text-white">
 			<Navbar />
 
-			{/* --- HEADER --- */}
-			<div className="relative top-20 z-30 border-b border-gray-200 bg-[#fafafa]/90 px-6 py-4 backdrop-blur-md dark:border-white/10 dark:bg-[#0d1f1c]/90">
-				<div className="container mx-auto flex max-w-3xl items-center justify-between">
-					<div className="flex items-center gap-4">
-						<button
-							type="button"
-							onClick={() => router.back()}
-							className="cursor-pointer rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
-						>
-							<FaArrowLeft className="text-gray-500 dark:text-gray-400" />
-						</button>
-						<span className="text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-400">
-							Start a Discussion
-						</span>
-					</div>
-					<PrimaryActionButton
-						onClick={handleSubmit}
-						disabled={isSubmitting}
-						className="px-5 py-2.5"
-					>
-						{isSubmitting ? (
-							<BiLoaderAlt className="animate-spin" />
-						) : (
-							<FaPaperPlane />
-						)}{" "}
-						Post
-					</PrimaryActionButton>
-				</div>
-			</div>
+			<main className="mx-auto w-full max-w-3xl px-4 pt-28 pb-24 sm:px-6">
+				<h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+					Create a discussion
+				</h1>
 
-			<main className="container mx-auto max-w-3xl px-6 py-28">
-				<div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-[#152a26]">
-					<div className="mb-7">
-						<h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-							Start a discussion
-						</h1>
-						<p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
-							Ask a clear cooking question, share something you made, or start a
-							useful food conversation.
-						</p>
-					</div>
-					<div className="space-y-6">
-						<div>
-							<p className="mb-3 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
-								Choose a topic
-							</p>
-							<div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-								{DISCUSSION_CATEGORIES.map((cat) => (
-									<button
-										key={cat}
-										type="button"
-										onClick={() => setCategory(cat)}
-										aria-pressed={category === cat}
-										className={`flex cursor-pointer items-center rounded-full border px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors ${
-											category === cat
-												? "border-[#006C5E] bg-[#006C5E] text-white dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-black"
-												: "border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
-										}`}
-									>
-										{cat}
-									</button>
-								))}
-							</div>
-						</div>
+				<form onSubmit={handleSubmit} noValidate className="mt-6 space-y-6">
+					<TopicSelect
+						value={category}
+						options={DISCUSSION_CATEGORIES}
+						onChange={setCategory}
+					/>
 
-						<div className="space-y-4">
-							<label
-								htmlFor="discussion-title"
-								className="text-sm font-semibold text-gray-900 dark:text-white"
-							>
-								Title
-							</label>
+					<div>
+						<label htmlFor="discussion-title" className={fieldLabel}>
+							Title<span className="text-red-500 dark:text-red-400">*</span>
+						</label>
+						<div className="relative">
 							<input
 								id="discussion-title"
 								value={title}
+								maxLength={TITLE_MAX}
 								onChange={(e) => setTitle(e.target.value)}
-								placeholder="Give your discussion a clear title"
-								className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg font-semibold text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/10 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/10"
-							/>
-							<p className="text-sm font-semibold text-gray-900 dark:text-white">
-								Details
-							</p>
-							<DiscussionEditor
-								value={body}
-								onChange={setBody}
-								onAttachImage={() =>
-									document.getElementById("img-upload")?.click()
+								onBlur={() => setTouched((t) => ({ ...t, title: true }))}
+								onKeyDown={(event) => {
+									if (event.key !== "Enter") return;
+									event.preventDefault();
+									document
+										.querySelector<HTMLElement>(
+											'[aria-label="Discussion details"]',
+										)
+										?.focus();
+								}}
+								aria-invalid={Boolean(titleError)}
+								aria-describedby={
+									titleError ? "discussion-title-error" : undefined
 								}
-								onAttachContent={() => setShowLinker(true)}
+								placeholder="Add a clear title"
+								className="w-full rounded-2xl border border-gray-300 bg-white py-3.5 pr-20 pl-4 text-lg font-semibold text-gray-900 outline-none transition-colors placeholder:font-normal placeholder:text-gray-400 focus:border-[#006C5E] focus:ring-2 focus:ring-[#006C5E]/15 aria-[invalid=true]:border-red-500 dark:border-white/15 dark:bg-white/[0.03] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-[#4ADE80] dark:focus:ring-[#4ADE80]/15"
 							/>
+							<span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xs text-gray-500 tabular-nums dark:text-gray-400">
+								{title.length}/{TITLE_MAX}
+							</span>
 						</div>
-
-						{/* 3. Attachments Preview */}
-						{attachments.length > 0 && (
-							<div className="grid grid-cols-2 gap-4">
-								{attachments.map((item, i) => (
-									<div
-										key={`${item.type}-${item.id}`}
-										className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5"
-									>
-										{item.type === "image" ? (
-											<div className="relative aspect-video">
-												<Image
-													src={item.id}
-													fill
-													alt="Attachment"
-													className="object-cover"
-													loader={imageLoader}
-												/>
-											</div>
-										) : (
-											<div className="flex items-center gap-4 p-4">
-												<div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-white/10">
-													{item.image && (
-														<Image
-															src={item.image}
-															fill
-															alt=""
-															className="object-cover"
-															loader={imageLoader}
-														/>
-													)}
-												</div>
-												<div className="min-w-0 flex-1">
-													<p className="text-xs font-bold text-[#006C5E] uppercase dark:text-[#4ADE80]">
-														{item.type}
-													</p>
-													<p className="truncate font-bold">{item.title}</p>
-												</div>
-											</div>
-										)}
-										<button
-											type="button"
-											onClick={() => removeAttachment(i)}
-											className="absolute top-2 right-2 cursor-pointer rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500"
-										>
-											<FaTimes size={12} />
-										</button>
-									</div>
-								))}
-							</div>
+						{titleError && (
+							<p
+								id="discussion-title-error"
+								className="mt-2 text-sm text-red-600 dark:text-red-400"
+							>
+								{titleError}
+							</p>
 						)}
-
-						<div className="hidden">
-							<input
-								type="file"
-								id="img-upload"
-								className="hidden"
-								accept="image/*"
-								onChange={handleImageUpload}
-							/>
-						</div>
 					</div>
-				</div>
+
+					<div>
+						<span className={fieldLabel}>Details</span>
+						<DiscussionEditor
+							value={body}
+							onChange={setBody}
+							// Leaving the editor marks it as visited so errors do not flash while typing.
+							onBlur={() => setTouched((t) => ({ ...t, body: true }))}
+							maxLength={BODY_MAX}
+							onAttachImage={() =>
+								document.getElementById("img-upload")?.click()
+							}
+							onAttachContent={() => setShowLinker(true)}
+						/>
+						{bodyError && (
+							<p className="mt-2 text-sm text-red-600 dark:text-red-400">
+								{bodyError}
+							</p>
+						)}
+					</div>
+
+					{attachments.length > 0 && (
+						<ul className="flex flex-wrap gap-3" aria-label="Attachments">
+							{attachments.map((item, i) => (
+								<li
+									key={`${item.type}-${item.id}`}
+									className="flex max-w-full items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2 pr-3 dark:border-white/10 dark:bg-white/[0.03]"
+								>
+									<div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-white/10">
+										{item.image && (
+											<Image
+												src={item.image}
+												fill
+												alt=""
+												className="object-cover"
+												loader={imageLoader}
+											/>
+										)}
+									</div>
+									<div className="min-w-0">
+										<p className="text-xs font-semibold text-[#006C5E] capitalize dark:text-[#4ADE80]">
+											{item.type}
+										</p>
+										<p className="max-w-48 truncate text-sm font-semibold">
+											{item.title || "Photo"}
+										</p>
+									</div>
+									<button
+										type="button"
+										onClick={() => removeAttachment(i)}
+										aria-label={`Remove ${item.type}`}
+										className="ml-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+									>
+										<FaTimes size={12} />
+									</button>
+								</li>
+							))}
+						</ul>
+					)}
+
+					<input
+						type="file"
+						id="img-upload"
+						className="hidden"
+						accept="image/*"
+						onChange={handleImageUpload}
+					/>
+
+					<div className="flex items-center justify-end gap-3 pt-2">
+						<button
+							type="button"
+							onClick={() => router.back()}
+							className="cursor-pointer rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006C5E] dark:border-white/15 dark:text-gray-200 dark:hover:bg-white/10 dark:focus-visible:outline-[#4ADE80]"
+						>
+							Cancel
+						</button>
+						<PrimaryActionButton type="submit" disabled={!canPost}>
+							{isSubmitting && <Loader2 size={16} className="animate-spin" />}
+							Post
+						</PrimaryActionButton>
+					</div>
+				</form>
 			</main>
 
-			{/* --- LINKER MODAL (Search Recipe/Blog) --- */}
 			{showLinker && (
 				<LinkerModal
 					onClose={() => setShowLinker(false)}

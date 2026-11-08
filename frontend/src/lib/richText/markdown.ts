@@ -1,13 +1,18 @@
 /**
- * Shared markdown engine for community discussions.
+ * Shared markdown engine for user-written rich text.
  *
  * One small markdown subset is stored in the database:
- *   # / ## / ### headings, > quotes, ``` fenced code, - and 1. lists,
- *   **bold**, _italic_, ~~strike~~, `code`, [label](https://link) and bare links.
+ *   full  : # / ## / ### headings, > quotes, ``` fenced code, - and 1. lists,
+ *           **bold**, _italic_, ~~strike~~, `code`, [label](https://link) and bare links
+ *   light : paragraphs, - and 1. lists, **bold**, _italic_ and links only
+ *           (recipe steps and chef's tips: anything else stays plain text)
  *
- * The editor (HTML <-> markdown) and the thread renderer (markdown -> React) both use the parser
- * here, so what you write, paste and read can never drift apart.
+ * The editor (HTML <-> markdown) and every renderer use the parser here, so what people write,
+ * paste and read can never drift apart. Old plain-text values are valid markdown: line breaks
+ * are kept and nothing is lost.
  */
+
+export type RichTextVariant = "full" | "light";
 
 export const isSafeUrl = (value: string) => /^https?:\/\//i.test(value);
 
@@ -30,12 +35,36 @@ export type InlineToken =
 	| { type: "url"; href: string }
 	| { type: "mention"; value: string };
 
-const INLINE_PATTERN =
-	/(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(~~[^~\n]+~~)|((?<![\w*])_[^_\n]+_(?!\w))|(\[[^\]\n]+\]\(https?:\/\/[^\s)]+\))|(https?:\/\/[^\s<]+)|((?<![\w@/.])@\w+)/g;
+// Capture groups keep the same positions in both variants; disabled ones can never match.
+const NEVER = "((?!)x)";
+
+const buildInlinePattern = (variant: RichTextVariant) => {
+	const full = variant === "full";
+	return new RegExp(
+		[
+			full ? "(`[^`\\n]+`)" : NEVER,
+			"(\\*\\*[^*\\n]+\\*\\*)",
+			full ? "(~~[^~\\n]+~~)" : NEVER,
+			"((?<![\\w*])_[^_\\n]+_(?!\\w))",
+			"(\\[[^\\]\\n]+\\]\\(https?:\\/\\/[^\\s)]+\\))",
+			"(https?:\\/\\/[^\\s<]+)",
+			full ? "((?<![\\w@/.])@\\w+)" : NEVER,
+		].join("|"),
+		"g",
+	);
+};
+
+const INLINE_PATTERNS: Record<RichTextVariant, RegExp> = {
+	full: buildInlinePattern("full"),
+	light: buildInlinePattern("light"),
+};
 
 const TRAILING_URL_PUNCTUATION = /[.,;:!?)\]]+$/;
 
-export function tokenizeInline(value: string): InlineToken[] {
+export function tokenizeInline(
+	value: string,
+	variant: RichTextVariant = "full",
+): InlineToken[] {
 	const tokens: InlineToken[] = [];
 	let last = 0;
 
@@ -43,7 +72,7 @@ export function tokenizeInline(value: string): InlineToken[] {
 		if (text) tokens.push({ type: "text", value: text });
 	};
 
-	for (const match of value.matchAll(INLINE_PATTERN)) {
+	for (const match of value.matchAll(INLINE_PATTERNS[variant])) {
 		const start = match.index ?? 0;
 		const raw = match[0];
 		pushText(value.slice(last, start));
@@ -54,12 +83,18 @@ export function tokenizeInline(value: string): InlineToken[] {
 		} else if (match[2]) {
 			tokens.push({
 				type: "strong",
-				children: tokenizeInline(raw.slice(2, -2)),
+				children: tokenizeInline(raw.slice(2, -2), variant),
 			});
 		} else if (match[3]) {
-			tokens.push({ type: "del", children: tokenizeInline(raw.slice(2, -2)) });
+			tokens.push({
+				type: "del",
+				children: tokenizeInline(raw.slice(2, -2), variant),
+			});
 		} else if (match[4]) {
-			tokens.push({ type: "em", children: tokenizeInline(raw.slice(1, -1)) });
+			tokens.push({
+				type: "em",
+				children: tokenizeInline(raw.slice(1, -1), variant),
+			});
 		} else if (match[5]) {
 			const link = raw.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
 			if (link && isSafeUrl(link[2])) {
@@ -110,9 +145,29 @@ const tokensToHtml = (tokens: InlineToken[]): string =>
 		})
 		.join("");
 
+const tokensToText = (tokens: InlineToken[]): string =>
+	tokens
+		.map((token) => {
+			switch (token.type) {
+				case "link":
+					return token.label;
+				case "url":
+					return token.href;
+				case "strong":
+				case "em":
+				case "del":
+					return tokensToText(token.children);
+				default:
+					return token.value;
+			}
+		})
+		.join("");
+
 /** Inline markdown -> safe editor HTML (everything is escaped first). */
-export const inlineMarkdownToHtml = (value: string) =>
-	tokensToHtml(tokenizeInline(value));
+export const inlineMarkdownToHtml = (
+	value: string,
+	variant: RichTextVariant = "full",
+) => tokensToHtml(tokenizeInline(value, variant));
 
 // ---------------------------------------------------------------------------
 // Blocks
@@ -131,14 +186,16 @@ const QUOTE = /^>\s?(.*)$/;
 const BULLET = /^\s*[-*•]\s+(.*)$/;
 const NUMBERED = /^\s*\d+[.)]\s+(.*)$/;
 
-const startsBlock = (line: string) =>
-	FENCE.test(line) ||
-	HEADING.test(line) ||
-	QUOTE.test(line) ||
+const startsBlock = (line: string, full: boolean) =>
+	(full && (FENCE.test(line) || HEADING.test(line) || QUOTE.test(line))) ||
 	BULLET.test(line) ||
 	NUMBERED.test(line);
 
-export function parseBlocks(markdown: string): Block[] {
+export function parseBlocks(
+	markdown: string,
+	variant: RichTextVariant = "full",
+): Block[] {
+	const full = variant === "full";
 	const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
 	const blocks: Block[] = [];
 	let index = 0;
@@ -151,7 +208,7 @@ export function parseBlocks(markdown: string): Block[] {
 			continue;
 		}
 
-		if (FENCE.test(line)) {
+		if (full && FENCE.test(line)) {
 			const code: string[] = [];
 			index += 1;
 			while (index < lines.length && !FENCE.test(lines[index])) {
@@ -163,7 +220,7 @@ export function parseBlocks(markdown: string): Block[] {
 			continue;
 		}
 
-		const heading = line.match(HEADING);
+		const heading = full ? line.match(HEADING) : null;
 		if (heading) {
 			blocks.push({
 				type: "heading",
@@ -174,7 +231,7 @@ export function parseBlocks(markdown: string): Block[] {
 			continue;
 		}
 
-		if (QUOTE.test(line)) {
+		if (full && QUOTE.test(line)) {
 			const quote: string[] = [];
 			while (index < lines.length) {
 				const match = lines[index].match(QUOTE);
@@ -205,7 +262,7 @@ export function parseBlocks(markdown: string): Block[] {
 		while (
 			index < lines.length &&
 			lines[index].trim() &&
-			!startsBlock(lines[index])
+			!startsBlock(lines[index], full)
 		) {
 			paragraph.push(lines[index].trimEnd());
 			index += 1;
@@ -216,28 +273,60 @@ export function parseBlocks(markdown: string): Block[] {
 	return blocks;
 }
 
-/** Markdown -> safe editor HTML (the only HTML ever put into the editor). */
-export function markdownToHtml(markdown: string): string {
-	return parseBlocks(markdown)
+/** Markdown -> safe editor HTML (the only HTML ever put into an editor). */
+export function markdownToHtml(
+	markdown: string,
+	variant: RichTextVariant = "full",
+): string {
+	const inline = (value: string) => inlineMarkdownToHtml(value, variant);
+	return parseBlocks(markdown, variant)
 		.map((block) => {
 			switch (block.type) {
 				case "heading":
-					return `<h${block.level}>${inlineMarkdownToHtml(block.text)}</h${block.level}>`;
+					return `<h${block.level}>${inline(block.text)}</h${block.level}>`;
 				case "quote":
-					return `<blockquote>${block.lines.map(inlineMarkdownToHtml).join("<br>")}</blockquote>`;
+					return `<blockquote>${block.lines.map(inline).join("<br>")}</blockquote>`;
 				case "code":
 					return `<pre><code>${escapeHtml(block.text)}</code></pre>`;
 				case "list": {
 					const tag = block.ordered ? "ol" : "ul";
-					return `<${tag}>${block.items.map((item) => `<li>${inlineMarkdownToHtml(item)}</li>`).join("")}</${tag}>`;
+					return `<${tag}>${block.items.map((item) => `<li>${inline(item)}</li>`).join("")}</${tag}>`;
 				}
 				case "paragraph":
-					return `<p>${block.lines.map(inlineMarkdownToHtml).join("<br>")}</p>`;
+					return `<p>${block.lines.map(inline).join("<br>")}</p>`;
 				default:
 					return "";
 			}
 		})
 		.join("");
+}
+
+/** Plain text for search engines, previews and anywhere markup would leak through. */
+export function markdownToPlainText(
+	markdown: string,
+	variant: RichTextVariant = "light",
+): string {
+	const text = (value: string) => tokensToText(tokenizeInline(value, variant));
+	const parts: string[] = [];
+	for (const block of parseBlocks(markdown, variant)) {
+		switch (block.type) {
+			case "heading":
+				parts.push(text(block.text));
+				break;
+			case "code":
+				parts.push(block.text);
+				break;
+			case "list":
+				for (const item of block.items) {
+					const plain = text(item);
+					parts.push(/[\w)]$/.test(plain) ? `${plain}.` : plain);
+				}
+				break;
+			default:
+				parts.push(text(block.lines.join(" ")));
+		}
+	}
+	return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
 /** Clean up text pasted from Word, PDFs and chat apps before it is read as markdown. */
@@ -255,6 +344,8 @@ export const normalizePastedText = (value: string) =>
 
 const STRIP =
 	"script,style,meta,link,head,title,noscript,svg,iframe,img,picture,video,audio,canvas,button,input,textarea,select,form,object,embed";
+
+type Context = { light: boolean };
 
 const hasStyle = (element: Element, pattern: RegExp) =>
 	pattern.test((element.getAttribute("style") || "").toLowerCase());
@@ -317,13 +408,13 @@ const BLOCK_TAGS = new Set([
 	"TFOOT",
 ]);
 
-function convertChildren(element: Node, inPre = false): string {
+function convertChildren(element: Node, ctx: Context, inPre = false): string {
 	return Array.from(element.childNodes)
-		.map((child) => convertNode(child, inPre))
+		.map((child) => convertNode(child, ctx, inPre))
 		.join("");
 }
 
-function listItems(list: Element, out: string[]) {
+function listItems(list: Element, ctx: Context, out: string[]) {
 	for (const child of Array.from(list.children)) {
 		if (child.tagName !== "LI") continue;
 		const own = Array.from(child.childNodes)
@@ -334,20 +425,21 @@ function listItems(list: Element, out: string[]) {
 						(node.tagName === "UL" || node.tagName === "OL")
 					),
 			)
-			.map((node) => convertNode(node))
+			.map((node) => convertNode(node, ctx))
 			.join("")
 			.replace(/\s*\n+\s*/g, " ")
 			.replace(/\s+/g, " ")
 			.trim();
 		if (own) out.push(own);
 		for (const nested of Array.from(child.children)) {
-			if (nested.tagName === "UL" || nested.tagName === "OL")
-				listItems(nested, out);
+			if (nested.tagName === "UL" || nested.tagName === "OL") {
+				listItems(nested, ctx, out);
+			}
 		}
 	}
 }
 
-function convertNode(node: Node, inPre = false): string {
+function convertNode(node: Node, ctx: Context, inPre = false): string {
 	if (node.nodeType === Node.TEXT_NODE) {
 		const text = node.textContent || "";
 		return inPre ? text : text.replace(/ /g, " ").replace(/[\t\n\r ]+/g, " ");
@@ -355,6 +447,7 @@ function convertNode(node: Node, inPre = false): string {
 	if (!(node instanceof Element)) return "";
 	if (node.matches(STRIP)) return "";
 
+	const { light } = ctx;
 	const tag = node.tagName;
 	const block = (content: string) => {
 		const trimmed = content.replace(/^[ \t]+|[ \t]+$/gm, "").trim();
@@ -364,7 +457,7 @@ function convertNode(node: Node, inPre = false): string {
 	if (tag === "BR") return "\n";
 	if (tag === "UL" || tag === "OL") {
 		const items: string[] = [];
-		listItems(node, items);
+		listItems(node, ctx, items);
 		if (!items.length) return "";
 		const lines = items.map((item, i) =>
 			tag === "OL" ? `${i + 1}. ${item}` : `- ${item}`,
@@ -373,18 +466,19 @@ function convertNode(node: Node, inPre = false): string {
 	}
 	if (tag === "PRE") {
 		const code = (node.textContent || "").replace(/\n+$/, "");
-		return code.trim() ? `\n\n\`\`\`\n${code}\n\`\`\`\n\n` : "";
+		if (!code.trim()) return "";
+		return light ? block(code) : `\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
 	}
-	if (/^H[1-6]$/.test(tag)) {
+	if (!light && /^H[1-6]$/.test(tag)) {
 		const level = tag === "H1" ? "#" : tag === "H2" ? "##" : "###";
-		const text = convertChildren(node)
+		const text = convertChildren(node, ctx)
 			.replace(/\*\*|~~/g, "")
 			.replace(/\s+/g, " ")
 			.trim();
 		return text ? `\n\n${level} ${text}\n\n` : "";
 	}
-	if (tag === "BLOCKQUOTE") {
-		const inner = convertChildren(node)
+	if (!light && tag === "BLOCKQUOTE") {
+		const inner = convertChildren(node, ctx)
 			.replace(/\n{3,}/g, "\n\n")
 			.trim();
 		if (!inner) return "";
@@ -395,18 +489,18 @@ function convertNode(node: Node, inPre = false): string {
 	}
 	if (tag === "TR") {
 		const cells = Array.from(node.children)
-			.map((cell) => convertChildren(cell).replace(/\s+/g, " ").trim())
+			.map((cell) => convertChildren(cell, ctx).replace(/\s+/g, " ").trim())
 			.filter(Boolean);
 		return cells.length ? `\n${cells.join(" | ")}\n` : "";
 	}
 	if (tag === "HR") return "";
-	if (tag === "CODE" || tag === "KBD" || tag === "TT" || tag === "SAMP") {
+	if (!light && ["CODE", "KBD", "TT", "SAMP"].includes(tag)) {
 		if (inPre) return node.textContent || "";
 		const code = (node.textContent || "").replace(/\s+/g, " ").trim();
 		return code ? `\`${code.replace(/`/g, "'")}\`` : "";
 	}
 	if (tag === "A") {
-		const label = convertChildren(node).replace(/\s+/g, " ").trim();
+		const label = convertChildren(node, ctx).replace(/\s+/g, " ").trim();
 		const href =
 			(node as HTMLAnchorElement).href || node.getAttribute("href") || "";
 		if (!label) return "";
@@ -415,16 +509,16 @@ function convertNode(node: Node, inPre = false): string {
 		return sameAsLabel ? label : `[${label.replace(/[[\]]/g, "")}](${href})`;
 	}
 
-	let content = convertChildren(node, inPre);
+	let content = convertChildren(node, ctx, inPre);
 	if (isBold(node)) content = wrap("**", content);
 	if (isItalic(node)) content = wrap("_", content);
-	if (isStrike(node)) content = wrap("~~", content);
+	if (!light && isStrike(node)) content = wrap("~~", content);
 
 	if (BLOCK_TAGS.has(tag)) return block(content);
 	return content;
 }
 
-/** Looks like an editor-style monospace dump (VS Code, terminals): paste as a code block. */
+/** Looks like an editor-style monospace dump (VS Code, terminals): paste as code. */
 const looksLikeCodeDump = (body: HTMLElement) => {
 	const first = body.firstElementChild;
 	return Boolean(
@@ -436,7 +530,11 @@ const looksLikeCodeDump = (body: HTMLElement) => {
 	);
 };
 
-export function htmlToMarkdown(html: string): string {
+export function htmlToMarkdown(
+	html: string,
+	variant: RichTextVariant = "full",
+): string {
+	const ctx: Context = { light: variant === "light" };
 	const doc = new DOMParser().parseFromString(html, "text/html");
 	doc.querySelectorAll(STRIP).forEach((element) => {
 		element.remove();
@@ -455,13 +553,14 @@ export function htmlToMarkdown(html: string): string {
 				? rows.map((row) => row.textContent || "").join("\n")
 				: root.textContent || ""
 		)
-			.replace(/\u00a0/g, " ")
+			.replace(/ /g, " ")
 			.replace(/\n+$/, "");
-		return code.trim() ? `\`\`\`\n${code}\n\`\`\`` : "";
+		if (!code.trim()) return "";
+		return ctx.light ? code : `\`\`\`\n${code}\n\`\`\``;
 	}
 
 	return (
-		convertChildren(doc.body)
+		convertChildren(doc.body, ctx)
 			.replace(/[ \t]+\n/g, "\n")
 			.replace(/\n{3,}/g, "\n\n")
 			// Word and Docs paste list items as glyph-prefixed paragraphs: turn them into real lists.

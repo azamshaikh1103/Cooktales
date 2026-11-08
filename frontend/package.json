@@ -10,7 +10,7 @@
     "format": "biome format --write",
     "analytics:gtm": "tsx analytics/build-gtm-container.ts",
     "test:analytics": "tsx src/lib/analytics/analytics.test.ts",
-    "test:community": "tsx src/lib/community/discussionMarkdown.test.ts"
+    "test:richtext": "tsx src/lib/richText/markdown.test.ts"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",

@@ -25,6 +25,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import ReviewModal from "@/components/popUps/ReviewModal";
 import ShareModal from "@/components/popUps/ShareModal";
+import { MarkdownText } from "@/components/ui/MarkdownText";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { track } from "@/lib/analytics/track";
 import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
@@ -574,9 +575,14 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								<h4 className="mb-4 font-bold text-[#006C5E] dark:text-[#4ADE80]">
 									Chef's Tips
 								</h4>
-								<p className="leading-relaxed whitespace-pre-line text-[#174a43] dark:text-[#b7f5ce]">
-									{recipe.tipsAndTricks}
-								</p>
+								<div className="leading-relaxed text-[#174a43] dark:text-[#b7f5ce]">
+									<MarkdownText
+										text={recipe.tipsAndTricks}
+										variant="light"
+										spacing="tight"
+										keyPrefix="tips"
+									/>
+								</div>
 							</div>
 						)}
 
@@ -909,9 +915,14 @@ const InstructionStep = ({
 				<h4 className="mb-3 text-xl font-bold text-gray-900 dark:text-white">
 					{step.name}
 				</h4>
-				<p className="text-base leading-relaxed whitespace-pre-line text-gray-600 lg:text-lg dark:text-gray-300">
-					{step.detail}
-				</p>
+				<div className="text-base leading-relaxed text-gray-600 lg:text-lg dark:text-gray-300">
+					<MarkdownText
+						text={step.detail || ""}
+						variant="light"
+						spacing="tight"
+						keyPrefix={`step-${index}`}
+					/>
+				</div>
 
 				{step.image && (
 					<button

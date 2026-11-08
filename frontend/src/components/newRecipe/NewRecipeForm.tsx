@@ -7,6 +7,7 @@ import { FaArrowLeft, FaPaperPlane } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import ShareModal from "@/components/popUps/ShareModal";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
 	type RecipeMediaInput,
 	type RecipeResponse,
@@ -1202,17 +1203,17 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 								<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
 									Chef's Tips
 								</h3>
-								<textarea
+								<RichTextEditor
+									variant="light"
+									appearance="filled"
+									size="compact"
+									ariaLabel="Chef's tips"
 									value={recipe.tipsAndTricks || ""}
 									maxLength={1500}
 									onFocus={() => setActiveGuideKey("tips")}
-									onChange={(e) => updateField("tipsAndTricks", e.target.value)}
+									onChange={(value) => updateField("tipsAndTricks", value)}
 									placeholder="Share your secrets..."
-									className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
 								/>
-								<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
-									{recipe.tipsAndTricks?.length || 0}/1500
-								</p>
 							</div>
 
 							<div {...bindGuide("storage")}>

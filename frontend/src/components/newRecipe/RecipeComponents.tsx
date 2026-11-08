@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useId, useRef, useState } from "react";
 import { BiChevronDown, BiPlus, BiTrash } from "react-icons/bi";
 import { FaClock, FaFire, FaUserFriends } from "react-icons/fa";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import imageLoader from "@/lib/loader";
 import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 import type { NewRecipe } from "@/lib/Slices/NewRecipeData";
@@ -678,15 +679,15 @@ export const StepsEditor = ({
 						placeholder="e.g. Sauté the Garlic"
 						className="mb-3 w-full bg-transparent p-0 text-xl font-bold text-gray-900 outline-none placeholder:text-gray-300 focus:ring-0 dark:text-white dark:placeholder:text-gray-600"
 					/>
-					<textarea
+					<RichTextEditor
+						variant="light"
+						appearance="filled"
+						size="compact"
+						ariaLabel={`Step ${i + 1} instructions`}
 						value={step.detail || ""}
-						onChange={(e) => {
-							update(i, "detail", e.target.value);
-							e.target.style.height = "auto";
-							e.target.style.height = e.target.scrollHeight + "px";
-						}}
+						maxLength={2000}
+						onChange={(value) => update(i, "detail", value)}
 						placeholder="Explain exactly what to do..."
-						className="min-h-[60px] w-full resize-none bg-transparent p-0 leading-relaxed text-gray-600 outline-none placeholder:text-gray-300 focus:ring-0 dark:text-gray-300 dark:placeholder:text-gray-600"
 					/>
 
 					{/* Step Image Preview */}

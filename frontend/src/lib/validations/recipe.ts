@@ -25,7 +25,11 @@ const IngredientSchema = z.object({
 
 const StepSchema = z.object({
 	name: z.string().trim().min(1, "Step name required").max(120),
-	detail: z.string().trim().max(2000).nullable(),
+	detail: z
+		.string()
+		.trim()
+		.max(2000, "Step instructions are limited to 2,000 characters")
+		.nullable(),
 	timeReq: z.number().int().positive().nullable(),
 	videoUrl: z.string().url().nullable().or(z.literal("")),
 	image: z.string().url().nullable().or(z.literal("")),
@@ -77,7 +81,11 @@ export const RecipePublishSchema = z.object({
 		.min(1, "Add at least one ingredient")
 		.max(80),
 	steps: z.array(StepSchema).min(1, "Add at least one step").max(60),
-	tipsAndTricks: z.string().trim().max(1500).nullable(),
+	tipsAndTricks: z
+		.string()
+		.trim()
+		.max(1500, "Chef's tips are limited to 1,500 characters")
+		.nullable(),
 	storingFreezing: z.string().trim().max(1500).nullable(),
 	faqs: z.array(FAQSchema).max(20).default([]),
 	tags: z.array(z.string().trim().min(1).max(80)).max(12).default([]),

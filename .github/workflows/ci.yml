@@ -50,7 +50,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test:analytics
-      - run: npm run test:community
+      - run: npm run test:richtext
       - run: npm run build
 
   api-tests:

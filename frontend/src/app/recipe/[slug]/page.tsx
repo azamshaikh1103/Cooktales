@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import JsonLd from "@/components/seo/JsonLd";
 import type { PublicRecipe } from "@/lib/api/recipeClient";
+import { markdownToPlainText } from "@/lib/richText/markdown";
 import { RecipeDetailClient } from "./Client";
 
 interface PageProps {
@@ -66,7 +67,7 @@ export default async function RecipeDetailPage({ params }: PageProps) {
 		recipeInstructions: recipe.steps.map((step, index) => ({
 			"@type": "HowToStep",
 			name: step.name,
-			text: step.detail,
+			text: step.detail ? markdownToPlainText(step.detail) : undefined,
 			url: `${process.env.FRONTEND_URL || "https://cooktale.in"}/recipe/${recipe.slug}#step-${index + 1}`,
 			image: step.image || undefined,
 		})),

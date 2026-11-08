@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import {
 	inlineMarkdownToHtml,
 	markdownToHtml,
+	markdownToPlainText,
 	normalizePastedText,
 	parseBlocks,
 	tokenizeInline,
-} from "./discussionMarkdown";
+} from "./markdown";
 
-// Inline formatting
+// ---------------------------------------------------------------- full variant
 assert.equal(
 	inlineMarkdownToHtml("**bold** _it_ ~~gone~~ `code`"),
 	"<strong>bold</strong> <em>it</em> <s>gone</s> <code>code</code>",
@@ -48,7 +49,6 @@ assert.equal(
 );
 assert.equal(inlineMarkdownToHtml("`<script>`"), "<code>&lt;script&gt;</code>");
 
-// Blocks
 const blocks = parseBlocks(
 	"# Title\n\nIntro line\nsecond line\n\n- a\n- b\n\n1. one\n2. two\n\n> quoted\n> more\n\n```\ncode here\n  indented\n```\n\n#### deep",
 );
@@ -61,22 +61,66 @@ assert.deepEqual(blocks, [
 	{ type: "code", text: "code here\n  indented" },
 	{ type: "heading", level: 3, text: "deep" },
 ]);
-// Unclosed fence swallows the rest instead of looping
 assert.deepEqual(parseBlocks("```\nabc"), [{ type: "code", text: "abc" }]);
-// Markdown inside code is not formatted
 assert.equal(
 	markdownToHtml("```\n**not bold**\n```"),
 	"<pre><code>**not bold**</code></pre>",
 );
-// Single newline = soft break inside one paragraph
 assert.equal(markdownToHtml("a\nb"), "<p>a<br>b</p>");
-// Empty input produces no HTML (so the placeholder shows)
 assert.equal(markdownToHtml("  \n\n "), "");
-
-// Pasted text clean-up
 assert.equal(
-	normalizePastedText("• one\r\n◦ two x\r\n— dash"),
-	"- one\n- two x\n- dash",
+	normalizePastedText("• one\r\n◦ two x\r\n— dash\r\n· dot"),
+	"- one\n- two x\n- dash\n- dot",
 );
 
-console.log("discussion markdown engine: PASS");
+// ---------------------------------------------------------------- light variant
+// Only bold, italic, links and lists are formatting; everything else stays as typed.
+assert.equal(
+	inlineMarkdownToHtml("**b** _i_ ~~s~~ `c` @chef", "light"),
+	"<strong>b</strong> <em>i</em> ~~s~~ `c` @chef",
+);
+assert.equal(
+	inlineMarkdownToHtml("[guide](https://a.com/x) https://b.com/y", "light"),
+	'<a href="https://a.com/x">guide</a> <a href="https://b.com/y">https://b.com/y</a>',
+);
+assert.deepEqual(
+	parseBlocks("# not a heading\n> not a quote\n```\nplain", "light"),
+	[
+		{
+			type: "paragraph",
+			lines: ["# not a heading", "> not a quote", "```", "plain"],
+		},
+	],
+);
+assert.deepEqual(
+	parseBlocks("Mix well\n- salt\n- pepper\n\n1. Bake\n2. Cool", "light"),
+	[
+		{ type: "paragraph", lines: ["Mix well"] },
+		{ type: "list", ordered: false, items: ["salt", "pepper"] },
+		{ type: "list", ordered: true, items: ["Bake", "Cool"] },
+	],
+);
+// Old plain-text steps keep their line breaks and are never altered
+assert.equal(
+	markdownToHtml("Heat the pan.\nAdd oil.\n\nStir for 2 minutes.", "light"),
+	"<p>Heat the pan.<br>Add oil.</p><p>Stir for 2 minutes.</p>",
+);
+assert.equal(
+	markdownToHtml("<script>alert(1)</script> **ok**", "light"),
+	"<p>&lt;script&gt;alert(1)&lt;/script&gt; <strong>ok</strong></p>",
+);
+
+// ---------------------------------------------------------------- plain text (SEO, previews)
+assert.equal(
+	markdownToPlainText(
+		"Mix **well** with [this guide](https://a.com/x).\n\n- salt\n- _fine_ pepper",
+	),
+	"Mix well with this guide. salt. fine pepper.",
+);
+assert.equal(
+	markdownToPlainText("Cook 5 min\nthen rest"),
+	"Cook 5 min then rest",
+);
+assert.equal(markdownToPlainText(""), "");
+
+console.log("rich text markdown engine: PASS");

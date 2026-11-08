@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MarkdownText } from "@/components/ui/MarkdownText";
 import { track } from "@/lib/analytics/track";
 import type { PublicRecipe } from "@/lib/api/recipeClient";
 import imageloader from "@/lib/loader";
@@ -544,9 +545,14 @@ function StepScreen({
 						{step.name}
 					</h2>
 					{step.detail && (
-						<p className="mt-5 max-w-2xl whitespace-pre-line text-base leading-8 text-[#465b52] dark:text-[#c2d4cb]">
-							{step.detail}
-						</p>
+						<div className="mt-5 max-w-2xl text-base leading-8 text-[#465b52] dark:text-[#c2d4cb]">
+							<MarkdownText
+								text={step.detail}
+								variant="light"
+								spacing="tight"
+								keyPrefix={`cook-${step.id}`}
+							/>
+						</div>
 					)}
 					{hasTimer && (
 						<div className="mt-9 max-w-md rounded-2xl border border-[#dce8e1] bg-white p-5 dark:border-white/10 dark:bg-[#0b211b]">

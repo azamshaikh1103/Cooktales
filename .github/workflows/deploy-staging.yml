@@ -4,6 +4,9 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
+  # Run it by hand (Actions > Deploy staging > Run workflow) for the first deployment and to redeploy
+  # main without a new push. It only ever deploys main.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,24 +18,27 @@ concurrency:
 
 jobs:
   deploy:
+    # Automatic deploys after a green CI run on main stay behind the STAGING_DEPLOY_ENABLED switch.
+    # A manual run is always allowed, but only from main.
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main' &&
-      vars.STAGING_DEPLOY_ENABLED == 'true'
+      vars.STAGING_DEPLOY_ENABLED == 'true')
     runs-on: ubuntu-latest
     environment:
       name: staging
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
 
       - name: Confirm this commit is on main
         id: release
         env:
-          COMMIT: ${{ github.event.workflow_run.head_sha }}
+          COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           set -eu
           git fetch origin main

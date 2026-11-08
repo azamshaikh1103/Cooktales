@@ -8,6 +8,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { setAnalyticsUser } from "@/lib/analytics/track";
 import {
 	type AuthUser,
 	authClient,
@@ -62,6 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		void bootstrap();
 	}, [bootstrap]);
+
+	useEffect(() => {
+		if (status === "loading") return;
+		setAnalyticsUser({ loggedIn: status === "authenticated" });
+	}, [status]);
 
 	useEffect(() => {
 		if (status !== "authenticated") return;

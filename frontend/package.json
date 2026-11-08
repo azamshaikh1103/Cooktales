@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "analytics:gtm": "tsx analytics/build-gtm-container.ts",
+    "test:analytics": "tsx src/lib/analytics/analytics.test.ts"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",

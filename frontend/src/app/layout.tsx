@@ -6,7 +6,6 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import OfflineStatus from "@/components/OfflineStatus";
 import InstallCookTalePrompt from "@/components/InstallCookTalePrompt";
-import ScriptManager from "@/components/ScriptManager";
 import ScrollToTop from "@/components/ScrollToTop";
 import TabManager from "@/components/TabManager";
 import ReduxContextProvider from "./provider";
@@ -23,8 +22,6 @@ export const montserrat = Montserrat({
 
 const BASE_URL = "https://cooktale.in";
 const tagManagerId = "GTM-N774P8VR";
-const analyticsMeasurementId =
-	process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-WW9DP3T4V4";
 
 export const metadata: Metadata = {
 	metadataBase: new URL(BASE_URL),
@@ -171,6 +168,12 @@ export default async function RootLayout({
 					content={process.env.NEXT_PUBLIC_APP_REVISION ?? "unknown"}
 				/>
 				<script
+					id="cooktale-analytics-context"
+					dangerouslySetInnerHTML={{
+						__html: `window.dataLayer=window.dataLayer||[];(function(){try{var q=new URLSearchParams(location.search).get('internal');if(q==='1')localStorage.setItem('cooktale.internal','1');if(q==='0')localStorage.removeItem('cooktale.internal');var h=location.hostname;var pub=h==='cooktale.in'||h==='www.cooktale.in';if(!pub||localStorage.getItem('cooktale.internal')==='1')window.dataLayer.push({traffic_type:'internal'});}catch(e){}})();`,
+					}}
+				/>
+				<script
 					id="google-tag-manager"
 					dangerouslySetInnerHTML={{
 						__html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${tagManagerId}');`,
@@ -185,20 +188,6 @@ export default async function RootLayout({
 				<script
 					async
 					src="https://fundingchoicesmessages.google.com/i/pub-6574614841664693?ers=1"
-				/>
-				<script
-					async
-					src={`https://www.googletagmanager.com/gtag/js?id=${analyticsMeasurementId}`}
-				/>
-				<script
-					id="google-analytics-init"
-					dangerouslySetInnerHTML={{
-						__html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-window.gtag = window.gtag || gtag;
-window.gtag('js', new Date());
-window.gtag('config', ${JSON.stringify(analyticsMeasurementId)});`,
-					}}
 				/>
 				<script
 					id="google-funding-choices-present"
@@ -250,7 +239,6 @@ window.gtag('config', ${JSON.stringify(analyticsMeasurementId)});`,
 						title="Google Tag Manager"
 					/>
 				</noscript>
-				<ScriptManager />
 
 				<Script
 					id="org-schema"

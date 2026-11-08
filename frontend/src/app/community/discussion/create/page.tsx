@@ -32,7 +32,7 @@ interface AttachedItem {
 
 export default function CreateDiscussion() {
 	const router = useRouter();
-	const { uploadFile } = useCloudinaryUpload();
+	const { uploadFile, getLastError } = useCloudinaryUpload();
 
 	const [title, setTitle] = useState("");
 	const [body, setBody] = useState("");
@@ -79,6 +79,8 @@ export default function CreateDiscussion() {
 					},
 				]);
 				toast.success("Image attached", { id: toastId });
+			} else {
+				toast.error(getLastError() || "Upload failed", { id: toastId });
 			}
 		} catch {
 			toast.error("Upload failed", { id: toastId });

@@ -208,7 +208,7 @@ export default function SettingsModal() {
 
 // --- 1. PROFILE TAB ---
 export const ProfileTab = () => {
-	const { uploadFile, deleteAsset } = useCloudinaryUpload();
+	const { uploadFile, deleteAsset, getLastError } = useCloudinaryUpload();
 	const { updateUser } = useAuth();
 	const setSaveBar = useSettingsSaveBar();
 
@@ -419,6 +419,8 @@ export const ProfileTab = () => {
 						: prev,
 				);
 				toast.success("Profile picture updated.");
+			} else {
+				toast.error(getLastError() || "Profile picture upload failed.");
 			}
 		} catch (e) {
 			toast.error(

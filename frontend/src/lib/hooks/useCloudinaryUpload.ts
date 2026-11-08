@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ApiClientError, authenticatedFetch } from "@/lib/api/authClient";
 
 const API_URL =
@@ -58,6 +58,32 @@ type DeleteCloudinaryAssetInput = {
 	resourceType?: Exclude<MediaResourceType, "auto">;
 };
 
+// Every network step has a deadline, so a stalled request can never leave the UI loading forever.
+const SIGN_TIMEOUT_MS = 20_000;
+const UPLOAD_TIMEOUT_MS = 180_000;
+const CONFIRM_TIMEOUT_MS = 20_000;
+
+async function withTimeout<T>(
+	ms: number,
+	label: string,
+	run: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), ms);
+	try {
+		return await run(controller.signal);
+	} catch (error) {
+		if (controller.signal.aborted) {
+			throw new Error(
+				`${label} timed out. Check your connection and try again.`,
+			);
+		}
+		throw error;
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 const IMAGE_TYPES = new Set([
@@ -101,57 +127,79 @@ function validateUploadFile(file: File, resourceType: MediaResourceType) {
 }
 
 async function requestSignedUpload(input: Omit<CloudinaryUploadInput, "file">) {
-	const response = await authenticatedFetch(`${API_URL}/media/sign-upload`, {
-		method: "POST",
-		credentials: "include",
-		headers: {
-			"Content-Type": "application/json",
+	return withTimeout(
+		SIGN_TIMEOUT_MS,
+		"Preparing the upload",
+		async (signal) => {
+			const response = await authenticatedFetch(
+				`${API_URL}/media/sign-upload`,
+				{
+					method: "POST",
+					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(input),
+					signal,
+				},
+			);
+
+			const payload = await response.json().catch(() => ({}));
+
+			if (!response.ok) {
+				const message = Array.isArray(payload.message)
+					? payload.message[0]
+					: payload.message || payload.error || "Could not prepare upload";
+				throw new ApiClientError(message, response.status);
+			}
+
+			return payload as SignedUploadResponse;
 		},
-		body: JSON.stringify(input),
-	});
-
-	const payload = await response.json().catch(() => ({}));
-
-	if (!response.ok) {
-		const message = Array.isArray(payload.message)
-			? payload.message[0]
-			: payload.message || payload.error || "Could not prepare upload";
-		throw new ApiClientError(message, response.status);
-	}
-
-	return payload as SignedUploadResponse;
+	);
 }
 
 async function confirmUpload(upload: CloudinaryUploadResult) {
-	const response = await authenticatedFetch(`${API_URL}/media/confirm-upload`, {
-		method: "POST",
-		credentials: "include",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			publicId: upload.publicId,
-			url: upload.publicUrl,
-			resourceType: upload.resourceType,
-			width: upload.width,
-			height: upload.height,
-			bytes: upload.bytes,
-			format: upload.format,
-		}),
-	});
+	await withTimeout(
+		CONFIRM_TIMEOUT_MS,
+		"Confirming the upload",
+		async (signal) => {
+			const response = await authenticatedFetch(
+				`${API_URL}/media/confirm-upload`,
+				{
+					method: "POST",
+					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						publicId: upload.publicId,
+						url: upload.publicUrl,
+						resourceType: upload.resourceType,
+						width: upload.width,
+						height: upload.height,
+						bytes: upload.bytes,
+						format: upload.format,
+					}),
+					signal,
+				},
+			);
 
-	if (!response.ok) {
-		const payload = await response.json().catch(() => ({}));
-		throw new ApiClientError(
-			payload.message || "Could not confirm upload",
-			response.status,
-		);
-	}
+			if (!response.ok) {
+				const payload = await response.json().catch(() => ({}));
+				throw new ApiClientError(
+					payload.message || "Could not confirm upload",
+					response.status,
+				);
+			}
+		},
+	);
 }
 
 export function useCloudinaryUpload() {
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	// Callers get null on failure; this tells them why, right away (state updates are async).
+	const lastErrorRef = useRef<string | null>(null);
 
 	const deleteAsset = async ({
 		publicId,
@@ -177,6 +225,7 @@ export function useCloudinaryUpload() {
 	}: CloudinaryUploadInput): Promise<CloudinaryUploadResult | null> => {
 		setUploading(true);
 		setError(null);
+		lastErrorRef.current = null;
 
 		try {
 			const resolvedResourceType =
@@ -199,15 +248,22 @@ export function useCloudinaryUpload() {
 			formData.set("tags", signed.params.tags);
 			formData.set("transformation", signed.params.transformation);
 
-			const uploadResponse = await fetch(signed.uploadUrl, {
-				method: "POST",
-				body: formData,
-			});
-			const uploaded = await uploadResponse.json().catch(() => ({}));
-
-			if (!uploadResponse.ok) {
-				throw new Error(uploaded.error?.message || "Cloudinary upload failed");
-			}
+			const uploaded = await withTimeout(
+				UPLOAD_TIMEOUT_MS,
+				"The image upload",
+				async (signal) => {
+					const uploadResponse = await fetch(signed.uploadUrl, {
+						method: "POST",
+						body: formData,
+						signal,
+					});
+					const body = await uploadResponse.json().catch(() => ({}));
+					if (!uploadResponse.ok) {
+						throw new Error(body.error?.message || "Cloudinary upload failed");
+					}
+					return body;
+				},
+			);
 
 			const result: CloudinaryUploadResult = {
 				publicUrl: withAutoOptimization(
@@ -227,6 +283,7 @@ export function useCloudinaryUpload() {
 			const message =
 				err instanceof Error ? err.message : "Upload failed. Please try again.";
 			setError(message);
+			lastErrorRef.current = message;
 			return null;
 		} finally {
 			setUploading(false);
@@ -236,6 +293,7 @@ export function useCloudinaryUpload() {
 	return {
 		uploadFile,
 		deleteAsset,
+		getLastError: () => lastErrorRef.current,
 		uploading,
 		error,
 	};

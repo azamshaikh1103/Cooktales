@@ -434,7 +434,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	const dispatch = useDispatch();
 	const router = useRouter();
 	const { status, user: authUser } = useAuth();
-	const { uploadFile } = useCloudinaryUpload();
+	const { uploadFile, getLastError } = useCloudinaryUpload();
 	const isPublishingRef = useRef(false);
 	const initialRecipeRef = useRef<NewRecipe | null>(null);
 	const hasLoadedDraftRef = useRef(false);
@@ -476,6 +476,9 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 	);
 
 	const ensureDraftForUpload = useCallback(async () => {
+		// Editing a published recipe: media belongs to the recipe itself. `draftId` is the edit-draft
+		// record's id there, which the upload API (rightly) does not accept as a recipe.
+		if (recipeId) return recipeId;
 		if (recipe.draftId) return recipe.draftId;
 		if (!draftCreationPromiseRef.current) {
 			isCreatingDraftRef.current = true;
@@ -507,7 +510,7 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				});
 		}
 		return draftCreationPromiseRef.current;
-	}, [dispatch, recipe.clientDraftId, recipe.draftId, recipe.name]);
+	}, [dispatch, recipe.clientDraftId, recipe.draftId, recipe.name, recipeId]);
 
 	useEffect(() => {
 		if (status !== "authenticated" || !authUser?.id) return;
@@ -752,6 +755,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 
 				dispatch(commitRecipeUpload({ index: 0, asset, isMain }));
 				toast.success("Uploaded!", { id: loadingId });
+			} else {
+				toast.error(getLastError() || "Upload failed. Please try again.", {
+					id: loadingId,
+				});
 			}
 		} catch (error) {
 			console.error(error);
@@ -771,7 +778,10 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 				entityId: draftId,
 				resourceType: "image",
 			});
-			if (!res) return false;
+			if (!res) {
+				toast.error(getLastError() || "Image upload failed. Please try again.");
+				return false;
+			}
 
 			dispatch(
 				commitRecipeStepUpload({

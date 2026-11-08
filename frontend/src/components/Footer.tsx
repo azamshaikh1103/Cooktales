@@ -10,7 +10,6 @@ import {
 	FaFacebookF,
 	FaInstagram,
 	FaPinterest,
-	FaRedditAlien,
 } from "react-icons/fa";
 import { toast } from "sonner";
 import { newsletterClient } from "@/lib/api/newsletterClient";
@@ -255,11 +254,6 @@ const Footer = () => {
 							href="https://www.pinterest.com/cooktale_in/"
 							label="Pinterest"
 							icon={<FaPinterest />}
-						/>
-						<SocialLink
-							href="https://www.reddit.com/r/CookTale/"
-							label="Reddit"
-							icon={<FaRedditAlien />}
 						/>
 					</div>
 				</div>

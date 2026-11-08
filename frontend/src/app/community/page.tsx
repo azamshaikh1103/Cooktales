@@ -99,7 +99,6 @@ export default async function CommunityPage() {
 								>
 									Community guidelines
 								</Link>
-								{/* shortcut: Reddit link is hidden until the community is available again. */}
 							</div>
 						</div>
 

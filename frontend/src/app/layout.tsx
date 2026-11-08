@@ -120,7 +120,6 @@ export default async function RootLayout({
 				sameAs: [
 					"https://www.pinterest.com/cooktale_in/",
 					"https://www.instagram.com/cooktale_in/",
-					"https://www.reddit.com/r/CookTale/",
 					"https://www.facebook.com/profile.php?id=61596221366707",
 				],
 				contactPoint: {

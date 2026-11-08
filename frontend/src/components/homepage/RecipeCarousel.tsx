@@ -118,6 +118,7 @@ const RecipeCarousel = ({
 					{/* Navigation Arrows */}
 					<div className="flex gap-2">
 						<button
+							type="button"
 							onClick={() => handleScroll("left")}
 							disabled={!canScrollLeft}
 							aria-label="Scroll left"
@@ -130,6 +131,7 @@ const RecipeCarousel = ({
 							<IoChevronBack size={20} />
 						</button>
 						<button
+							type="button"
 							onClick={() => handleScroll("right")}
 							disabled={!canScrollRight}
 							aria-label="Scroll right"
@@ -169,6 +171,7 @@ const RecipeCarousel = ({
 				</Link>
 				<div className="flex gap-3">
 					<button
+						type="button"
 						aria-label="Scroll left"
 						onClick={() => handleScroll("left")}
 						disabled={!canScrollLeft}
@@ -181,6 +184,7 @@ const RecipeCarousel = ({
 						<IoChevronBack />
 					</button>
 					<button
+						type="button"
 						aria-label="Scroll right"
 						onClick={() => handleScroll("right")}
 						disabled={!canScrollRight}

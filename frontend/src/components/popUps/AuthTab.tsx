@@ -305,6 +305,7 @@ export default function AuthTab() {
 					className="relative w-full max-w-[410px] overflow-hidden rounded-[2rem] border border-white bg-white dark:border-white/10 dark:bg-[#10201d]"
 				>
 					<button
+						type="button"
 						aria-label="Close"
 						onClick={handleClose}
 						className="absolute top-5 right-5 z-20 cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-900 focus:ring-2 focus:ring-[#006C5E]/25 focus:outline-none dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"

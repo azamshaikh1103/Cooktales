@@ -54,6 +54,7 @@ export default function OfflineStatus() {
 							</p>
 
 							<button
+								type="button"
 								onClick={handleRetry}
 								disabled={isRetrying}
 								className="group w-full cursor-pointer rounded-2xl bg-gray-900 py-4 text-sm font-bold tracking-widest text-white uppercase transition-all hover:bg-black hover:shadow-xl dark:bg-white dark:text-black dark:hover:bg-gray-200"

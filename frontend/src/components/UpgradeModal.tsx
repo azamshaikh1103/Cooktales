@@ -67,6 +67,7 @@ export default function UpgradeModal({
 							<div className="h-2 w-full bg-linear-to-r from-amber-300 via-yellow-500 to-amber-600" />
 
 							<button
+								type="button"
 								onClick={onClose}
 								className="absolute top-5 right-5 z-20 cursor-pointer p-2 text-white/30 transition-colors hover:text-white"
 							>
@@ -106,6 +107,7 @@ export default function UpgradeModal({
 								</div>
 
 								<button
+									type="button"
 									onClick={handlePayment}
 									disabled={loading}
 									className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-amber-400 to-amber-600 py-4 text-lg font-black text-[#0d1f1c] shadow-lg shadow-amber-500/20 transition-colors hover:from-amber-300 hover:to-amber-500 disabled:cursor-not-allowed disabled:opacity-70"

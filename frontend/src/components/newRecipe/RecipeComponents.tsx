@@ -684,6 +684,7 @@ export const StepsEditor = ({
 							)}
 
 							<button
+								type="button"
 								onClick={() => onRemoveImage(i)}
 								className="absolute top-2 right-2 cursor-pointer rounded-full bg-black/50 p-1.5 text-white opacity-0 transition-colors group-hover/image:opacity-100 hover:bg-red-500"
 							>

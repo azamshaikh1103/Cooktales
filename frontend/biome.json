@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!analytics/gtm-container.json"]
+		"includes": ["**", "!analytics/gtm-container.json", "!public/cooktale-push-sw.js"]
 	},
 	"formatter": {
 		"enabled": true,

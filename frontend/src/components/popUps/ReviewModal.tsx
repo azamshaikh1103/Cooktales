@@ -112,6 +112,7 @@ export default function ReviewModal({
 								turn out?
 							</p>
 							<button
+								type="button"
 								onClick={onClose}
 								className="absolute top-6 right-6 cursor-pointer text-gray-400 transition-colors hover:text-gray-900 dark:hover:text-white"
 							>
@@ -125,6 +126,7 @@ export default function ReviewModal({
 								<div className="mb-3 flex gap-2">
 									{[1, 2, 3, 4, 5].map((star) => (
 										<button
+											type="button"
 											key={star}
 											onMouseEnter={() => setHoverRating(star)}
 											onMouseLeave={() => setHoverRating(0)}
@@ -163,6 +165,7 @@ export default function ReviewModal({
 
 							{/* Submit */}
 							<button
+								type="button"
 								onClick={handleSubmit}
 								disabled={isSubmitting}
 								className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#006C5E] py-4 text-lg font-semibold text-white transition-colors hover:bg-[#005a4e] disabled:cursor-not-allowed disabled:opacity-70 dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"

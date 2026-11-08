@@ -360,6 +360,7 @@ export default function NewStory() {
 			<header className="border-b border-gray-100 bg-white px-6 py-4 dark:border-white/10 dark:bg-[#0d1f1c]">
 				<div className="mx-auto flex max-w-4xl items-center justify-between">
 					<button
+						type="button"
 						onClick={() => router.back()}
 						className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600 transition-colors hover:text-[#006c5e] dark:text-gray-300 dark:hover:text-[#4ade80]"
 					>
@@ -375,6 +376,7 @@ export default function NewStory() {
 									: "Save needs attention"}
 					</span>
 					<button
+						type="button"
 						onClick={handlePublish}
 						disabled={!draft || isPublishing || uploading}
 						className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#006c5e] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00564b] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#4ade80] dark:text-[#092019] dark:hover:bg-[#86efac]"

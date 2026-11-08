@@ -649,6 +649,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 										<option value="lowest">Lowest rated</option>
 									</select>
 									<button
+										type="button"
 										onClick={handleWriteReview}
 										className="cursor-pointer rounded-lg bg-[#006C5E] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
 									>
@@ -730,6 +731,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => router.push(`/profile/${recipe.author.username}`)}
 							className="cursor-pointer rounded-full bg-black px-8 py-3 font-bold text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
 						>

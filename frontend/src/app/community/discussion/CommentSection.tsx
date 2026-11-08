@@ -84,13 +84,17 @@ const CommentItem = ({ comment, discussionId, isReply }: any) => {
 
 				{/* Actions */}
 				<div className="flex items-center gap-4 text-xs font-bold text-gray-400 dark:text-gray-500">
-					<button className="flex items-center gap-1 transition-colors hover:text-[#006C5E] dark:hover:text-[#4ADE80]">
+					<button
+						type="button"
+						className="flex items-center gap-1 transition-colors hover:text-[#006C5E] dark:hover:text-[#4ADE80]"
+					>
 						<FaArrowUp /> {comment.likes.length || 0}
 					</button>
 
 					{/* Only show reply button on Top Level comments to force 2-tier structure */}
 					{!isReply && (
 						<button
+							type="button"
 							onClick={() => setIsReplying(!isReplying)}
 							className="transition-colors hover:text-gray-900 dark:hover:text-white"
 						>
@@ -98,7 +102,10 @@ const CommentItem = ({ comment, discussionId, isReply }: any) => {
 						</button>
 					)}
 
-					<button className="ml-auto opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500">
+					<button
+						type="button"
+						className="ml-auto opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
+					>
 						<FaFlag />
 					</button>
 				</div>
@@ -162,6 +169,7 @@ const CommentInput = ({ discussionId, parentId, onSuccess }: any) => {
 				<div className="absolute right-3 bottom-3 flex gap-2">
 					{parentId && (
 						<button
+							type="button"
 							onClick={onSuccess}
 							className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-gray-600"
 						>
@@ -169,6 +177,7 @@ const CommentInput = ({ discussionId, parentId, onSuccess }: any) => {
 						</button>
 					)}
 					<button
+						type="button"
 						onClick={handleSubmit}
 						disabled={loading || !text.trim()}
 						className="rounded-lg bg-[#006C5E] px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#005a4e] disabled:opacity-50"

@@ -67,6 +67,7 @@ export default function MembershipPage() {
 					<div className="relative flex rounded-full border bg-gray-100 p-1.5 transition-colors dark:border-white/10 dark:bg-white/10">
 						{["monthly", "yearly", "lifetime"].map((type) => (
 							<button
+								type="button"
 								key={type}
 								onClick={() => setBilling(type as any)}
 								className={`relative z-10 flex cursor-pointer items-center gap-1 rounded-full px-2 py-2.5 text-sm font-bold transition-colors duration-300 sm:gap-2 sm:px-6 ${billing === type ? "text-gray-900 dark:text-gray-900" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
@@ -128,6 +129,7 @@ export default function MembershipPage() {
 										</span>
 									</div>
 									<button
+										type="button"
 										onClick={() => setShowUpgrade(true)}
 										className="w-full cursor-pointer rounded-xl bg-[#006C5E] py-4 text-lg font-black text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#86efac]"
 									>
@@ -173,6 +175,7 @@ export default function MembershipPage() {
 										<ListItem text="No Portion Calculator" cross />
 									</ul>
 									<button
+										type="button"
 										onClick={() => redirect("/")}
 										className="w-full cursor-pointer rounded-xl border-2 border-gray-200 py-3 font-bold text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-900 dark:border-white/20 dark:text-gray-500 dark:hover:border-white dark:hover:text-white"
 									>
@@ -217,6 +220,7 @@ export default function MembershipPage() {
 										<PremiumItem text="70% Revenue Share to Chefs" />
 									</div>
 									<button
+										type="button"
 										onClick={() => setShowUpgrade(true)}
 										className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#006C5E] to-[#008a7a] py-5 text-lg font-black text-white shadow-lg shadow-[#006C5E]/40 transition-colors hover:from-[#005a4e] hover:to-[#00786b]"
 									>

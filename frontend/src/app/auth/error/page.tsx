@@ -82,6 +82,7 @@ function ErrorContent() {
 				{/* Actions */}
 				<div className="space-y-6 p-8">
 					<button
+						type="button"
 						onClick={() => router.push("/?auth=login")}
 						className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[#006C5E] py-4 text-lg font-bold text-white shadow-lg shadow-[#006C5E]/20 transition-all hover:bg-[#005a4e]"
 					>
@@ -101,6 +102,7 @@ function ErrorContent() {
 					{/* Developer Details (Collapsible) */}
 					<div className="border-t border-gray-100 pt-6 dark:border-white/5">
 						<button
+							type="button"
 							onClick={() => setShowDetails(!showDetails)}
 							className="flex w-full items-center justify-between bg-transparent text-[10px] font-bold tracking-widest text-gray-400 uppercase transition-colors hover:text-gray-600 dark:hover:text-gray-200"
 						>

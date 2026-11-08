@@ -113,6 +113,7 @@ function PremiumWelcomePopupContent() {
 
 							{/* Close */}
 							<button
+								type="button"
 								aria-label="Close"
 								onClick={handleClose}
 								className="absolute top-6 right-6 z-20 p-2 text-white/30 transition-colors hover:text-white"
@@ -156,6 +157,7 @@ function PremiumWelcomePopupContent() {
 
 								{/* CTA */}
 								<button
+									type="button"
 									onClick={handleClose}
 									className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-linear-to-r from-[#006C5E] to-[#004d41] py-4 text-lg font-black text-white shadow-xl shadow-[#006C5E]/30 transition-all hover:scale-[1.01] hover:shadow-[#006C5E]/50"
 								>

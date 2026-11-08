@@ -154,6 +154,7 @@ const Reviewsarea = () => {
 					{/* Controls */}
 					<div className="flex gap-3">
 						<button
+							type="button"
 							aria-label="Scroll left"
 							onClick={() => handleScroll("left")}
 							disabled={!canScrollLeft}
@@ -166,6 +167,7 @@ const Reviewsarea = () => {
 							<IoChevronBack size={20} />
 						</button>
 						<button
+							type="button"
 							aria-label="Scroll right"
 							onClick={() => handleScroll("right")}
 							disabled={!canScrollRight}

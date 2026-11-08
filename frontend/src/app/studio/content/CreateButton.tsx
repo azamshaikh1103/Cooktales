@@ -23,6 +23,7 @@ export default function CreateButton() {
 	return (
 		<div className="relative" ref={menuRef}>
 			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				className="flex items-center gap-2 rounded-full bg-[#006C5E] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#35c96b]"
 			>

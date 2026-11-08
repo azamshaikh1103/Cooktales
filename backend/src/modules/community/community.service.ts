@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CloudinaryResourceType, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
@@ -8,6 +8,9 @@ import { CommunityAbuseService } from './community-abuse.service';
 import { CreateCommentDto, CreateDiscussionDto, ListDiscussionsQueryDto, ListLeaderboardQueryDto } from './dto/community.dto';
 
 const userSelect = { id: true, name: true, username: true, image: true, isPro: true, points: true } satisfies Prisma.UserSelect;
+
+// A moderator's removal keeps the thread's content for review, so its images get this long before purge.
+const MODERATOR_MEDIA_GRACE_DAYS = 30;
 
 // Shown instead of the author once a thread or comment is deleted.
 const DELETED_AUTHOR = { id: '', name: '[deleted]', username: null, image: null, isPro: false, points: 0 };
@@ -39,6 +42,8 @@ const discussionInclude = {
 
 @Injectable()
 export class CommunityService {
+  private readonly logger = new Logger(CommunityService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly abuse: CommunityAbuseService,
@@ -189,6 +194,13 @@ export class CommunityService {
       where: { id: discussionId },
       data: { deletedAt: new Date(), deletedById: actor.id, ...(isAuthor ? { title: '[deleted]', content: '' } : {}) },
     });
+    // Images go too: at once when the author deleted it (its text is already wiped), after a grace
+    // period when a moderator removed it. A failure here must not undo the deletion.
+    await this.media
+      .scheduleThreadMediaDeletion(discussionId, isAuthor ? 0 : MODERATOR_MEDIA_GRACE_DAYS)
+      .catch((error: unknown) =>
+        this.logger.warn(`Could not queue images of deleted thread ${discussionId}: ${error instanceof Error ? error.message : 'unknown error'}`),
+      );
     return { message: 'Thread deleted' };
   }
 

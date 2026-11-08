@@ -201,6 +201,28 @@ export class MediaService {
     }
   }
 
+  /**
+   * Queues every image of a deleted thread for removal from Cloudinary. The media cleanup worker
+   * deletes them once `graceDays` have passed (0 = on its next run), unless something else still
+   * references them. Returns how many files were queued.
+   */
+  async scheduleThreadMediaDeletion(discussionId: string, graceDays: number) {
+    const folder = `${this.rootFolder}/community/threads/${discussionId}/`;
+    const queued = await this.prisma.pendingMediaUpload.updateMany({
+      where: {
+        publicId: { startsWith: folder },
+        status: {
+          in: [PendingMediaStatus.PENDING, PendingMediaStatus.UPLOADED, PendingMediaStatus.ATTACHED],
+        },
+      },
+      data: {
+        status: PendingMediaStatus.DELETE_PENDING,
+        expiresAt: new Date(Date.now() + graceDays * 24 * 60 * 60 * 1000),
+      },
+    });
+    return queued.count;
+  }
+
   async scheduleDeletion(
     userId: string,
     assets: Array<{ publicId: string; resourceType: CloudinaryResourceType }>,

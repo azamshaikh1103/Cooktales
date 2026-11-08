@@ -125,8 +125,9 @@ describe('CommunityService', () => {
       };
       const abuse = { checkUserAction: jest.fn().mockResolvedValue(undefined) };
       const points = { revoke: jest.fn().mockResolvedValue(true), award: jest.fn() };
-      const service = new CommunityService(prisma as unknown as PrismaService, abuse as never, {} as never, points as never);
-      return { service, prisma, points };
+      const media = { scheduleThreadMediaDeletion: jest.fn().mockResolvedValue(2) };
+      const service = new CommunityService(prisma as unknown as PrismaService, abuse as never, media as never, points as never);
+      return { service, prisma, points, media };
     };
 
     it('wipes the title and text when the author deletes their thread', async () => {
@@ -149,6 +150,31 @@ describe('CommunityService', () => {
         where: { id: 'thread-1' },
         data: { deletedAt: expect.any(Date), deletedById: 'admin-1' },
       });
+    });
+
+    it('purges the images of an author-deleted thread right away', async () => {
+      const { service, media } = build();
+
+      await service.deleteDiscussion(author, 'thread-1');
+
+      expect(media.scheduleThreadMediaDeletion).toHaveBeenCalledWith('thread-1', 0);
+    });
+
+    it('keeps the images of a moderator-removed thread for 30 days first', async () => {
+      const { service, media } = build();
+
+      await service.deleteDiscussion(admin, 'thread-1');
+
+      expect(media.scheduleThreadMediaDeletion).toHaveBeenCalledWith('thread-1', 30);
+    });
+
+    it('still deletes the thread when queueing its images fails', async () => {
+      const { service, prisma, media } = build();
+      media.scheduleThreadMediaDeletion.mockRejectedValueOnce(new Error('cloudinary down'));
+
+      await expect(service.deleteDiscussion(author, 'thread-1')).resolves.toEqual({ message: 'Thread deleted' });
+
+      expect(prisma.discussion.update).toHaveBeenCalled();
     });
 
     it('does not let other users delete a thread', async () => {

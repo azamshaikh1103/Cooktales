@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { BiChevronDown, BiPlus, BiTrash } from "react-icons/bi";
 import { FaClock, FaFire, FaUserFriends } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
@@ -80,7 +80,8 @@ export const HeaderImageUpload = ({
 	};
 
 	return (
-		<div
+		<button
+			type="button"
 			onClick={() => inputRef.current?.click()}
 			className="group relative flex aspect-[4/3] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[2.5rem] border-2 border-dashed border-gray-200 bg-gray-100 transition-all hover:border-[#006C5E] hover:bg-[#006C5E]/5 dark:border-white/10 dark:bg-white/5 dark:hover:border-[#4ADE80] dark:hover:bg-[#4ADE80]/5"
 		>
@@ -101,20 +102,22 @@ export const HeaderImageUpload = ({
 						className="object-cover transition-opacity group-hover:opacity-90"
 						loader={imageLoader}
 					/>
-					<div className="absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+					<span className="absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
 						<span className="rounded-full bg-white/90 px-6 py-3 font-bold text-gray-900 shadow-xl backdrop-blur">
 							Change Cover
 						</span>
-					</div>
+					</span>
 				</>
 			) : (
-				<div className="text-center text-gray-500 transition-colors group-hover:text-[#006C5E] dark:text-gray-500 dark:group-hover:text-[#4ADE80]">
+				<span className="block text-center text-gray-500 transition-colors group-hover:text-[#006C5E] dark:text-gray-500 dark:group-hover:text-[#4ADE80]">
 					<BiImageAdd className="mx-auto mb-3 text-6xl opacity-50" />
-					<h1 className="text-xl font-bold">Drop your cover image</h1>
-					<p className="mt-1 text-sm opacity-60">or click to browse</p>
-				</div>
+					<span className="block text-xl font-bold">Drop your cover image</span>
+					<span className="mt-1 block text-sm opacity-60">
+						or click to browse
+					</span>
+				</span>
 			)}
-		</div>
+		</button>
 	);
 };
 
@@ -125,6 +128,7 @@ export const BasicInfoEditor = ({
 	onGuide,
 }: BasicInfoEditorProps) => (
 	<div className="space-y-4">
+		{/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only guide hint; keyboard users get the same hint via the child's onFocus */}
 		<div onMouseEnter={() => onGuide?.("title")}>
 			<input
 				value={name}
@@ -138,6 +142,7 @@ export const BasicInfoEditor = ({
 				{name.length}/90
 			</p>
 		</div>
+		{/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only guide hint; keyboard users get the same hint via the child's onFocus */}
 		<div onMouseEnter={() => onGuide?.("about")}>
 			<textarea
 				value={about || ""}
@@ -339,26 +344,34 @@ const MetaItem = ({
 	type,
 	guideKey,
 	onGuide,
-}: any) => (
-	<div
-		onMouseEnter={() => onGuide?.(guideKey)}
-		className="rounded-xl bg-gray-50 p-3 dark:bg-white/5"
-	>
-		<label className="mb-1 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500">
-			{label}
-		</label>
-		<div className="flex items-center gap-2">
-			<span className="text-gray-300 dark:text-gray-600">{icon}</span>
-			<input
-				type={type}
-				value={value || ""}
-				onFocus={() => onGuide?.(guideKey)}
-				onChange={(e) => onChange(e.target.value)}
-				className="w-full bg-transparent font-bold text-gray-900 outline-none placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-700"
-			/>
+}: any) => {
+	const id = useId();
+	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: hover-only guide hint; keyboard users get the same hint via the child's onFocus
+		<div
+			onMouseEnter={() => onGuide?.(guideKey)}
+			className="rounded-xl bg-gray-50 p-3 dark:bg-white/5"
+		>
+			<label
+				htmlFor={id}
+				className="mb-1 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500"
+			>
+				{label}
+			</label>
+			<div className="flex items-center gap-2">
+				<span className="text-gray-300 dark:text-gray-600">{icon}</span>
+				<input
+					id={id}
+					type={type}
+					value={value || ""}
+					onFocus={() => onGuide?.(guideKey)}
+					onChange={(e) => onChange(e.target.value)}
+					className="w-full bg-transparent font-bold text-gray-900 outline-none placeholder:text-gray-300 dark:text-white dark:placeholder:text-gray-700"
+				/>
+			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 const CustomSelect = ({
 	label,
@@ -376,10 +389,12 @@ const CustomSelect = ({
 	onGuide?: (key: string) => void;
 }) => {
 	const [open, setOpen] = useState(false);
+	const buttonId = useId();
 	const selected =
 		options.find((option) => option.value === (value || "")) || options[0];
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: hover-only guide hint; keyboard users get the same hint via the child's onFocus
 		<div
 			onMouseEnter={() => onGuide?.(guideKey)}
 			onBlur={(event) => {
@@ -387,10 +402,14 @@ const CustomSelect = ({
 			}}
 			className="relative rounded-xl bg-gray-50 p-3 dark:bg-white/5"
 		>
-			<label className="mb-1 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500">
+			<label
+				htmlFor={buttonId}
+				className="mb-1 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500"
+			>
 				{label}
 			</label>
 			<button
+				id={buttonId}
 				type="button"
 				onClick={() => setOpen((current) => !current)}
 				onFocus={() => onGuide?.(guideKey)}
@@ -474,6 +493,7 @@ export const IngredientsEditor = ({
 
 			<ul className="space-y-4">
 				{items.map((item, i) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: ingredient rows have no id and are edited/removed by index with all state held in props
 					<li key={i} className="group flex flex-col gap-2">
 						{/* Row 1: Input & Actions */}
 						<div className="flex items-center gap-3">
@@ -524,11 +544,14 @@ export const IngredientsEditor = ({
 				))}
 
 				{items.length === 0 && (
-					<li
-						onClick={add}
-						className="cursor-pointer text-sm text-gray-600 italic hover:text-[#006C5E] dark:text-gray-300 dark:hover:text-[#4ADE80]"
-					>
-						Click + to add {title.toLowerCase()}
+					<li>
+						<button
+							type="button"
+							onClick={add}
+							className="cursor-pointer text-sm text-gray-600 italic hover:text-[#006C5E] dark:text-gray-300 dark:hover:text-[#4ADE80]"
+						>
+							Click + to add {title.toLowerCase()}
+						</button>
 					</li>
 				)}
 			</ul>
@@ -628,6 +651,7 @@ export const StepsEditor = ({
 
 			{steps.map((step, i) => (
 				<div
+					// biome-ignore lint/suspicious/noArrayIndexKey: steps have no id and are edited/removed by index with all state held in props
 					key={i}
 					className="group relative rounded-4xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-[#006C5E]/30 lg:p-8 dark:border-white/5 dark:bg-[#152a26] dark:hover:border-[#4ADE80]/30"
 				>
@@ -727,17 +751,18 @@ export const StepsEditor = ({
 			))}
 
 			{steps.length === 0 && (
-				<div
+				<button
+					type="button"
 					onClick={add}
-					className="group cursor-pointer rounded-4xl border-2 border-dashed border-gray-200 p-12 text-center transition-all hover:border-[#006C5E] hover:bg-[#006C5E]/5 dark:border-white/10 dark:hover:border-[#4ADE80] dark:hover:bg-[#4ADE80]/5"
+					className="group block w-full cursor-pointer rounded-4xl border-2 border-dashed border-gray-200 p-12 text-center transition-all hover:border-[#006C5E] hover:bg-[#006C5E]/5 dark:border-white/10 dark:hover:border-[#4ADE80] dark:hover:bg-[#4ADE80]/5"
 				>
 					<span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl shadow-sm transition-transform group-hover:scale-110 dark:bg-white/10">
 						<BiPlus />
 					</span>
-					<p className="font-bold text-gray-500 group-hover:text-[#006C5E] dark:text-gray-500 dark:group-hover:text-[#4ADE80]">
+					<span className="block font-bold text-gray-500 group-hover:text-[#006C5E] dark:text-gray-500 dark:group-hover:text-[#4ADE80]">
 						Start adding steps
-					</p>
-				</div>
+					</span>
+				</button>
 			)}
 		</div>
 	);
@@ -768,6 +793,7 @@ export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
 	const remove = (idx: number) => onChange(tags.filter((_, i) => i !== idx));
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: hover-only guide hint; keyboard users get the same hint via the child's onFocus
 		<div onMouseEnter={() => onGuide?.("tags")}>
 			<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
 				Tags
@@ -778,7 +804,7 @@ export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
 			<div className="mb-3 flex flex-wrap gap-2">
 				{tags.map((tag, i) => (
 					<span
-						key={i}
+						key={tag}
 						className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1 text-sm font-bold text-gray-600 dark:bg-white/10 dark:text-gray-300"
 					>
 						#{tag}{" "}
@@ -805,6 +831,7 @@ export const TagEditor = ({ tags, onChange, onGuide }: TagEditorProps) => {
 };
 
 export const FAQEditor = ({ faqs, onChange }: FAQEditorProps) => {
+	const id = useId();
 	const update = (idx: number, field: "question" | "answer", val: string) => {
 		const newArr = faqs.map((faq, i) =>
 			i === idx ? { ...faq, [field]: val } : faq,
@@ -837,6 +864,7 @@ export const FAQEditor = ({ faqs, onChange }: FAQEditorProps) => {
 			<div className="space-y-6">
 				{faqs.map((faq, i) => (
 					<div
+						// biome-ignore lint/suspicious/noArrayIndexKey: FAQs have no id and are edited/removed by index with all state held in props
 						key={i}
 						className="group relative rounded-xl border border-gray-100 bg-gray-50 p-6 dark:border-white/5 dark:bg-white/5"
 					>
@@ -849,10 +877,14 @@ export const FAQEditor = ({ faqs, onChange }: FAQEditorProps) => {
 							<BiTrash />
 						</button>
 						<div className="mb-4">
-							<label className="mb-2 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500">
+							<label
+								htmlFor={`${id}-q-${i}`}
+								className="mb-2 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500"
+							>
 								Question {i + 1}
 							</label>
 							<input
+								id={`${id}-q-${i}`}
 								value={faq.question}
 								maxLength={180}
 								onChange={(e) => update(i, "question", e.target.value)}
@@ -861,10 +893,14 @@ export const FAQEditor = ({ faqs, onChange }: FAQEditorProps) => {
 							/>
 						</div>
 						<div>
-							<label className="mb-2 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500">
+							<label
+								htmlFor={`${id}-a-${i}`}
+								className="mb-2 block text-xs font-bold text-gray-500 uppercase dark:text-gray-500"
+							>
 								Answer
 							</label>
 							<textarea
+								id={`${id}-a-${i}`}
 								value={faq.answer}
 								maxLength={1000}
 								onChange={(e) => {

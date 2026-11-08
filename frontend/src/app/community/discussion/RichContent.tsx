@@ -84,6 +84,7 @@ const MarkdownText = ({ text, itemKey }: { text: string; itemKey: string }) => {
 					className={`my-4 space-y-1 pl-6 ${unordered ? "list-disc" : "list-decimal"}`}
 				>
 					{items.map((item, itemIndex) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
 						<li key={itemIndex}>
 							{renderInline(item, `${itemKey}-list-${itemIndex}`)}
 						</li>
@@ -125,11 +126,13 @@ const parseContent = (text: string, attachments: any) => {
 			const data = attachments?.recipes?.find(
 				(recipe: any) => recipe.id === id,
 			);
+			// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
 			return data ? <EmbedCard key={index} data={data} type="recipe" /> : null;
 		}
 		if (part.startsWith("[BLOG:")) {
 			const id = part.replace("[BLOG:", "").replace("]", "");
 			const data = attachments?.stories?.find((story: any) => story.id === id);
+			// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
 			return data ? <EmbedCard key={index} data={data} type="story" /> : null;
 		}
 		if (part.startsWith("![") && part.includes("](")) {
@@ -137,6 +140,7 @@ const parseContent = (text: string, attachments: any) => {
 			if (!match || !isSafeUrl(match[2])) return null;
 			return (
 				<div
+					// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
 					key={index}
 					className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 shadow-lg dark:border-white/10"
 				>
@@ -151,6 +155,7 @@ const parseContent = (text: string, attachments: any) => {
 			);
 		}
 		return (
+			// biome-ignore lint/suspicious/noArrayIndexKey: parts come from splitting one immutable string, so position is the only identity and never reorders
 			<MarkdownText key={index} text={part} itemKey={`content-${index}`} />
 		);
 	});

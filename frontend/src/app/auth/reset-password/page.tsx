@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useId, useState } from "react";
 import {
 	FaCheckCircle,
 	FaEye,
@@ -23,6 +23,7 @@ function ResetPasswordContent() {
 	const email = params.get("email");
 	const dispatch = useDispatch();
 	const router = useRouter();
+	const id = useId();
 
 	const openLogin = () => {
 		dispatch(setTab("login"));
@@ -148,11 +149,15 @@ function ResetPasswordContent() {
 
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="space-y-1">
-							<label className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300">
+							<label
+								htmlFor={`${id}-password`}
+								className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300"
+							>
 								New Password
 							</label>
 							<div className="relative">
 								<input
+									id={`${id}-password`}
 									type={showPass ? "text" : "password"}
 									required
 									value={formData.password}
@@ -174,10 +179,14 @@ function ResetPasswordContent() {
 						</div>
 
 						<div className="space-y-1">
-							<label className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300">
+							<label
+								htmlFor={`${id}-confirm`}
+								className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300"
+							>
 								Confirm Password
 							</label>
 							<input
+								id={`${id}-confirm`}
 								type={showPass ? "text" : "password"}
 								required
 								value={formData.confirmPassword}

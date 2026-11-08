@@ -9,6 +9,7 @@ import {
 	type SetStateAction,
 	useContext,
 	useEffect,
+	useId,
 	useRef,
 	useState,
 } from "react";
@@ -521,9 +522,9 @@ export const ProfileTab = () => {
 
 				{/* Socials */}
 				<div className="pt-4">
-					<label className="mb-3 block text-xs font-bold tracking-wider text-gray-400 uppercase">
+					<span className="mb-3 block text-xs font-bold tracking-wider text-gray-400 uppercase">
 						Social Connections
-					</label>
+					</span>
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<InputGroup
 							label="Instagram"
@@ -699,6 +700,7 @@ export const PreferencesTab = () => {
 	);
 
 	// Load Data
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; `settings` is only read as the initial default and adding it would refetch on every edit
 	useEffect(() => {
 		const loadData = async () => {
 			const data = await profileClient.me().catch(() => null);
@@ -910,8 +912,10 @@ export const PreferencesTab = () => {
 
 // Helper to make the toggle interactive inside this component
 const ToggleRowWrapper = ({ label, desc, active, onToggle }: any) => (
-	<div
-		className="group flex cursor-pointer items-center justify-between"
+	<button
+		type="button"
+		aria-pressed={active}
+		className="group flex w-full cursor-pointer items-center justify-between text-left"
 		onClick={onToggle}
 	>
 		<div>
@@ -920,13 +924,12 @@ const ToggleRowWrapper = ({ label, desc, active, onToggle }: any) => (
 			</h5>
 			<p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{desc}</p>
 		</div>
-		<button
-			type="button"
+		<span
 			className={`cursor-pointer text-3xl transition-colors ${active ? "text-[#006C5E] dark:text-[#4ADE80]" : "text-gray-300 dark:text-gray-600"}`}
 		>
 			{active ? <FiToggleRight /> : <FiToggleLeft />}
-		</button>
-	</div>
+		</span>
+	</button>
 );
 
 // --- 4. NOTIFICATIONS TAB ---
@@ -949,6 +952,7 @@ export const NotificationsTab = () => {
 	const [savedNotifs, setSavedNotifs] = useState<typeof notifs | null>(null);
 
 	// 1. Fetch Data
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; `notifs` is only read as the initial default and adding it would refetch on every edit
 	useEffect(() => {
 		const loadData = async () => {
 			const data = await profileClient.me().catch(() => null);
@@ -1593,27 +1597,34 @@ const NavButton = ({ id, label, icon: Icon, active, onClick, danger }: any) => (
 	</button>
 );
 
-const SelectGroup = ({ label, options, value, onChange }: any) => (
-	<div>
-		<label className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-500">
-			{label}
-		</label>
-		<div className="relative">
-			<select
-				value={value}
-				onChange={(event) => onChange?.(event.target.value)}
-				className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-5 py-3.5 font-medium text-gray-900 transition-colors outline-none focus:border-[#006C5E] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#4ADE80]"
+const SelectGroup = ({ label, options, value, onChange }: any) => {
+	const id = useId();
+	return (
+		<div>
+			<label
+				htmlFor={`${id}-field`}
+				className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-500"
 			>
-				{options.map((opt: string) => (
-					<option key={opt}>{opt}</option>
-				))}
-			</select>
-			<div className="pointer-events-none absolute top-4 right-4 text-gray-500">
-				▼
+				{label}
+			</label>
+			<div className="relative">
+				<select
+					id={`${id}-field`}
+					value={value}
+					onChange={(event) => onChange?.(event.target.value)}
+					className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-5 py-3.5 font-medium text-gray-900 transition-colors outline-none focus:border-[#006C5E] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#4ADE80]"
+				>
+					{options.map((opt: string) => (
+						<option key={opt}>{opt}</option>
+					))}
+				</select>
+				<div className="pointer-events-none absolute top-4 right-4 text-gray-500">
+					▼
+				</div>
 			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 const ToggleRow = ({ label, desc, active }: any) => (
 	<div className="flex items-center justify-between">
@@ -1675,6 +1686,7 @@ const InputGroup = ({
 	status,
 	statusMessage, // <--- New Props
 }: any) => {
+	const id = useId();
 	const [showPassword, setShowPassword] = useState(false);
 	const isPassword = type === "password";
 	const inputType = isPassword && showPassword ? "text" : type;
@@ -1687,7 +1699,10 @@ const InputGroup = ({
 
 	return (
 		<div className="w-full">
-			<label className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500">
+			<label
+				htmlFor={`${id}-field`}
+				className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+			>
 				{label}
 			</label>
 
@@ -1700,6 +1715,7 @@ const InputGroup = ({
 				)}
 
 				<input
+					id={`${id}-field`}
 					type={inputType}
 					value={value}
 					readOnly={readOnly}
@@ -1736,20 +1752,27 @@ const InputGroup = ({
 	);
 };
 
-const TextAreaGroup = ({ label, value, onChange, placeholder }: any) => (
-	<div className="w-full">
-		<label className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500">
-			{label}
-		</label>
-		<textarea
-			value={value}
-			onChange={(e) => onChange && onChange(e.target.value)}
-			placeholder={placeholder}
-			rows={3}
-			className="w-full resize-none rounded-2xl border border-gray-200 bg-white px-5 py-3.5 font-medium text-gray-900 transition-all outline-none placeholder:text-gray-300 focus:border-[#006C5E] focus:ring-1 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-[#4ADE80] dark:focus:ring-white"
-		/>
-	</div>
-);
+const TextAreaGroup = ({ label, value, onChange, placeholder }: any) => {
+	const id = useId();
+	return (
+		<div className="w-full">
+			<label
+				htmlFor={`${id}-field`}
+				className="mb-2 ml-1 block text-xs font-bold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+			>
+				{label}
+			</label>
+			<textarea
+				id={`${id}-field`}
+				value={value}
+				onChange={(e) => onChange && onChange(e.target.value)}
+				placeholder={placeholder}
+				rows={3}
+				className="w-full resize-none rounded-2xl border border-gray-200 bg-white px-5 py-3.5 font-medium text-gray-900 transition-all outline-none placeholder:text-gray-300 focus:border-[#006C5E] focus:ring-1 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:border-[#4ADE80] dark:focus:ring-white"
+			/>
+		</div>
+	);
+};
 
 const SaveButton = ({
 	onClick,

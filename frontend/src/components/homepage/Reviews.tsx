@@ -76,6 +76,8 @@ const staticReviews: Review[] = [
 	},
 ];
 
+const STAR_POSITIONS = [1, 2, 3, 4, 5];
+
 const Reviewsarea = () => {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -134,8 +136,8 @@ const Reviewsarea = () => {
 				<div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end lg:mb-16">
 					<div>
 						<div className="mb-2 flex items-center gap-2">
-							{[...Array(5)].map((_, i) => (
-								<FaStar key={i} className="text-xl text-yellow-400" />
+							{STAR_POSITIONS.map((position) => (
+								<FaStar key={position} className="text-xl text-yellow-400" />
 							))}
 							<span className="ml-2 text-xs font-bold tracking-widest text-gray-600 uppercase dark:text-gray-300">
 								4.9/5 Rating
@@ -237,11 +239,11 @@ const ReviewCard = ({ review }: { review: Review }) => {
 			{/* Content */}
 			<div className="relative z-10 mb-6 grow">
 				<div className="mb-3 flex gap-1">
-					{Array.from({ length: 5 }).map((_, i) => (
+					{STAR_POSITIONS.map((position) => (
 						<FaStar
-							key={i}
+							key={position}
 							className={`text-sm ${
-								i < review.rating
+								position <= review.rating
 									? "text-yellow-400"
 									: "text-gray-200 dark:text-gray-700"
 							}`}

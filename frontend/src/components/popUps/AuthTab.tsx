@@ -89,6 +89,7 @@ export default function AuthTab() {
 		if (currentTab === "login") setIsLogin(true);
 	}, [currentTab]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mode and isLogin are intentional triggers: switching form mode must reset the captcha token and errors
 	useEffect(() => {
 		setTurnstileToken("");
 		setError("");

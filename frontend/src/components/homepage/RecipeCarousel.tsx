@@ -13,6 +13,8 @@ interface RecipeCarouselProps {
 	prioritizeFirstImage?: boolean;
 }
 
+const SKELETON_KEYS = ["skeleton-1", "skeleton-2", "skeleton-3", "skeleton-4"];
+
 const RecipeCarousel = ({
 	title,
 	subtitle = "Unleash your love with foods",
@@ -33,6 +35,7 @@ const RecipeCarousel = ({
 		setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: recipes is an intentional trigger: scroll buttons must be re-evaluated when the list changes
 	useEffect(() => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
@@ -59,8 +62,8 @@ const RecipeCarousel = ({
 		if (!recipes) {
 			return (
 				<div className="flex gap-6 overflow-hidden px-6 py-4 lg:pl-24">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<div key={i} className="shrink-0">
+					{SKELETON_KEYS.map((key) => (
+						<div key={key} className="shrink-0">
 							<RecipeCardSkeleton />
 						</div>
 					))}

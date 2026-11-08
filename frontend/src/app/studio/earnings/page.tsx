@@ -1,7 +1,14 @@
 "use client";
 
 import { Landmark, LoaderCircle, Plus, WalletCards } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+	cloneElement,
+	type ReactElement,
+	useCallback,
+	useEffect,
+	useId,
+	useState,
+} from "react";
 import { toast } from "sonner";
 import { type CreatorEarnings, studioClient } from "@/lib/api/studioClient";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -30,7 +37,7 @@ export default function EarningsPage() {
 	const [country, setCountry] = useState("");
 	const [destination, setDestination] = useState("");
 
-	const load = async () => {
+	const load = useCallback(async () => {
 		if (status !== "authenticated") return;
 		setLoading(true);
 		try {
@@ -42,11 +49,11 @@ export default function EarningsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [status]);
 
 	useEffect(() => {
 		void load();
-	}, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [load]);
 
 	const availableMethods = (["UPI", "PAYPAL", "WISE"] as Method[]).filter(
 		(item) => !earnings?.payoutMethods.some((saved) => saved.method === item),
@@ -290,12 +297,16 @@ function Field({
 	children,
 }: {
 	label: string;
-	children: React.ReactNode;
+	children: ReactElement<{ id?: string }>;
 }) {
+	const id = useId();
 	return (
-		<label className="block text-sm font-semibold text-[#101827] dark:text-white">
+		<label
+			htmlFor={`${id}-field`}
+			className="block text-sm font-semibold text-[#101827] dark:text-white"
+		>
 			{label}
-			{children}
+			{cloneElement(children, { id: `${id}-field` })}
 		</label>
 	);
 }

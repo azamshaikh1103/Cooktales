@@ -249,6 +249,7 @@ export default function NewStory() {
 		title,
 	]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: autosave is intentionally triggered by the draft content values; the draft version is refreshed from every successful save
 	useEffect(() => {
 		if (!draft) return;
 		if (skipFirstSave.current) {

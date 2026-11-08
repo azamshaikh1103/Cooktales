@@ -28,7 +28,8 @@ const AdUnit = ({
 
 		try {
 			if (adRef.current && adRef.current.innerHTML === "") {
-				(window.adsbygoogle = window.adsbygoogle || []).push({});
+				window.adsbygoogle = window.adsbygoogle || [];
+				window.adsbygoogle.push({});
 			}
 		} catch (err) {
 			console.error("AdSense error:", err);

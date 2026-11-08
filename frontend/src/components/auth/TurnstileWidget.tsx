@@ -48,7 +48,7 @@ function loadTurnstileScript(onReady: () => void) {
 	window.__cooktaleOnTurnstileLoad = () => {
 		const callbacks = window.__cooktaleTurnstileReady || [];
 		window.__cooktaleTurnstileReady = [];
-		callbacks.forEach((callback) => callback());
+		for (const callback of callbacks) callback();
 	};
 }
 

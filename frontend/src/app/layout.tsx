@@ -169,12 +169,14 @@ export default async function RootLayout({
 				/>
 				<script
 					id="cooktale-analytics-context"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: static inline script authored in this file; no user input
 					dangerouslySetInnerHTML={{
 						__html: `window.dataLayer=window.dataLayer||[];(function(){try{var q=new URLSearchParams(location.search).get('internal');if(q==='1')localStorage.setItem('cooktale.internal','1');if(q==='0')localStorage.removeItem('cooktale.internal');var h=location.hostname;var pub=h==='cooktale.in'||h==='www.cooktale.in';if(!pub||localStorage.getItem('cooktale.internal')==='1')window.dataLayer.push({traffic_type:'internal'});}catch(e){}})();`,
 					}}
 				/>
 				<script
 					id="google-tag-manager"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: static GTM bootstrap; only interpolates the constant container id
 					dangerouslySetInnerHTML={{
 						__html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${tagManagerId}');`,
 					}}
@@ -191,6 +193,7 @@ export default async function RootLayout({
 				/>
 				<script
 					id="google-funding-choices-present"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: static Google Funding Choices snippet authored in this file
 					dangerouslySetInnerHTML={{
 						__html: `(function() {
   function signalGooglefcPresent() {
@@ -210,6 +213,7 @@ export default async function RootLayout({
 					}}
 				/>
 				<script
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap script authored in this file
 					dangerouslySetInnerHTML={{
 						__html: `
               (function() {
@@ -243,6 +247,7 @@ export default async function RootLayout({
 				<Script
 					id="org-schema"
 					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD of a constant organization object defined in this file
 					dangerouslySetInnerHTML={{
 						__html: JSON.stringify(organizationSchema),
 					}}

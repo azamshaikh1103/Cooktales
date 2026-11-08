@@ -813,61 +813,74 @@ const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
 	};
 
 	return (
-		<li
-			onClick={toggleChecked}
-			className={`group flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all duration-200 ${
-				checked
-					? "bg-[#006C5E]/5 dark:bg-[#4ADE80]/10"
-					: "hover:bg-white hover:shadow-sm dark:hover:bg-white/5"
-			}`}
-		>
+		<li>
+			{/* biome-ignore lint/a11y/useSemanticElements: the row wraps a nested source link, which a native checkbox input cannot contain */}
 			<div
-				className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
+				role="checkbox"
+				aria-checked={checked}
+				tabIndex={0}
+				onClick={toggleChecked}
+				onKeyDown={(event) => {
+					if (event.target !== event.currentTarget) return;
+					if (event.key === "Enter" || event.key === " ") {
+						event.preventDefault();
+						toggleChecked();
+					}
+				}}
+				className={`group flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all duration-200 ${
 					checked
-						? "border-[#006C5E] bg-[#006C5E] dark:border-[#4ADE80] dark:bg-[#4ADE80]"
-						: "border-gray-300 group-hover:border-[#006C5E] dark:border-white/20 dark:group-hover:border-[#4ADE80]"
+						? "bg-[#006C5E]/5 dark:bg-[#4ADE80]/10"
+						: "hover:bg-white hover:shadow-sm dark:hover:bg-white/5"
 				}`}
 			>
-				{checked && (
-					<FaCheck className="text-[10px] text-white dark:text-[#0d1f1c]" />
-				)}
-			</div>
-
-			<div
-				className={`flex-1 leading-snug ${checked ? "line-through decoration-gray-400 opacity-50" : ""}`}
-			>
-				<span className="font-bold text-gray-900 dark:text-gray-200">
-					{item.name}
-				</span>
-				{item.detail && (
-					<span className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
-						({item.detail})
-					</span>
-				)}
-			</div>
-
-			{item.link && (
-				<a
-					href={item.link}
-					target="_blank"
-					rel="sponsored noopener noreferrer"
-					onClick={(e) => {
-						e.stopPropagation();
-						let destination = "unknown";
-						try {
-							destination = new URL(item.link).hostname;
-						} catch {}
-						track("click_shop_ingredients", {
-							recipe_id: recipeId,
-							destination,
-						});
-					}}
-					className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
+				<div
+					className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
+						checked
+							? "border-[#006C5E] bg-[#006C5E] dark:border-[#4ADE80] dark:bg-[#4ADE80]"
+							: "border-gray-300 group-hover:border-[#006C5E] dark:border-white/20 dark:group-hover:border-[#4ADE80]"
+					}`}
 				>
-					<FaExternalLinkAlt className="text-xs" />
-					<span className="hidden sm:inline">Source</span>
-				</a>
-			)}
+					{checked && (
+						<FaCheck className="text-[10px] text-white dark:text-[#0d1f1c]" />
+					)}
+				</div>
+
+				<div
+					className={`flex-1 leading-snug ${checked ? "line-through decoration-gray-400 opacity-50" : ""}`}
+				>
+					<span className="font-bold text-gray-900 dark:text-gray-200">
+						{item.name}
+					</span>
+					{item.detail && (
+						<span className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
+							({item.detail})
+						</span>
+					)}
+				</div>
+
+				{item.link && (
+					<a
+						href={item.link}
+						target="_blank"
+						rel="sponsored noopener noreferrer"
+						onClick={(e) => {
+							e.stopPropagation();
+							let destination = "unknown";
+							try {
+								destination = new URL(item.link).hostname;
+							} catch {}
+							track("click_shop_ingredients", {
+								recipe_id: recipeId,
+								destination,
+							});
+						}}
+						className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
+					>
+						<FaExternalLinkAlt className="text-xs" />
+						<span className="hidden sm:inline">Source</span>
+					</a>
+				)}
+			</div>
 		</li>
 	);
 };
@@ -901,7 +914,8 @@ const InstructionStep = ({
 				</p>
 
 				{step.image && (
-					<div
+					<button
+						type="button"
 						onClick={() => onImageClick(step.image)}
 						className="relative mt-6 h-64 w-full cursor-zoom-in overflow-hidden rounded-3xl border border-gray-100 bg-gray-50 transition-all hover:border-[#006C5E]/30 md:h-80 dark:border-white/10 dark:bg-black/20 dark:hover:border-[#4ADE80]/30"
 					>
@@ -920,7 +934,7 @@ const InstructionStep = ({
 								<FaSearchPlus /> Zoom
 							</div>
 						</div>
-					</div>
+					</button>
 				)}
 
 				{step.timeReq && (

@@ -175,6 +175,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: loadSaved is recreated every render; this effect must run only when the tab, saved type or auth state changes
 	useEffect(() => {
 		if (activeTab !== "saved" || !isSelfProfile || status !== "authenticated")
 			return;
@@ -448,6 +449,7 @@ function SocialListModal({
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: load is recreated every render; reload from page 1 only when the list handle or type changes
 	useEffect(() => {
 		void load(1);
 	}, [handle, type]);

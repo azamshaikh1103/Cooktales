@@ -154,6 +154,8 @@ export function DiscussionEditor({
 
 	return (
 		<div className="overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors focus-within:border-[#006C5E] focus-within:ring-2 focus-within:ring-[#006C5E]/10 dark:border-white/10 dark:bg-[#112220] dark:focus-within:border-[#4ADE80] dark:focus-within:ring-[#4ADE80]/10">
+			{/* biome-ignore lint/a11y/useSemanticElements: rich-text editing needs a contentEditable element, not <textarea> */}
+			{/* biome-ignore lint/a11y/useFocusableInteractive: contentEditable is natively focusable */}
 			<div
 				ref={editorRef}
 				contentEditable

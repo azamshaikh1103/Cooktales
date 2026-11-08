@@ -214,6 +214,8 @@ function RichTextEditor({
 	}, [editorRef, value]);
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: rich-text editing needs a contentEditable element, not <textarea>
+		// biome-ignore lint/a11y/useFocusableInteractive: contentEditable is natively focusable
 		<div
 			ref={editorRef}
 			contentEditable
@@ -287,7 +289,12 @@ function StoryBlockRow({
 	const textRef = useRef<HTMLTextAreaElement | HTMLInputElement>(null);
 	const richTextRef = useRef<HTMLDivElement>(null);
 	const savedRange = useRef<Range | null>(null);
+	const linkInputRef = useRef<HTMLInputElement>(null);
 	const [linkMode, setLinkMode] = useState(false);
+
+	useEffect(() => {
+		if (linkMode) linkInputRef.current?.focus();
+	}, [linkMode]);
 	const [showBlockMenu, setShowBlockMenu] = useState(false);
 	const [linkUrl, setLinkUrl] = useState("");
 	const [linkText, setLinkText] = useState("");
@@ -386,6 +393,7 @@ function StoryBlockRow({
 	const inputClass = `w-full resize-none bg-transparent outline-none placeholder:text-gray-300 dark:text-gray-200 dark:placeholder:text-gray-600 ${block.type === "quote" ? "border-l-4 border-[#006c5e] pl-5 text-2xl italic dark:border-[#4ade80]" : block.type === "codeblock" ? "rounded-lg bg-slate-900 p-4 font-mono text-sm text-green-300" : "text-lg leading-relaxed text-gray-700"}`;
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: drop target only; files can also be added with the block's upload button
 		<section
 			onDragOver={(event) => event.preventDefault()}
 			onDrop={onDrop}
@@ -587,7 +595,7 @@ function StoryBlockRow({
 						<label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
 							What to show
 							<input
-								autoFocus
+								ref={linkInputRef}
 								value={linkText}
 								onChange={(event) => setLinkText(event.target.value)}
 								placeholder="Read the full guide"

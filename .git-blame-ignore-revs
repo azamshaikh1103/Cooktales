@@ -1,0 +1,3 @@
+# Commits that only reformat or auto-fix code. Use: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# chore(frontend): enable Tailwind CSS parsing in Biome and apply safe auto-fixes
+b33dd279764f117c4d3ef472dc78eccdc14f68a1

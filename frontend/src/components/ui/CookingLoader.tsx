@@ -16,11 +16,7 @@ export default function CookingLoader({
 	const reduceMotion = useReducedMotion();
 
 	return (
-		<div
-			role="status"
-			aria-live="polite"
-			className="flex flex-col items-center gap-2 font-semibold text-[#006C5E] dark:text-[#4ADE80]"
-		>
+		<output className="flex flex-col items-center gap-2 font-semibold text-[#006C5E] dark:text-[#4ADE80]">
 			<svg
 				viewBox="0 0 64 56"
 				className="h-12 w-14"
@@ -63,6 +59,6 @@ export default function CookingLoader({
 				<path d="M13 28H7M51 28h6" />
 			</svg>
 			<span className="text-sm">{label}</span>
-		</div>
+		</output>
 	);
 }

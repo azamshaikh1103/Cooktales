@@ -86,6 +86,7 @@ export function NotificationTypeIcon({
 	return (
 		<div
 			className={`grid shrink-0 place-items-center rounded-full ${className} ${colorClassName}`}
+			role="img"
 			aria-label={label}
 			title={label}
 		>

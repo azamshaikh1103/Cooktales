@@ -19,6 +19,7 @@ function PremiumWelcomePopupContent() {
 	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: triggerLuxuryConfetti is recreated every render and only needs to fire when the upgrade query param appears
 	useEffect(() => {
 		if (searchParams.get("upgrade") === "success") {
 			setIsOpen(true);

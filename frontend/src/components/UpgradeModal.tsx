@@ -19,7 +19,7 @@ export default function UpgradeModal({
 }: UpgradeModalProps) {
 	const [loading, setLoading] = useState(false);
 
-	let price;
+	let price: string | undefined;
 	if (plan === "monthly") price = "$3.99";
 	if (plan === "yearly") price = "$29.99";
 	if (plan === "lifetime") price = "$79.99";

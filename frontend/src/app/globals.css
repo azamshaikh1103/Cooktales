@@ -125,6 +125,33 @@
 		background-color: var(--scrollbar-thumb-hover);
 		border: 0;
 	}
+
+	/* Anything clickable shows a pointer; disabled controls show they are unavailable. */
+	button:not(:disabled),
+	summary,
+	select:not(:disabled),
+	label[for],
+	input:is(
+			[type="checkbox"],
+			[type="radio"],
+			[type="file"],
+			[type="submit"],
+			[type="button"],
+			[type="range"]
+		):not(:disabled),
+	[role="button"]:not([aria-disabled="true"]),
+	[role="tab"],
+	[role="option"],
+	[role="menuitem"],
+	[role="switch"],
+	[role="checkbox"] {
+		cursor: pointer;
+	}
+
+	button:disabled,
+	[aria-disabled="true"] {
+		cursor: not-allowed;
+	}
 }
 
 @utility no-scrollbar {

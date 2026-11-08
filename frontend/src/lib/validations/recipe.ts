@@ -86,7 +86,11 @@ export const RecipePublishSchema = z.object({
 		.trim()
 		.max(1500, "Chef's tips are limited to 1,500 characters")
 		.nullable(),
-	storingFreezing: z.string().trim().max(1500).nullable(),
+	storingFreezing: z
+		.string()
+		.trim()
+		.max(1500, "Storing and freezing notes are limited to 1,500 characters")
+		.nullable(),
 	faqs: z.array(FAQSchema).max(20).default([]),
 	tags: z.array(z.string().trim().min(1).max(80)).max(12).default([]),
 	media: z.array(RecipeMediaSchema).max(30).default([]),

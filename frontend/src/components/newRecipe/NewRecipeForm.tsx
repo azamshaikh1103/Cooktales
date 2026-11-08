@@ -1220,19 +1220,17 @@ export default function NewRecipeForm({ recipeId }: { recipeId?: string }) {
 								<h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">
 									Storing & Freezing
 								</h3>
-								<textarea
+								<RichTextEditor
+									variant="light"
+									appearance="filled"
+									size="compact"
+									ariaLabel="Storing and freezing"
 									value={recipe.storingFreezing || ""}
 									maxLength={1500}
 									onFocus={() => setActiveGuideKey("storage")}
-									onChange={(e) =>
-										updateField("storingFreezing", e.target.value)
-									}
+									onChange={(value) => updateField("storingFreezing", value)}
 									placeholder="How to store leftovers or freeze for later..."
-									className="min-h-[120px] w-full resize-none rounded-2xl bg-gray-50 p-4 text-gray-900 transition-all outline-none focus:ring-2 focus:ring-[#006C5E]/20 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-600 dark:focus:ring-[#4ADE80]/20"
 								/>
-								<p className="mt-2 text-right text-xs text-gray-400 dark:text-gray-600">
-									{recipe.storingFreezing?.length || 0}/1500
-								</p>
 							</div>
 						</div>
 					</div>

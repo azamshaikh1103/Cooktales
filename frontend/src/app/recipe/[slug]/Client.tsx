@@ -591,9 +591,14 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								<h4 className="mb-4 font-bold text-[#006C5E] dark:text-[#4ADE80]">
 									Storing
 								</h4>
-								<p className="leading-relaxed whitespace-pre-line text-[#174a43] dark:text-[#b7f5ce]">
-									{recipe.storingFreezing}
-								</p>
+								<div className="leading-relaxed text-[#174a43] dark:text-[#b7f5ce]">
+									<MarkdownText
+										text={recipe.storingFreezing}
+										variant="light"
+										spacing="tight"
+										keyPrefix="storing"
+									/>
+								</div>
 							</div>
 						)}
 

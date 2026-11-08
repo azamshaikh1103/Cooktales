@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { communityClient } from "@/lib/api/communityClient";
 import imageLoader from "@/lib/loader";
+import { markdownToPlainText } from "@/lib/richText/markdown";
 import CommentSection from "../CommentSection";
 import RichContent from "../RichContent";
 import { ThreadActions } from "../ThreadActions";
@@ -16,16 +17,43 @@ interface PageProps {
 	searchParams: Promise<{ bid?: string }>;
 }
 
+// Plain text for the meta description: no markdown symbols, attachment markers or image links.
+function threadDescription(content: string, title: string) {
+	const plain = markdownToPlainText(
+		content
+			.replace(/\[(?:RECIPE|BLOG):[^\]]+\]/g, " ")
+			.replace(/!\[[^\]]*\]\([^)]*\)/g, " "),
+		"full",
+	);
+	if (!plain) return `Join the CookTale community discussion: ${title}.`;
+	if (plain.length <= 155) return plain;
+	return `${plain.slice(0, 155).replace(/\s+\S*$/, "")}…`;
+}
+
 // A deleted thread must never be indexed or shown in search results.
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
 	const { slug } = await params;
 	const result = await communityClient.getDiscussion(slug).catch(() => null);
-	if (result?.discussion.deleted) {
-		return { robots: { index: false, follow: false } };
-	}
-	return {};
+	if (!result) return {};
+	const { discussion } = result;
+	if (discussion.deleted) return { robots: { index: false, follow: false } };
+
+	const description = threadDescription(discussion.content, discussion.title);
+	const path = `/community/discussion/${slug}`;
+	return {
+		title: discussion.title,
+		description,
+		alternates: { canonical: path },
+		openGraph: {
+			type: "article",
+			title: discussion.title,
+			description,
+			url: path,
+		},
+		twitter: { card: "summary", title: discussion.title, description },
+	};
 }
 
 export default async function DiscussionPage({ params }: PageProps) {

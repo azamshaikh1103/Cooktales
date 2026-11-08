@@ -5,11 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaFlag, FaReply } from "react-icons/fa";
 import { toast } from "sonner";
+import { MarkdownText } from "@/components/ui/MarkdownText";
+import { PrimaryActionButton } from "@/components/ui/PrimaryActionButton";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { communityClient } from "@/lib/api/communityClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import imageLoader from "@/lib/loader";
 import { Upvote } from "./Upvote";
+
+// Matches the API limit (CreateCommentDto): markdown markers count too.
+const COMMENT_MAX = 2000;
 
 export default function CommentSection({ comments, discussionId }: any) {
 	return (
@@ -80,9 +86,14 @@ const CommentItem = ({ comment, discussionId, isReply }: any) => {
 				</div>
 
 				{/* Body */}
-				<p className="mb-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-					{comment.content}
-				</p>
+				<div className="mb-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+					<MarkdownText
+						text={comment.content}
+						variant="light"
+						spacing="tight"
+						keyPrefix={`comment-${comment.id}`}
+					/>
+				</div>
 
 				{/* Actions */}
 				<div className="flex items-center gap-4 text-xs font-bold text-gray-400 dark:text-gray-500">
@@ -164,36 +175,41 @@ const CommentInput = ({ discussionId, parentId, onSuccess }: any) => {
 		}
 	};
 
+	const overLimit = text.length > COMMENT_MAX;
+	const canPost = Boolean(text.trim()) && !overLimit && !loading;
+
 	return (
-		<div className="flex items-start gap-4">
-			<div className="relative flex-1">
-				<textarea
-					value={text}
-					onChange={(e) => setText(e.target.value)}
-					placeholder={
-						parentId ? "Write a reply..." : "Add to the discussion..."
-					}
-					className="min-h-[100px] w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-900 transition-all outline-none focus:border-[#006C5E] dark:border-white/10 dark:bg-[#152a26] dark:text-white dark:focus:border-[#4ADE80]"
-				/>
-				<div className="absolute right-3 bottom-3 flex gap-2">
-					{parentId && (
-						<button
-							type="button"
-							onClick={onSuccess}
-							className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-gray-600"
-						>
-							Cancel
-						</button>
-					)}
+		<div className="space-y-3">
+			<RichTextEditor
+				variant="light"
+				size="compact"
+				ariaLabel={parentId ? "Your reply" : "Your response"}
+				value={text}
+				maxLength={COMMENT_MAX}
+				onChange={setText}
+				onSubmit={() => {
+					if (canPost) void handleSubmit();
+				}}
+				placeholder={parentId ? "Write a reply..." : "Add to the discussion..."}
+			/>
+			<div className="flex items-center justify-end gap-2">
+				{parentId && (
 					<button
 						type="button"
-						onClick={handleSubmit}
-						disabled={loading || !text.trim()}
-						className="rounded-lg bg-[#006C5E] px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#005a4e] disabled:opacity-50"
+						onClick={onSuccess}
+						className="cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
 					>
-						{loading ? "Posting..." : "Post"}
+						Cancel
 					</button>
-				</div>
+				)}
+				<PrimaryActionButton
+					type="button"
+					onClick={handleSubmit}
+					disabled={!canPost}
+					className="px-5 py-1.5"
+				>
+					{loading ? "Posting..." : "Post"}
+				</PrimaryActionButton>
 			</div>
 		</div>
 	);

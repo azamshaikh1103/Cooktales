@@ -125,6 +125,8 @@ export type RichTextEditorProps = {
 	onBlur?: () => void;
 	/** Extra toolbar buttons placed before the formatting buttons. */
 	leadingTools?: ReactNode;
+	/** Called on Ctrl/Cmd+Enter, for replies and comments. */
+	onSubmit?: () => void;
 };
 
 export function RichTextEditor({
@@ -139,6 +141,7 @@ export function RichTextEditor({
 	onFocus,
 	onBlur,
 	leadingTools,
+	onSubmit,
 }: RichTextEditorProps) {
 	const full = variant === "full";
 	const compact = size === "compact";
@@ -334,6 +337,11 @@ export function RichTextEditor({
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		const editor = editorRef.current;
 		if (!editor) return;
+		if (onSubmit && (event.metaKey || event.ctrlKey) && event.key === "Enter") {
+			event.preventDefault();
+			onSubmit();
+			return;
+		}
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
 			event.preventDefault();
 			addLink();

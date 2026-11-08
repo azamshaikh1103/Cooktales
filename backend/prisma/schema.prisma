@@ -267,6 +267,8 @@ model Discussion {
   updatedAt DateTime  @updatedAt
   slug      String    @unique
   views     Int       @default(0)
+  deletedAt DateTime?
+  deletedById String?
   comments  Comment[]
   author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes     Like[]

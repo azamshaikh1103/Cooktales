@@ -51,6 +51,16 @@ export class CommunityController {
   @UseGuards(AuthGuard)
   unlikeComment(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.unlikeComment(request.user.sub, id); }
 
+  @Delete('discussions/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  deleteDiscussion(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.deleteDiscussion({ id: request.user.sub, role: request.user.role }, id); }
+
+  @Delete('comments/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  deleteComment(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.deleteComment({ id: request.user.sub, role: request.user.role }, id); }
+
   @Post('discussions/:id/comments')
   @UseGuards(AuthGuard)
   comment(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: CreateCommentDto) { return this.community.createComment(request.user.sub, id, dto).then(addVerifiedBadge); }

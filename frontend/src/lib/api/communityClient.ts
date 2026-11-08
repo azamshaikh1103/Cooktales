@@ -46,6 +46,8 @@ export type Comment = {
 	author: CommunityUser;
 	likes: { userId: string }[];
 	replies: Comment[];
+	/** True for a "[deleted]" placeholder kept so replies below it keep their context. */
+	deleted?: boolean;
 };
 export type Discussion = {
 	id: string;
@@ -58,6 +60,8 @@ export type Discussion = {
 	author: CommunityUser;
 	_count: { likes: number; comments: number };
 	comments?: Comment[];
+	deleted?: boolean;
+	removedBy?: "author" | "moderator";
 };
 export type Challenge = {
 	id: string;
@@ -166,6 +170,16 @@ export const communityClient = {
 	unlike: (discussionId: string) =>
 		request<{ likes: number; liked: boolean }>(
 			`/community/discussions/${encodeURIComponent(discussionId)}/like`,
+			{ method: "DELETE" },
+		),
+	deleteDiscussion: (discussionId: string) =>
+		request<{ message: string }>(
+			`/community/discussions/${encodeURIComponent(discussionId)}`,
+			{ method: "DELETE" },
+		),
+	deleteComment: (commentId: string) =>
+		request<{ message: string }>(
+			`/community/comments/${encodeURIComponent(commentId)}`,
 			{ method: "DELETE" },
 		),
 	discussionLikeState: (discussionId: string) =>

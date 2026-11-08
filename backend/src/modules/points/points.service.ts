@@ -33,6 +33,25 @@ export class PointsService {
     }
   }
 
+  /**
+   * Takes back the points a specific action earned. Does nothing if that action never earned any
+   * (for example it was over the daily limit) or was already taken back.
+   */
+  async revoke(userId: string, eventKey: string, reason: string) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const original = await tx.pointHistory.findUnique({ where: { eventKey } });
+        if (!original || original.userId !== userId || original.amount <= 0) return false;
+
+        await this.create(tx, userId, -original.amount, reason, `revoked:${eventKey}`);
+        return true;
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return false;
+      throw error;
+    }
+  }
+
   private async create(
     tx: Prisma.TransactionClient,
     userId: string,

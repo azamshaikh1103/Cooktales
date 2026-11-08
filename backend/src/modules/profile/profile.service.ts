@@ -599,8 +599,8 @@ export class ProfileService {
         include: { ingredients: true, equipments: true, steps: true, faqs: true, media: true },
       }),
       this.prisma.story.findMany({ where: { authorId: userId }, include: { content: true, media: true } }),
-      this.prisma.discussion.findMany({ where: { authorId: userId } }),
-      this.prisma.comment.findMany({ where: { authorId: userId } }),
+      this.prisma.discussion.findMany({ where: { authorId: userId, deletedAt: null } }),
+      this.prisma.comment.findMany({ where: { authorId: userId, deletedAt: null } }),
       this.prisma.bookmark.findMany({ where: { userId } }),
       this.prisma.collection.findMany({
         where: { userId },

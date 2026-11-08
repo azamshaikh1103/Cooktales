@@ -7,6 +7,8 @@ import { BiLoaderAlt } from 'react-icons/bi';
 import { toast } from 'sonner';
 import { recipeClient } from '@/lib/api/recipeClient';
 import { useRouter } from 'next/navigation';
+import { markInstallEngagement } from '@/lib/pwa/installPrompt';
+import { track } from '@/lib/analytics/track';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -56,6 +58,10 @@ export default function ReviewModal({
         await recipeClient.updateReview(recipeId, existingReview.id, { stars: rating, text });
       } else {
         await recipeClient.createReview(recipeId, { stars: rating, text });
+      }
+      if (!existingReview) {
+        markInstallEngagement();
+        track('post_review', { recipe_id: recipeId, rating });
       }
       toast.success(existingReview ? 'Review updated' : 'Review posted');
       onClose();

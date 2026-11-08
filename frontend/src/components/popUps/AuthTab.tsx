@@ -22,6 +22,7 @@ import { rememberGoogleReturnTo } from '@/lib/auth/googleReturnTo';
 import { setTab } from '@/lib/Slices/tabSlice';
 import type { RootState } from '@/lib/store';
 import { toast } from 'sonner';
+import { track } from '@/lib/analytics/track';
 
 const panelMotion: Variants = {
   hidden: { opacity: 0, y: 16, filter: 'blur(10px)' },
@@ -158,6 +159,7 @@ export default function AuthTab() {
           turnstileToken,
         });
         persistAuthResponse(result);
+        track('login', { method: 'email' });
         setAuthenticated({ user: result.user, accessToken: result.accessToken });
         toast.success('Welcome back!');
         handleClose();
@@ -177,6 +179,7 @@ export default function AuthTab() {
         turnstileToken,
       });
 
+      track('sign_up', { method: 'email' });
       setMode('verify');
       toast.success(result.message || 'Account created. Please verify your email.');
     } catch (err) {

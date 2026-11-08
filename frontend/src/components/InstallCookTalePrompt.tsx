@@ -2,14 +2,22 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Plus, Share2, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { track } from "@/lib/analytics/track";
 import { useEffect, useRef, useState } from "react";
 import {
 	canShowInstallPrompt,
+	INSTALL_ENGAGEMENT_EVENT,
 	INSTALL_PROMPT_NEVER,
-	remindLaterValue,
+	installPromptStorage,
+	isInstallEngaged,
+	isInstallPromptSuppressedPath,
+	isTypingTarget,
+	parseInstallPromptState,
+	recordInstallDismissal,
 } from "@/lib/pwa/installPrompt";
 
-const STORAGE_KEY = "cooktale.install-prompt";
+const VISIT_SESSION_KEY = "cooktale.install-visit-counted";
 type InstallKind = "browser" | "ios" | "mac-safari";
 
 type DeferredInstallPrompt = Event & {
@@ -39,54 +47,117 @@ function isAlreadyInstalled() {
 	);
 }
 
+function countVisitOncePerSession() {
+	try {
+		if (window.sessionStorage.getItem(VISIT_SESSION_KEY)) return;
+		window.sessionStorage.setItem(VISIT_SESSION_KEY, "1");
+	} catch {
+		return;
+	}
+	const engagement = installPromptStorage.readEngagement();
+	installPromptStorage.writeEngagement({
+		...engagement,
+		visits: engagement.visits + 1,
+	});
+}
+
 export default function InstallCookTalePrompt() {
+	const pathname = usePathname();
 	const deferredPrompt = useRef<DeferredInstallPrompt | null>(null);
 	const [installKind, setInstallKind] = useState<InstallKind | null>(null);
-	const [isOpen, setIsOpen] = useState(false);
+	const [eligible, setEligible] = useState(false);
+	const [typing, setTyping] = useState(false);
 
 	useEffect(() => {
-		if (
-			isAlreadyInstalled() ||
-			!canShowInstallPrompt(localStorage.getItem(STORAGE_KEY), Date.now())
-		) {
-			return;
-		}
+		if (isAlreadyInstalled()) return;
+		countVisitOncePerSession();
 
-		const showManualInstall = window.setTimeout(() => {
-			const kind = getInstallKind();
-			if (kind) {
-				setInstallKind(kind);
-				setIsOpen(true);
+		// Eligible = not snoozed/never AND the visitor has earned the ask.
+		const refresh = () =>
+			setEligible(
+				canShowInstallPrompt(installPromptStorage.readPrompt(), Date.now()) &&
+					isInstallEngaged(installPromptStorage.readEngagement()),
+			);
+		const handleStorage = (event: StorageEvent) => {
+			if (event.key === null || event.key.startsWith("cooktale.install")) {
+				refresh();
 			}
-		}, 5_000);
-
+		};
 		const handleBeforeInstallPrompt = (event: Event) => {
 			event.preventDefault();
 			deferredPrompt.current = event as DeferredInstallPrompt;
 			setInstallKind("browser");
-			setIsOpen(true);
 		};
 		const handleInstalled = () => {
-			localStorage.setItem(STORAGE_KEY, INSTALL_PROMPT_NEVER);
+			installPromptStorage.writePrompt(INSTALL_PROMPT_NEVER);
 			deferredPrompt.current = null;
-			setIsOpen(false);
+			setEligible(false);
 		};
+		const syncTyping = () => setTyping(isTypingTarget(document.activeElement));
 
+		refresh();
 		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 		window.addEventListener("appinstalled", handleInstalled);
+		window.addEventListener(INSTALL_ENGAGEMENT_EVENT, refresh);
+		window.addEventListener("storage", handleStorage);
+		document.addEventListener("focusin", syncTyping);
+		document.addEventListener("focusout", syncTyping);
 		return () => {
-			window.clearTimeout(showManualInstall);
 			window.removeEventListener(
 				"beforeinstallprompt",
 				handleBeforeInstallPrompt,
 			);
 			window.removeEventListener("appinstalled", handleInstalled);
+			window.removeEventListener(INSTALL_ENGAGEMENT_EVENT, refresh);
+			window.removeEventListener("storage", handleStorage);
+			document.removeEventListener("focusin", syncTyping);
+			document.removeEventListener("focusout", syncTyping);
 		};
 	}, []);
 
-	const dismiss = (value: string) => {
-		localStorage.setItem(STORAGE_KEY, value);
-		setIsOpen(false);
+	// Safari/iOS have no install event: show the manual steps shortly after the ask is earned.
+	useEffect(() => {
+		if (!eligible) return;
+		const timer = window.setTimeout(() => {
+			const kind = getInstallKind();
+			if (kind) setInstallKind(kind);
+		}, 3_000);
+		return () => window.clearTimeout(timer);
+	}, [eligible]);
+
+	const isOpen =
+		eligible &&
+		installKind !== null &&
+		!typing &&
+		!isInstallPromptSuppressedPath(pathname);
+
+	const shownReported = useRef(false);
+	useEffect(() => {
+		if (!isOpen || !installKind || shownReported.current) return;
+		shownReported.current = true;
+		track("install_prompt_shown", { platform: installKind });
+	}, [isOpen, installKind]);
+
+	const remindLater = () => {
+		const next = recordInstallDismissal(
+			installPromptStorage.readPrompt(),
+			Date.now(),
+		);
+		installPromptStorage.writePrompt(next);
+		track("install_prompt_dismissed", {
+			platform: installKind ?? "unknown",
+			dismissal_count: parseInstallPromptState(next).dismissals,
+		});
+		setEligible(false);
+	};
+
+	const neverAsk = () => {
+		installPromptStorage.writePrompt(INSTALL_PROMPT_NEVER);
+		track("install_prompt_dismissed", {
+			platform: installKind ?? "unknown",
+			dismissal_count: 99,
+		});
+		setEligible(false);
 	};
 
 	const install = async () => {
@@ -95,11 +166,13 @@ export default function InstallCookTalePrompt() {
 		await deferredPrompt.current.prompt();
 		const { outcome } = await deferredPrompt.current.userChoice;
 		deferredPrompt.current = null;
-		dismiss(
-			outcome === "accepted"
-				? INSTALL_PROMPT_NEVER
-				: remindLaterValue(Date.now()),
-		);
+		if (outcome === "accepted") {
+			track("install_prompt_accepted", { platform: installKind ?? "browser" });
+			installPromptStorage.writePrompt(INSTALL_PROMPT_NEVER);
+			setEligible(false);
+		} else {
+			remindLater();
+		}
 	};
 
 	const isIos = installKind === "ios";
@@ -125,7 +198,7 @@ export default function InstallCookTalePrompt() {
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						onClick={() => dismiss(remindLaterValue(Date.now()))}
+						onClick={() => remindLater()}
 						className="absolute inset-0 bg-black/50 backdrop-blur-sm"
 					/>
 					<motion.section
@@ -136,7 +209,7 @@ export default function InstallCookTalePrompt() {
 					>
 						<button
 							type="button"
-							onClick={() => dismiss(remindLaterValue(Date.now()))}
+							onClick={() => remindLater()}
 							aria-label="Remind me later"
 							className="absolute top-4 right-4 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006C5E] dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:outline-[#4ADE80]"
 						>
@@ -189,14 +262,14 @@ export default function InstallCookTalePrompt() {
 							)}
 							<button
 								type="button"
-								onClick={() => dismiss(remindLaterValue(Date.now()))}
+								onClick={() => remindLater()}
 								className="rounded-xl px-2 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006C5E] dark:text-gray-300 dark:hover:text-white dark:focus-visible:outline-[#4ADE80]"
 							>
 								Remind me later
 							</button>
 							<button
 								type="button"
-								onClick={() => dismiss(INSTALL_PROMPT_NEVER)}
+								onClick={() => neverAsk()}
 								className="rounded-xl px-2 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#006C5E] dark:text-gray-500 dark:hover:text-gray-200 dark:focus-visible:outline-[#4ADE80]"
 							>
 								No thanks

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
@@ -22,6 +23,9 @@ import {
 	FaUser,
 } from "react-icons/fa";
 import imageLoader from "@/lib/loader";
+import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { track } from "@/lib/analytics/track";
+import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setProfilePopup } from "@/lib/Slices/ProfileMenuPopup";
@@ -71,6 +75,16 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	];
 	const galleryImages = recipe.moreImages || [];
 	const hasCountedView = useRef(false);
+	useScrollDepth("recipe", recipe.id);
+	useEffect(() => {
+		track("view_recipe", {
+			recipe_id: recipe.id,
+			recipe_name: recipe.name,
+			recipe_category: recipe.recipeCategory ?? undefined,
+			cuisine: recipe.cuisine,
+			creator_id: recipe.author?.id,
+		});
+	}, [recipe.id, recipe.name, recipe.recipeCategory, recipe.cuisine, recipe.author?.id]);
 	const recipeDetails = [
 		{ label: "Diet", value: recipe.diet },
 		{
@@ -189,6 +203,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	}, [recipe.id]);
 
 	const openLightbox = (index: number) => {
+		track("open_gallery_image", { recipe_id: recipe.id, image_index: index });
 		setCurrentImageIndex(index);
 		setIsLightboxOpen(true);
 	};
@@ -235,6 +250,17 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 				? await recipeClient.unbookmark(recipe.id)
 				: await recipeClient.bookmark(recipe.id);
 			setIsBookmarked(state.bookmarked);
+			if (state.bookmarked) {
+				markInstallEngagement();
+				track("save_recipe", {
+					recipe_id: recipe.id,
+					recipe_category: recipe.recipeCategory ?? undefined,
+					cuisine: recipe.cuisine,
+					creator_id: recipe.author?.id,
+				});
+			} else {
+				track("unsave_recipe", { recipe_id: recipe.id });
+			}
 			toast.success(
 				state.bookmarked ? "Saved to library" : "Removed from library",
 			);
@@ -372,27 +398,47 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 					)}
 
 					<div className="flex flex-col gap-8 font-medium text-gray-600 lg:flex-row lg:items-center dark:text-gray-300">
-						<div className="flex items-center gap-3">
-							<div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
-								{recipe.author?.image && (
-									<Image
-										src={recipe.author.image}
-										fill
-										alt=""
-										loader={imageLoader}
-										className="object-cover"
-									/>
-								)}
-							</div>
-							<span className="font-bold text-gray-900 dark:text-white">
-								{recipe.author?.name} <VerifiedBadge verified={recipe.author?.isVerifiedBadge} />
-							</span>
-						</div>
+						{(() => {
+							const authorContent = (
+								<>
+									<div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+										{recipe.author?.image && (
+											<Image
+												src={recipe.author.image}
+												fill
+												alt=""
+												loader={imageLoader}
+												className="object-cover"
+											/>
+										)}
+									</div>
+									<span className="font-bold text-gray-900 dark:text-white">
+										{recipe.author?.name}{" "}
+										<VerifiedBadge verified={recipe.author?.isVerifiedBadge} />
+									</span>
+								</>
+							);
+							return recipe.author?.username ? (
+								<Link
+									href={`/profile/${recipe.author.username}`}
+									className="flex cursor-pointer items-center gap-3"
+								>
+									{authorContent}
+								</Link>
+							) : (
+								<div className="flex items-center gap-3">{authorContent}</div>
+							);
+						})()}
 						<div className="hidden h-6 w-px bg-gray-200 lg:block dark:bg-white/10" />
 
 						<button
-							onClick={handleWriteReview}
-							className="flex items-center gap-2 transition-transform hover:scale-105"
+							type="button"
+							onClick={() =>
+								document
+									.getElementById("reviews")
+									?.scrollIntoView({ behavior: "smooth", block: "start" })
+							}
+							className="flex cursor-pointer items-center gap-2"
 						>
 							<FaStar className="text-lg text-yellow-400" />
 							<span className="font-bold text-gray-900 dark:text-white">
@@ -417,7 +463,16 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 
 					<button
 						type="button"
-						onClick={() => router.push(`/cook/${recipe.slug}`)}
+						onClick={() => {
+							track("start_cooking", {
+								recipe_id: recipe.id,
+								recipe_name: recipe.name,
+								recipe_category: recipe.recipeCategory ?? undefined,
+								cuisine: recipe.cuisine,
+								creator_id: recipe.author?.id,
+							});
+							router.push(`/cook/${recipe.slug}`);
+						}}
 						className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#006C5E] px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#005a4e] dark:bg-[#4ADE80] dark:text-[#0d1f1c] dark:hover:bg-[#3ccb74]"
 					>
 						<FaFire /> Start cooking
@@ -444,7 +499,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 											alt={`${recipe.name} gallery image ${index + 1}`}
 											fill
 											loader={imageLoader}
-											className="object-cover transition-transform duration-300 group-hover:scale-105"
+											className="object-cover"
 										/>
 									</button>
 								))}
@@ -470,7 +525,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 
 							<ul className="space-y-4">
 								{recipe.ingredients.map((ing) => (
-									<ListItem key={ing.id} item={ing} />
+									<ListItem key={ing.id} item={ing} recipeId={recipe.id} />
 								))}
 							</ul>
 						</div>
@@ -486,7 +541,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								</h3>
 								<ul className="space-y-4">
 									{recipe.equipments.map((eq) => (
-										<ListItem key={eq.id} item={eq} />
+										<ListItem key={eq.id} item={eq} recipeId={recipe.id} />
 									))}
 								</ul>
 							</div>
@@ -554,7 +609,10 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 						)}
 
 						{/* REVIEWS SECTION */}
-						<div className="mt-16 border-t border-gray-100 pt-10 dark:border-white/5">
+						<div
+							id="reviews"
+							className="mt-16 scroll-mt-24 border-t border-gray-100 pt-10 dark:border-white/5"
+						>
 							<div className="mb-8 flex flex-wrap items-center justify-between gap-4">
 								<div className="flex items-center gap-3">
 									<h4 className="text-3xl font-black text-gray-900 dark:text-white">
@@ -727,17 +785,23 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 				onClose={() => setIsShareOpen(false)}
 				url={typeof window !== "undefined" ? window.location.href : ""}
 				title={recipe.name}
+				analytics={{ contentType: "recipe", contentId: recipe.id }}
 			/>
 		</div>
 	);
 };
 
-const ListItem = ({ item }: { item: any }) => {
+const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
 	const [checked, setChecked] = useState(false);
+	const toggleChecked = () => {
+		const next = !checked;
+		setChecked(next);
+		track("check_ingredient", { recipe_id: recipeId, context: "recipe_page", checked: next });
+	};
 
 	return (
 		<li
-			onClick={() => setChecked(!checked)}
+			onClick={toggleChecked}
 			className={`group flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all duration-200 ${
 				checked
 					? "bg-[#006C5E]/5 dark:bg-[#4ADE80]/10"
@@ -774,7 +838,14 @@ const ListItem = ({ item }: { item: any }) => {
 					href={item.link}
 					target="_blank"
 					rel="sponsored noopener noreferrer"
-					onClick={(e) => e.stopPropagation()}
+					onClick={(e) => {
+						e.stopPropagation();
+						let destination = "unknown";
+						try {
+							destination = new URL(item.link).hostname;
+						} catch {}
+						track("click_shop_ingredients", { recipe_id: recipeId, destination });
+					}}
 					className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
 				>
 					<FaExternalLinkAlt className="text-xs" />

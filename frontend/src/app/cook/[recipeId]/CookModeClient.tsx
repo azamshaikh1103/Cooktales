@@ -19,6 +19,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PublicRecipe } from "@/lib/api/recipeClient";
 import imageloader from "@/lib/loader";
+import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { track } from "@/lib/analytics/track";
 
 type CookProgress = {
 	stepIndex: number;
@@ -181,7 +183,49 @@ export default function CookModeClient({ recipe }: { recipe: PublicRecipe }) {
 		setTimeLeft(0);
 		setIsTimerPaused(true);
 		window.localStorage.removeItem(storageKey);
-	}, [storageKey, totalSteps]);
+		markInstallEngagement();
+		track("finish_cooking", { recipe_id: recipe.id, total_steps: totalSteps });
+	}, [storageKey, totalSteps, recipe.id]);
+
+	const trackedStep = useRef(-1);
+	const abandonSent = useRef(false);
+	const stepRef = useRef(stepIndex);
+	stepRef.current = stepIndex;
+
+	useEffect(() => {
+		if (
+			!isReady ||
+			stepIndex < 0 ||
+			stepIndex >= totalSteps ||
+			trackedStep.current === stepIndex
+		) {
+			return;
+		}
+		trackedStep.current = stepIndex;
+		track("cook_step", {
+			recipe_id: recipe.id,
+			step_number: stepIndex + 1,
+			total_steps: totalSteps,
+		});
+	}, [isReady, stepIndex, totalSteps, recipe.id]);
+
+	useEffect(() => {
+		const reportAbandon = () => {
+			const step = stepRef.current;
+			if (abandonSent.current || step < 0 || step >= totalSteps) return;
+			abandonSent.current = true;
+			track("abandon_cooking", {
+				recipe_id: recipe.id,
+				step_number: step + 1,
+				total_steps: totalSteps,
+			});
+		};
+		window.addEventListener("pagehide", reportAbandon);
+		return () => {
+			window.removeEventListener("pagehide", reportAbandon);
+			reportAbandon();
+		};
+	}, [recipe.id, totalSteps]);
 
 	const goNext = useCallback(() => {
 		if (totalSteps === 0) return;
@@ -216,6 +260,11 @@ export default function CookModeClient({ recipe }: { recipe: PublicRecipe }) {
 	}, [currentStep, goBack, goNext, recipe.slug, router, timeLeft]);
 
 	const toggleChecklistItem = (id: string) => {
+		track("check_ingredient", {
+			recipe_id: recipe.id,
+			context: "cook_mode",
+			checked: !checkedItemIds.has(id),
+		});
 		setCheckedItemIds((current) => {
 			const next = new Set(current);
 			next.has(id) ? next.delete(id) : next.add(id);

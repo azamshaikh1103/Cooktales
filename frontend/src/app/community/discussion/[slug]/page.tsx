@@ -5,7 +5,6 @@ import { communityClient } from '@/lib/api/communityClient';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
-import AdUnit from '@/components/AdUnit';
 import CommentSection from '../CommentSection';
 import RichContent from '../RichContent';
 import imageLoader from '@/lib/loader';
@@ -78,12 +77,6 @@ export default async function DiscussionPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-
-        <AdUnit
-          type="banner"
-          slot="community-thread-inline"
-          className="mx-auto mb-12 max-w-3xl"
-        />
 
         {/* Comments */}
         <CommentSection

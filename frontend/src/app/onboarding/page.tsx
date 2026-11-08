@@ -9,6 +9,7 @@ import {
   type OnboardingGoal,
 } from '@/lib/api/onboardingClient';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { track } from '@/lib/analytics/track';
 
 const DISCOVERY_SOURCES: Array<{ value: DiscoverySource; label: string }> = [
   { value: 'INSTAGRAM', label: 'Instagram' },
@@ -70,6 +71,7 @@ export default function OnboardingPage() {
           cookingIdentity,
         });
       }
+      track('onboarding_complete', { skipped: action === 'skip' });
       updateUser({ surveyCompleted: true });
       router.replace('/?welcome=true');
     } catch (requestError) {

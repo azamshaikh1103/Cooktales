@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { storyClient } from "@/lib/api/storyClient";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { track } from "@/lib/analytics/track";
+import { useScrollDepth } from "@/lib/analytics/useScrollDepth";
 
 type Props = {
 	storyId: string;
@@ -20,6 +23,10 @@ export default function StoryEngagement({
 	initialViews,
 	initialComments,
 }: Props) {
+	useScrollDepth("story", storyId);
+	useEffect(() => {
+		track("view_story", { story_id: storyId });
+	}, [storyId]);
 	const { status } = useAuth();
 	const router = useRouter();
 	const [liked, setLiked] = useState(false);
@@ -124,6 +131,12 @@ export default function StoryEngagement({
 				? await storyClient.bookmark(storyId)
 				: await storyClient.unbookmark(storyId);
 			setBookmarked(state.bookmarked);
+			if (state.bookmarked) {
+				markInstallEngagement();
+				track("save_story", { story_id: storyId });
+			} else {
+				track("unsave_story", { story_id: storyId });
+			}
 			toast.success(
 				state.bookmarked
 					? "Saved to your kitchen"

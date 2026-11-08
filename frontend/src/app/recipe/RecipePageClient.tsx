@@ -11,11 +11,14 @@ import { toast } from "sonner";
 import { RecipeCard } from "@/components/BasicCard";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import CookingLoader from "@/components/ui/CookingLoader";
 import { getAllRecipesAction } from "@/lib/actions/recipe.actions";
 import { recipeClient } from "@/lib/api/recipeClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { formatters } from "@/lib/formatters";
 import imageLoader from "@/lib/loader";
+import { markInstallEngagement } from "@/lib/pwa/installPrompt";
+import { track } from "@/lib/analytics/track";
 import { RECIPE_CATEGORIES } from "@/lib/recipeCategories";
 import { setTab } from "@/lib/Slices/tabSlice";
 
@@ -130,6 +133,7 @@ export default function RecipePageClient({
 				) {
 					const nextPage = page + 1;
 					setPage(nextPage);
+					track("load_more", { list_name: "recipes", page_number: nextPage });
 					fetchRecipes(nextPage, selectedCategory, true);
 				}
 			},
@@ -150,8 +154,11 @@ export default function RecipePageClient({
 						<button
 							type="button"
 							key={category}
-							onClick={() => setSelectedCategory(category)}
-							className={`rounded-full border px-5 py-2 text-sm font-bold whitespace-nowrap transition-all ${
+							onClick={() => {
+								setSelectedCategory(category);
+								track("filter_category", { category, list_name: "recipes" });
+							}}
+							className={`cursor-pointer rounded-full border px-5 py-2 text-sm font-bold whitespace-nowrap transition-all ${
 								selectedCategory === category
 									? "border-[#006C5E] bg-[#006C5E] text-white shadow-lg shadow-[#006C5E]/20 dark:border-[#4ADE80] dark:bg-[#4ADE80] dark:text-black dark:shadow-[#4ADE80]/20"
 									: "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
@@ -230,11 +237,7 @@ export default function RecipePageClient({
 						ref={observerTarget}
 						className="mt-8 flex h-32 items-center justify-center"
 					>
-						{isLoadingMore && (
-							<div className="flex items-center gap-2 font-bold text-[#006C5E] dark:text-[#4ADE80]">
-								<span className="animate-spin text-2xl">C</span> Loading more...
-							</div>
-						)}
+						{isLoadingMore && <CookingLoader />}
 					</div>
 				</section>
 			</main>
@@ -301,6 +304,12 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 				? await recipeClient.unbookmark(recipe.id)
 				: await recipeClient.bookmark(recipe.id);
 			setBookmarked(result.bookmarked);
+			if (result.bookmarked) {
+				markInstallEngagement();
+				track("save_recipe", { recipe_id: recipe.id, cuisine: recipe.cuisine, creator_id: recipe.author?.id });
+			} else {
+				track("unsave_recipe", { recipe_id: recipe.id });
+			}
 			toast.success(
 				result.bookmarked ? "Saved to library" : "Removed from library",
 			);

@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import imageLoader from '@/lib/loader';
+import { track } from '@/lib/analytics/track';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface ShareModalProps {
   description?: string | null;
   image?: string | null;
   primaryAction?: { label: string; onClick: () => void };
+  analytics?: { contentType: string; contentId: string };
 }
 
 export default function ShareModal({
@@ -36,6 +38,7 @@ export default function ShareModal({
   description,
   image,
   primaryAction,
+  analytics,
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [nativeShare, setNativeShare] = useState<Navigator['share']>();
@@ -51,7 +54,14 @@ export default function ShareModal({
     setNativeShare(() => navigator.share?.bind(navigator));
   }, []);
 
+  const trackShare = (method: string) => {
+    if (analytics) {
+      track('share', { content_type: analytics.contentType, content_id: analytics.contentId, method });
+    }
+  };
+
   const handleCopy = () => {
+    trackShare('copy_link');
     navigator.clipboard.writeText(url);
     setCopied(true);
     toast.success('Link copied to clipboard!');
@@ -62,6 +72,7 @@ export default function ShareModal({
     if (!nativeShare) return;
     try {
       await nativeShare({ title, text: shareDescription || title, url });
+      trackShare('native');
     } catch (error) {
       if ((error as DOMException).name !== 'AbortError') {
         toast.error('Could not open sharing options.');
@@ -175,6 +186,7 @@ export default function ShareModal({
                   href={s.link}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackShare(s.label.toLowerCase())}
                   className="flex shrink-0 cursor-pointer flex-col items-center gap-3"
                 >
                   <div

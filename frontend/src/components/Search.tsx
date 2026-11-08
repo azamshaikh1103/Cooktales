@@ -12,6 +12,7 @@ import { type SearchResult, searchClient } from "@/lib/api/searchClient";
 import imageLoader from "@/lib/loader";
 import { setSearchTab } from "@/lib/Slices/searchTabSlice";
 import type { RootState } from "@/lib/store";
+import { track } from "@/lib/analytics/track";
 
 const SearchTab = () => {
 	const dispatch = useDispatch();
@@ -55,6 +56,11 @@ const SearchTab = () => {
 	// --- NAVIGATION HANDLERS (Defined before Effect 2) ---
 	const handleResultClick = useCallback(
 		(result: SearchResult) => {
+			track("search_result_click", {
+				search_term: searchQuery.trim().slice(0, 80),
+				result_type: result.type,
+				result_position: results.findIndex((item) => item === result) + 1,
+			});
 			if (result.type === "recipe") {
 				router.push(result.slug ? `/recipe/${result.slug}` : "/recipe");
 			} else if (result.type === "story") {
@@ -64,14 +70,16 @@ const SearchTab = () => {
 			}
 			dispatch(setSearchTab(false));
 		},
-		[router, dispatch],
+		[router, dispatch, searchQuery, results],
 	);
 
 	const handleFullSearch = useCallback(() => {
 		if (!searchQuery.trim()) return;
+		track("search", { search_term: searchQuery.trim().slice(0, 80), results_count: results.length });
+		if (results.length === 0) track("search_no_results", { search_term: searchQuery.trim().slice(0, 80) });
 		dispatch(setSearchTab(false));
 		router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-	}, [searchQuery, router, dispatch]);
+	}, [searchQuery, router, dispatch, results]);
 
 	// --- EFFECT 2: KEYBOARD EVENTS ---
 	// Runs when dependencies change to keep state fresh in event listener

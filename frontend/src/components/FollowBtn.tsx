@@ -7,6 +7,7 @@ import { FaCheck, FaUserPlus } from "react-icons/fa";
 import { toast } from "sonner";
 import { profileClient } from "@/lib/api/profileClient";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { track } from "@/lib/analytics/track";
 
 interface FollowButtonProps {
 	targetUserId: string;
@@ -48,8 +49,10 @@ export function FollowButton({
 		try {
 			if (newState) {
 				await profileClient.follow(targetUserId);
+				track("follow_creator", { creator_id: targetUserId });
 			} else {
 				await profileClient.unfollow(targetUserId);
+				track("unfollow_creator", { creator_id: targetUserId });
 			}
 
 			// 4. Success handling

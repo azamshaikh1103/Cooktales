@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
@@ -370,7 +371,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 						</dl>
 					)}
 
-					<div className="flex flex-col gap-8 font-medium text-gray-500 lg:flex-row lg:items-center dark:text-gray-500">
+					<div className="flex flex-col gap-8 font-medium text-gray-600 lg:flex-row lg:items-center dark:text-gray-300">
 						<div className="flex items-center gap-3">
 							<div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
 								{recipe.author?.image && (
@@ -384,7 +385,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								)}
 							</div>
 							<span className="font-bold text-gray-900 dark:text-white">
-								{recipe.author?.name}
+								{recipe.author?.name} <VerifiedBadge verified={recipe.author?.isVerifiedBadge} />
 							</span>
 						</div>
 						<div className="hidden h-6 w-px bg-gray-200 lg:block dark:bg-white/10" />
@@ -543,7 +544,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 											<p className="mb-2 font-bold text-gray-900 dark:text-white">
 												{faq.question}
 											</p>
-											<p className="text-gray-600 dark:text-gray-500">
+											<p className="text-gray-700 dark:text-gray-300">
 												{faq.answer}
 											</p>
 										</div>
@@ -656,9 +657,9 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								Recipe By
 							</div>
 							<h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
-								{recipe.author.name}
+								{recipe.author.name} <VerifiedBadge verified={recipe.author.isVerifiedBadge} />
 							</h3>
-							<p className="mx-auto max-w-lg text-sm text-gray-500 md:mx-0 dark:text-gray-500">
+							<p className="mx-auto max-w-lg text-sm text-gray-600 md:mx-0 dark:text-gray-300">
 								{recipe.author.about ||
 									"Passionate about sharing delicious recipes with the world."}
 							</p>
@@ -762,7 +763,7 @@ const ListItem = ({ item }: { item: any }) => {
 					{item.name}
 				</span>
 				{item.detail && (
-					<span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-500">
+					<span className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
 						({item.detail})
 					</span>
 				)}

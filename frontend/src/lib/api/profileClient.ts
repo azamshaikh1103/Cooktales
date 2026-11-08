@@ -33,6 +33,7 @@ export type ProfileListUser = {
   image: string | null;
   about: string | null;
   isPro: boolean;
+  isVerifiedBadge?: boolean;
 };
 
 export type PaginatedResponse<T> = {
@@ -97,6 +98,7 @@ export type PublicProfile = {
   website: string | null;
   socialLinks?: { instagram?: string; twitter?: string; youtube?: string };
   isPro: boolean;
+  isVerifiedBadge?: boolean;
   plan: string;
   createdAt: string;
   _count: {

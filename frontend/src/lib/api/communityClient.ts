@@ -17,7 +17,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export type DiscussionAttachment = { type: 'image' | 'recipe' | 'story'; id: string; publicId?: string };
-export type CommunityUser = { id: string; name: string; username?: string | null; image?: string | null; isPro: boolean; points: number };
+export type CommunityUser = { id: string; name: string; username?: string | null; image?: string | null; isPro: boolean; isVerifiedBadge?: boolean; points: number };
 export type Comment = { id: string; content: string; createdAt: string; author: CommunityUser; likes: { userId: string }[]; replies: Comment[] };
 export type Discussion = { id: string; slug: string; title: string; content: string; category: string; createdAt: string; views: number; author: CommunityUser; _count: { likes: number; comments: number }; comments?: Comment[] };
 export type Challenge = { id: string; title: string; description: string; coverImage?: string | null; prize?: string | null; startDate: string; endDate: string; isActive: boolean; _count: { entries: number }; entries?: Array<{ id: string; recipe: { id: string; slug?: string | null; name: string; mainImage: string; likes: number }; user: CommunityUser }> };

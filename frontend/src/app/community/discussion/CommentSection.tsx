@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaReply, FaArrowUp, FaFlag } from 'react-icons/fa';
-import { MdVerified } from 'react-icons/md';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import imageLoader from '@/lib/loader';
 import { communityClient } from '@/lib/api/communityClient';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -66,9 +66,7 @@ const CommentItem = ({ comment, discussionId, isReply }: any) => {
           <span className="text-sm font-bold text-gray-900 dark:text-white">
             {comment.author.name}
           </span>
-          {comment.author.isPro && (
-            <MdVerified className="text-xs text-[#006C5E] dark:text-[#4ADE80]" />
-          )}
+          <VerifiedBadge verified={comment.author.isVerifiedBadge} />
           <span className="text-xs text-gray-400">
             • {new Date(comment.createdAt).toLocaleDateString()}
           </span>

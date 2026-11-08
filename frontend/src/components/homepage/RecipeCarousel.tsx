@@ -70,7 +70,7 @@ const RecipeCarousel = ({
 
 		if (recipes.length === 0) {
 			return (
-				<div className="px-6 py-10 text-gray-500 italic lg:pl-24 dark:text-gray-600">
+				<div className="px-6 py-10 text-gray-600 italic lg:pl-24 dark:text-gray-300">
 					No recipes found right now.
 				</div>
 			);
@@ -105,7 +105,7 @@ const RecipeCarousel = ({
 					<h2 className="text-2xl font-extrabold tracking-tight text-gray-900 lg:text-4xl dark:text-white">
 						{title}
 					</h2>
-					<h2 className="mt-1 max-w-md text-sm font-medium text-gray-500 lg:text-base dark:text-gray-500">
+					<h2 className="mt-1 max-w-md text-sm font-medium text-gray-600 lg:text-base dark:text-gray-300">
 						{subtitle}
 					</h2>
 				</div>
@@ -146,7 +146,7 @@ const RecipeCarousel = ({
 					{/* View All Button */}
 					<Link
 						href="/recipe"
-						className="text-sm font-bold text-gray-600 transition-colors hover:text-[#006C5E] dark:text-gray-500 dark:hover:text-[#4ADE80]"
+						className="text-sm font-bold text-gray-600 transition-colors hover:text-[#006C5E] dark:text-gray-300 dark:hover:text-[#4ADE80]"
 					>
 						View All
 					</Link>

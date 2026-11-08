@@ -41,7 +41,7 @@ const Stepsarea = () => {
 							</span>
 						</h2>
 					</div>
-					<p className="max-w-md text-sm leading-relaxed font-medium text-gray-500 lg:text-sm dark:text-gray-500">
+					<p className="max-w-md text-sm leading-relaxed font-medium text-gray-600 lg:text-sm dark:text-gray-300">
 						We've simplified the journey. Stop guessing ingredients and start
 						cooking like a maestro in three simple steps.
 					</p>
@@ -65,7 +65,7 @@ const Stepsarea = () => {
 								Find your <br />
 								Inspiration
 							</h3>
-							<p className="mb-8 leading-relaxed text-gray-500 dark:text-gray-500">
+							<p className="mb-8 leading-relaxed text-gray-600 dark:text-gray-300">
 								Filter by what's in your fridge, your diet goals, or your mood.
 								Our smart search finds the perfect match instantly.
 							</p>
@@ -73,9 +73,9 @@ const Stepsarea = () => {
 
 						{/* Mock Search UI Element */}
 						<div className="relative z-10 flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-white/10 dark:bg-black/20">
-							<IoSearch className="text-gray-500 dark:text-gray-500" />
+							<IoSearch className="text-gray-600 dark:text-gray-300" />
 							<div className="h-2 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-white/10"></div>
-							<div className="ml-auto rounded-lg bg-white px-3 py-1 text-[10px] font-bold text-[#006C5E] shadow-sm dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]">
+							<div className="ml-auto rounded-lg bg-white px-3 py-1 text-xs font-bold text-[#006C5E] shadow-sm dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]">
 								Healthy
 							</div>
 						</div>

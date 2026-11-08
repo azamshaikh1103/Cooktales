@@ -552,7 +552,7 @@ export default function AuthTab() {
             </AnimatePresence>
 
             <div className="mt-8 text-center">
-              <p className="text-[10px] leading-relaxed text-gray-500 dark:text-gray-500">
+              <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
                 By continuing, you agree to our{' '}
                 <span className="cursor-pointer underline hover:text-gray-900 dark:hover:text-white">
                   Terms of Service

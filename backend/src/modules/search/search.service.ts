@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { COOKTALE_ACCOUNT_ID } from '../../common/verified-badge';
 import { SearchQueryDto } from './dto/search.dto';
 
 type SearchRow = {
@@ -12,6 +13,7 @@ type SearchRow = {
   image: string | null;
   authorName: string | null;
   authorUsername: string | null;
+  authorIsVerifiedBadge: boolean;
   totalTime: number | null;
   cuisine: string | null;
   diet: string | null;
@@ -85,6 +87,7 @@ export class SearchService {
         d.image,
         d."authorName",
         d."authorUsername",
+        d."authorIsVerifiedBadge",
         d."totalTime",
         d.cuisine,
         d.diet,
@@ -122,6 +125,7 @@ export class SearchService {
         NULLIF(r."mainImage", '') AS image,
         u.name AS "authorName",
         u.username AS "authorUsername",
+        (u."isPro" OR u.id = ${COOKTALE_ACCOUNT_ID}) AS "authorIsVerifiedBadge",
         r."totalTimeReq" AS "totalTime",
         r.cuisine,
         r.diet::text AS diet,
@@ -160,6 +164,7 @@ export class SearchService {
         s.poster AS image,
         u.name AS "authorName",
         u.username AS "authorUsername",
+        (u."isPro" OR u.id = ${COOKTALE_ACCOUNT_ID}) AS "authorIsVerifiedBadge",
         NULL::integer AS "totalTime",
         NULL::text AS cuisine,
         NULL::text AS diet,
@@ -198,6 +203,7 @@ export class SearchService {
         u.image,
         NULL::text AS "authorName",
         u.username AS "authorUsername",
+        (u."isPro" OR u.id = ${COOKTALE_ACCOUNT_ID}) AS "authorIsVerifiedBadge",
         NULL::integer AS "totalTime",
         NULL::text AS cuisine,
         NULL::text AS diet,

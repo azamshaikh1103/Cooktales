@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
@@ -42,6 +43,7 @@ export interface Recipe {
 	views: number;
 	createdAt: string;
 	author: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name: string;
 		image: string | null;
@@ -333,10 +335,15 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 					</>
 				)}
 
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071713]/95 via-[#071713]/45 to-transparent px-4 pt-16 pb-4 text-white">
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071713]/95 via-[#071713]/80 to-transparent px-4 pt-16 pb-4 text-white">
 					<h3 className="text-lg leading-snug font-bold drop-shadow-sm">
 						{recipe.name}
 					</h3>
+					<div className="mt-1 hidden flex-wrap gap-x-3 gap-y-1 text-sm font-semibold [@media(hover:none)]:flex">
+						{recipe.totalTimeReq && <span>{recipe.totalTimeReq} min</span>}
+						{recipe.yield && <span>{recipe.yield} servings</span>}
+						{recipe.diet && <span>{recipe.diet}</span>}
+					</div>
 				</div>
 
 				<div className="pointer-events-none absolute inset-0 bg-[#071713]/55 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
@@ -378,7 +385,7 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 									/>
 								)}
 							</div>
-							<span className="text-sm font-medium">{recipe.author.name}</span>
+							<span className="text-sm font-medium">{recipe.author.name} <VerifiedBadge verified={recipe.author.isVerifiedBadge} /></span>
 						</div>
 					)}
 				</div>

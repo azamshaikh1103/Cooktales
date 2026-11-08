@@ -154,7 +154,7 @@ function PremiumWelcomePopupContent() {
                   <FaArrowRight className="transition-transform group-hover:translate-x-1" />
                 </button>
 
-                <p className="mt-6 text-center text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase">
+                <p className="mt-6 text-center text-xs font-bold tracking-[0.2em] text-white/80 uppercase">
                   CookTale Premium • Thank You
                 </p>
               </div>

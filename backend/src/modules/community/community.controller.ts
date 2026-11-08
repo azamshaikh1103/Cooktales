@@ -3,6 +3,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { CsrfOriginGuard } from '../auth/security/csrf-origin.guard';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { CommunityService } from './community.service';
+import { addVerifiedBadge } from '../../common/verified-badge';
 import { CreateCommentDto, CreateDiscussionDto, ListDiscussionsQueryDto, ListLeaderboardQueryDto } from './dto/community.dto';
 
 @Controller({ path: 'community', version: '1' })
@@ -10,16 +11,16 @@ import { CreateCommentDto, CreateDiscussionDto, ListDiscussionsQueryDto, ListLea
 export class CommunityController {
   constructor(private readonly community: CommunityService) {}
 
-  @Get('snapshot') snapshot() { return this.community.snapshot(); }
-  @Get('leaderboard') leaderboard(@Query() query: ListLeaderboardQueryDto) { return this.community.leaderboard(query); }
+  @Get('snapshot') snapshot() { return this.community.snapshot().then(addVerifiedBadge); }
+  @Get('leaderboard') leaderboard(@Query() query: ListLeaderboardQueryDto) { return this.community.leaderboard(query).then(addVerifiedBadge); }
   @Get('challenges') challenges() { return this.community.listChallenges(); }
-  @Get('challenges/:id') challenge(@Param('id') id: string) { return this.community.getChallenge(id); }
-  @Get('discussions') discussions(@Query() query: ListDiscussionsQueryDto) { return this.community.listDiscussions(query); }
-  @Get('discussions/:slug') discussion(@Param('slug') slug: string) { return this.community.getDiscussion(slug); }
+  @Get('challenges/:id') challenge(@Param('id') id: string) { return this.community.getChallenge(id).then(addVerifiedBadge); }
+  @Get('discussions') discussions(@Query() query: ListDiscussionsQueryDto) { return this.community.listDiscussions(query).then(addVerifiedBadge); }
+  @Get('discussions/:slug') discussion(@Param('slug') slug: string) { return this.community.getDiscussion(slug).then(addVerifiedBadge); }
 
   @Post('discussions')
   @UseGuards(AuthGuard)
-  createDiscussion(@Req() request: AuthenticatedRequest, @Body() dto: CreateDiscussionDto) { return this.community.createDiscussion(request.user.sub, dto); }
+  createDiscussion(@Req() request: AuthenticatedRequest, @Body() dto: CreateDiscussionDto) { return this.community.createDiscussion(request.user.sub, dto).then(addVerifiedBadge); }
 
   @Post('discussions/:id/views')
   @HttpCode(HttpStatus.OK)
@@ -37,5 +38,5 @@ export class CommunityController {
 
   @Post('discussions/:id/comments')
   @UseGuards(AuthGuard)
-  comment(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: CreateCommentDto) { return this.community.createComment(request.user.sub, id, dto); }
+  comment(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: CreateCommentDto) { return this.community.createComment(request.user.sub, id, dto).then(addVerifiedBadge); }
 }

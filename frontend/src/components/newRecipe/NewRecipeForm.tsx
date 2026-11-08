@@ -404,7 +404,7 @@ function RecipeFieldGuide({
 				</p>
 				{guide.example ? (
 					<div className="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
-						<p className="text-[11px] font-bold tracking-[0.18em] text-gray-400 uppercase">
+						<p className="text-xs font-bold tracking-[0.18em] text-gray-600 uppercase dark:text-gray-300">
 							Example
 						</p>
 						<p className="mt-2 whitespace-pre-line text-sm font-medium text-gray-700 dark:text-gray-200">

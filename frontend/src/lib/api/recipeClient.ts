@@ -166,6 +166,7 @@ export type RecipeReview = {
 	upvotes: number;
 	downvotes: number;
 	user: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name: string | null;
 		username: string | null;
@@ -181,6 +182,7 @@ export type RecipeComment = {
 	editedAt?: string | null;
 	parentId?: string | null;
 	author: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name: string | null;
 		username: string | null;
@@ -205,6 +207,7 @@ export type PublicRecipe = Omit<
 	ratingCount: number;
 	publishedAt?: string | null;
 	author: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name: string | null;
 		username: string | null;

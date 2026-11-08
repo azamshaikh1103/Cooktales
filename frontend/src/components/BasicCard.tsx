@@ -47,7 +47,7 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
           <Image
             src={recipe.mainImage}
             fill
-            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 300px"
+            sizes="(min-width: 1024px) 294px, (min-width: 640px) 274px, 254px"
             style={{ objectFit: 'cover' }}
             alt={recipe.name}
             loader={imageLoader}
@@ -68,7 +68,7 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
         </div>
 
         {/* Meta Info */}
-        <div className="space-y-0.5 px-1 font-sans text-[12px] text-[#7E7E7E] lg:text-sm dark:text-gray-500">
+        <div className="space-y-0.5 px-1 font-sans text-sm text-gray-700 dark:text-gray-300">
           <div>Total time: {recipe.totalTimeReq} mins</div>
           <div>Yield: {recipe.yield} serves</div>
           <div>Diet: {recipe.diet}</div>
@@ -128,11 +128,11 @@ export const RecipeCard = ({ recipe, imagePriority = false }: RecipeCardProps) =
               loader={imageLoader}
               loading={imagePriority ? 'eager' : 'lazy'}
               fetchPriority={imagePriority ? 'high' : undefined}
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 300px"
+              sizes="(min-width: 768px) 350px, 280px"
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-gray-500 dark:text-gray-600">
+            <div className="flex h-full w-full items-center justify-center text-gray-600 dark:text-gray-300">
               No Image
             </div>
           )}
@@ -149,7 +149,7 @@ export const RecipeCard = ({ recipe, imagePriority = false }: RecipeCardProps) =
           {recipe.diet && (
             <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-[#006C5E] px-3 py-1.5 text-white dark:text-white">
               <FaLeaf className="text-xs" />
-              <span className="text-[10px] font-bold tracking-wider uppercase">
+              <span className="text-xs font-bold tracking-wider uppercase">
                 {recipe.diet.split(',')[0]}
               </span>
             </div>
@@ -164,7 +164,7 @@ export const RecipeCard = ({ recipe, imagePriority = false }: RecipeCardProps) =
 
           <div className="mt-auto flex items-center justify-between border-t border-gray-200 pt-4 dark:border-white/10">
             {/* Time */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-500">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
               <div className="rounded-full bg-gray-50 p-1.5 text-[#006C5E] dark:bg-white/5 dark:text-[#4ADE80]">
                 <FaRegClock />
               </div>
@@ -172,7 +172,7 @@ export const RecipeCard = ({ recipe, imagePriority = false }: RecipeCardProps) =
             </div>
 
             {/* Servings */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-500">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
               <div className="rounded-full bg-gray-50 p-1.5 text-[#006C5E] dark:bg-white/5 dark:text-[#4ADE80]">
                 <FaUserFriends />
               </div>

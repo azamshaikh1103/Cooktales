@@ -1,5 +1,7 @@
 "use client";
 
+import VerifiedBadge from "@/components/VerifiedBadge";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -141,6 +143,7 @@ export default function DiscussionsPage() {
 														<span className="text-sm font-bold text-gray-600 dark:text-gray-300">
 															{thread.author.name}
 														</span>
+                                                        <VerifiedBadge verified={thread.author.isVerifiedBadge} />
 													</div>
 													<div className="flex items-center gap-2 text-sm font-bold text-gray-400">
 														<FaCommentDots /> {thread._count.comments} comments

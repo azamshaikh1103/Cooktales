@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CloudinaryResourceType, Prisma, StoryStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { addVerifiedBadge } from '../../common/verified-badge';
 import { MediaService } from '../media/media.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { POINTS, PointsService } from '../points/points.service';
@@ -20,17 +21,17 @@ import {
 import { StoryAbuseService } from './story-abuse.service';
 
 const storyInclude = {
-  author: { select: { id: true, name: true, username: true, image: true, about: true } },
+  author: { select: { id: true, name: true, username: true, image: true, isPro: true, about: true } },
   content: { orderBy: { position: 'asc' as const } },
   media: { orderBy: [{ kind: 'asc' as const }, { position: 'asc' as const }] },
   comments: {
     where: { parentId: null },
     orderBy: { createdAt: 'asc' as const },
     include: {
-      author: { select: { id: true, name: true, username: true, image: true } },
+      author: { select: { id: true, name: true, username: true, image: true, isPro: true } },
       replies: {
         orderBy: { createdAt: 'asc' as const },
-        include: { author: { select: { id: true, name: true, username: true, image: true } } },
+        include: { author: { select: { id: true, name: true, username: true, image: true, isPro: true } } },
       },
     },
   },
@@ -302,7 +303,7 @@ export class StoriesService {
     const comments = await this.prisma.comment.findMany({
       where: { blogId: id, parentId: null },
       orderBy: { createdAt: 'asc' },
-      include: { author: { select: { id: true, name: true, username: true, image: true } }, replies: { include: { author: { select: { id: true, name: true, username: true, image: true } } }, orderBy: { createdAt: 'asc' } } },
+      include: { author: { select: { id: true, name: true, username: true, image: true, isPro: true } }, replies: { include: { author: { select: { id: true, name: true, username: true, image: true, isPro: true } } }, orderBy: { createdAt: 'asc' } } },
     });
     return { comments: this.serialize(comments) };
   }
@@ -322,7 +323,7 @@ export class StoriesService {
     const comment = await this.prisma.$transaction(async (tx) => {
       const created = await tx.comment.create({
         data: { authorId: userId, blogId: id, parentId: dto.parentId, content: dto.content.trim() },
-        include: { author: { select: { id: true, name: true, username: true, image: true } } },
+        include: { author: { select: { id: true, name: true, username: true, image: true, isPro: true } } },
       });
       await tx.story.update({ where: { id }, data: { commentsCount: { increment: 1 } } });
       return created;
@@ -425,7 +426,7 @@ export class StoriesService {
   private listStorySelect() {
     return {
       id: true, slug: true, title: true, shortDesc: true, coverImage: true, tags: true, likes: true, views: true, commentsCount: true, publishedAt: true, createdAt: true,
-      author: { select: { id: true, name: true, username: true, image: true } },
+      author: { select: { id: true, name: true, username: true, image: true, isPro: true } },
     } satisfies Prisma.StorySelect;
   }
 
@@ -437,6 +438,6 @@ export class StoriesService {
   }
 
   private serialize<T>(input: T): T {
-    return JSON.parse(JSON.stringify(input)) as T;
+    return addVerifiedBadge(JSON.parse(JSON.stringify(input)) as T);
   }
 }

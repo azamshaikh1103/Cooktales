@@ -14,6 +14,7 @@ import {
   VoteType,
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { addVerifiedBadge } from '../../common/verified-badge';
 import { MediaService } from '../media/media.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { POINTS, PointsService } from '../points/points.service';
@@ -40,6 +41,7 @@ const recipeInclude = {
       name: true,
       username: true,
       image: true,
+      isPro: true,
       about: true,
       _count: { select: { recipes: true } },
     },
@@ -82,6 +84,7 @@ const recipeInclude = {
           name: true,
           username: true,
           image: true,
+          isPro: true,
         },
       },
     },
@@ -100,6 +103,7 @@ const commentAuthorSelect = {
   name: true,
   username: true,
   image: true,
+  isPro: true,
 } satisfies Prisma.UserSelect;
 
 const commentInclude = {
@@ -263,7 +267,7 @@ export class RecipesService {
         ingredients: { orderBy: { position: 'asc' } },
         equipments: { orderBy: { position: 'asc' } },
         steps: { orderBy: { position: 'asc' } },
-        author: { select: { id: true, name: true, username: true, image: true } },
+        author: { select: { id: true, name: true, username: true, image: true, isPro: true } },
       },
     });
     if (!recipe) throw new NotFoundException('Recipe not found');
@@ -285,7 +289,7 @@ export class RecipesService {
         orderBy: this.reviewOrderBy(query.sort),
         skip: (page - 1) * limit,
         take: limit,
-        include: { user: { select: { id: true, name: true, username: true, image: true } } },
+        include: { user: { select: { id: true, name: true, username: true, image: true, isPro: true } } },
       }),
       this.prisma.review.count({
         where: { recipeId: recipe.id, status: ReviewStatus.VISIBLE, deletedAt: null },
@@ -848,7 +852,7 @@ export class RecipesService {
       });
 
       const reviewInclude = {
-        user: { select: { id: true, name: true, username: true, image: true } },
+        user: { select: { id: true, name: true, username: true, image: true, isPro: true } },
       } satisfies Prisma.ReviewInclude;
       const existing = await tx.review.findUnique({
         where: { userId_recipeId: { userId, recipeId: id } },
@@ -922,7 +926,7 @@ export class RecipesService {
       const saved = await tx.review.update({
         where: { id: reviewId },
         data: { stars: dto.stars, text: dto.text.trim(), editedAt: new Date() },
-        include: { user: { select: { id: true, name: true, username: true, image: true } } },
+        include: { user: { select: { id: true, name: true, username: true, image: true, isPro: true } } },
       });
       await this.recalculateRecipeRating(tx, id);
       return saved;
@@ -1493,7 +1497,7 @@ export class RecipesService {
     if (output?.recipeCategory === UNCATEGORIZED_RECIPE_CATEGORY) {
       output.recipeCategory = null;
     }
-    return output;
+    return addVerifiedBadge(output);
   }
 
   private serializeComment<
@@ -1543,6 +1547,7 @@ export class RecipesService {
           name: true,
           username: true,
           image: true,
+          isPro: true,
         },
       },
     } satisfies Prisma.RecipeSelect;

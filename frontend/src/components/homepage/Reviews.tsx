@@ -137,7 +137,7 @@ const Reviewsarea = () => {
 							{[...Array(5)].map((_, i) => (
 								<FaStar key={i} className="text-xl text-yellow-400" />
 							))}
-							<span className="ml-2 text-xs font-bold tracking-widest text-gray-500 uppercase dark:text-gray-500">
+							<span className="ml-2 text-xs font-bold tracking-widest text-gray-600 uppercase dark:text-gray-300">
 								4.9/5 Rating
 							</span>
 						</div>
@@ -145,7 +145,7 @@ const Reviewsarea = () => {
 							Taste the{" "}
 							<span className="text-[#006C5E] dark:text-[#4ADE80]">Love.</span>
 						</h2>
-						<p className="mt-4 max-w-md font-medium text-gray-500 dark:text-gray-500">
+						<p className="mt-4 max-w-md font-medium text-gray-600 dark:text-gray-300">
 							Don't just take our word for it. Join thousands of happy home
 							chefs cooking better, every day.
 						</p>
@@ -253,7 +253,7 @@ const ReviewCard = ({ review }: { review: Review }) => {
 
 			{/* Footer: Date */}
 			<div className="relative z-10 border-t border-gray-50 pt-4 dark:border-white/5">
-				<p className="text-xs font-medium text-gray-500 dark:text-gray-500">
+				<p className="text-sm font-medium text-gray-600 dark:text-gray-300">
 					Posted on{" "}
 					{new Date(review.date).toLocaleDateString("en-US", {
 						month: "long",

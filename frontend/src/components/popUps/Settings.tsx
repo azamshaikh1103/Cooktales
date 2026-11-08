@@ -731,7 +731,7 @@ export const PreferencesTab = () => {
             </button>
           ))}
         </div>
-        <p className="px-1 text-[10px] text-gray-400">
+        <p className="px-1 text-sm text-gray-600 dark:text-gray-300">
           We'll prioritize recipes that match your diet.
         </p>
       </section>

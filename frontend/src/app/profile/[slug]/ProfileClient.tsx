@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { FollowButton } from '@/components/FollowBtn';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { StoryPreviewCard } from '@/components/stories/StoryPreviewCard';
 import {
   type ProfileStory,
@@ -197,11 +198,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
                   <h1 className="text-3xl font-semibold tracking-normal text-[#101827] md:text-4xl dark:text-white">
                     {user.name}
                   </h1>
-                  {user.isPro && (
-                    <span className="rounded-full border border-[#006C5E]/20 bg-[#f1f7f6] px-3 py-1 text-xs font-semibold text-[#006C5E] dark:border-[#4ADE80]/30 dark:bg-[#4ADE80]/10 dark:text-[#4ADE80]">
-                      Verified
-                    </span>
-                  )}
+                  <VerifiedBadge verified={user.isVerifiedBadge} />
                 </div>
                 <p className="mt-2 text-base text-gray-500 dark:text-gray-400">
                   @{user.username || 'chef'}
@@ -464,7 +461,7 @@ function SocialListModal({
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-[#101827] dark:text-white">
-                  {person.name}
+                  {person.name} <VerifiedBadge verified={person.isVerifiedBadge} />
                 </p>
                 <p className="truncate text-xs text-gray-500">@{person.username || 'chef'}</p>
               </div>

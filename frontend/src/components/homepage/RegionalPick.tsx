@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FaClock, FaLeaf, FaStar, FaUtensils } from "react-icons/fa";
@@ -40,7 +41,7 @@ interface Recipe {
 	ratings: number | null;
 	ratingCount?: number | null;
 	mainImage: string;
-	author?: { name: string; image: string | null };
+	author?: { name: string; image: string | null; isVerifiedBadge?: boolean };
 }
 
 const RegionalPick = () => {
@@ -126,7 +127,7 @@ const RegionalPick = () => {
 				>
 					Cuisine picks
 				</h2>
-				<p className="mt-1 max-w-md text-sm font-medium text-gray-500 lg:text-base dark:text-gray-500">
+				<p className="mt-1 max-w-md text-sm font-medium text-gray-600 lg:text-base dark:text-gray-300">
 					Explore recipes by cuisine.
 				</p>
 			</div>
@@ -194,7 +195,7 @@ const RegionalPick = () => {
 				) : (
 					<section
 						ref={listRef}
-						className="max-h-[572px] overflow-y-auto lg:max-h-[542px]"
+						className="max-h-[752px] overflow-y-auto lg:max-h-[542px]"
 						aria-label="Cuisine recipes"
 						onScroll={(event) => {
 							const list = event.currentTarget;
@@ -234,7 +235,7 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 	return (
 		<Link
 			href={`/recipe/${recipe.slug}`}
-			className="flex h-[82px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:h-[170px] lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
+			className="flex h-[112px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-transparent bg-white p-2 transition-colors hover:border-gray-100 lg:h-[170px] lg:p-3 dark:border-white/5 dark:bg-white/5 dark:hover:border-[#4ADE80]/30"
 		>
 			{/* Image */}
 			<div className="relative h-16 w-16 min-w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100 lg:h-36 lg:w-36 dark:bg-white/10">
@@ -253,11 +254,11 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 			{/* Content */}
 			<div className="flex h-full w-full min-w-0 flex-col justify-between py-0.5">
 				<div>
-					<h3 className="mb-1 truncate text-xs font-bold text-[#5A5A5A] lg:text-lg dark:text-gray-200">
+					<h3 className="mb-1 truncate text-sm font-bold text-gray-700 lg:text-lg dark:text-gray-200">
 						{recipe.name}
 					</h3>
 
-					<div className="space-y-0.5 font-sans text-[10px] text-[#7E7E7E] lg:space-y-1 lg:text-sm dark:text-gray-500">
+					<div className="space-y-0.5 font-sans text-sm text-gray-700 lg:space-y-1 dark:text-gray-300">
 						<p className="flex items-center gap-1">
 							<FaClock className="text-[#006C5E] dark:text-[#4ADE80]" />
 							<span className="font-medium">{recipe.totalTimeReq} mins</span>
@@ -290,9 +291,10 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 						) : (
 							<div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-white/10" />
 						)}
-						<span className="max-w-[100px] truncate font-sans text-xs text-gray-500 dark:text-gray-500">
+						<span className="max-w-[100px] truncate font-sans text-sm text-gray-600 dark:text-gray-300">
 							{recipe.author?.name}
 						</span>
+						<VerifiedBadge verified={recipe.author?.isVerifiedBadge} />
 					</div>
 
 					{(recipe.ratingCount ?? 0) > 0 && recipe.ratings != null && (

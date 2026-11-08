@@ -1,4 +1,5 @@
 import { ArrowRight, PenLine } from "lucide-react";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StoryPreviewCard } from "@/components/stories/StoryPreviewCard";
@@ -123,7 +124,7 @@ export default async function StoriesPage() {
 												{story.title}
 											</p>
 											<p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-												{story.author?.name || "CookTale creator"}
+												{story.author?.name || "CookTale creator"} <VerifiedBadge verified={story.author?.isVerifiedBadge} />
 											</p>
 										</Link>
 									</li>

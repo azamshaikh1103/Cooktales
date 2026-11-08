@@ -235,7 +235,7 @@ export default function NotificationInbox() {
 										<p className="text-sm leading-5 text-gray-700 dark:text-gray-200">
 											{notificationText(notification)}
 										</p>
-										<p className="mt-1 text-xs text-gray-400">
+										<p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
 											{relativeTime(notification.createdAt)}
 										</p>
 									</div>

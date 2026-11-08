@@ -127,7 +127,7 @@ function ResetPasswordContent() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="ml-1 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+              <label className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300">
                 New Password
               </label>
               <div className="relative">
@@ -151,7 +151,7 @@ function ResetPasswordContent() {
             </div>
 
             <div className="space-y-1">
-              <label className="ml-1 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+              <label className="ml-1 text-xs font-bold tracking-wider text-gray-700 uppercase dark:text-gray-300">
                 Confirm Password
               </label>
               <input

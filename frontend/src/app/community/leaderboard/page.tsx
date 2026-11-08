@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdVerified } from 'react-icons/md';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { communityClient } from '@/lib/api/communityClient';
@@ -51,9 +51,7 @@ export default async function LeaderboardPage() {
                   <div className="min-w-0 flex-1">
                     <h4 className="flex items-center gap-1 truncate font-bold text-gray-900 dark:text-white">
                       {chef.name}
-                      {chef.isPro && (
-                        <MdVerified className="text-xs text-[#006C5E] dark:text-[#4ADE80]" />
-                      )}
+                      <VerifiedBadge verified={chef.isVerifiedBadge} />
                     </h4>
                     <p className="truncate text-xs text-gray-500 dark:text-gray-400">
                       @{chef.username}
@@ -64,7 +62,7 @@ export default async function LeaderboardPage() {
                     <p className="font-bold text-gray-900 dark:text-white">
                       {chef.points.toLocaleString()}
                     </p>
-                    <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                    <p className="text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-300">
                       Points
                     </p>
                   </div>

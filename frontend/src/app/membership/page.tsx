@@ -69,19 +69,19 @@ export default function MembershipPage() {
 							<button
 								key={type}
 								onClick={() => setBilling(type as any)}
-								className={`relative z-10 flex cursor-pointer items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-colors duration-300 ${billing === type ? "text-gray-900 dark:text-gray-900" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+								className={`relative z-10 flex cursor-pointer items-center gap-1 rounded-full px-2 py-2.5 text-sm font-bold transition-colors duration-300 sm:gap-2 sm:px-6 ${billing === type ? "text-gray-900 dark:text-gray-900" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
 							>
 								{type === "monthly" && "Monthly"}
 								{type === "yearly" && "Yearly"}
 								{type === "lifetime" && "Lifetime"}
 
 								{type === "yearly" && (
-									<span className="rounded bg-green-500 px-1.5 py-0.5 text-[9px] text-white">
+									<span className="rounded bg-green-700 px-1.5 py-0.5 text-xs text-white">
 										Save 38%
 									</span>
 								)}
 								{type === "lifetime" && (
-									<span className="rounded bg-amber-500 px-1.5 py-0.5 text-[9px] text-black">
+									<span className="rounded bg-amber-500 px-1.5 py-0.5 text-xs text-black">
 										LTD
 									</span>
 								)}
@@ -222,7 +222,7 @@ export default function MembershipPage() {
 									>
 										Join the Club <FaArrowRight />
 									</button>
-									<p className="mt-4 text-center text-[10px] tracking-widest text-gray-500 uppercase">
+									<p className="mt-4 text-center text-xs tracking-wider text-gray-600 uppercase dark:text-gray-300">
 										Secure • Cancel Anytime
 									</p>
 								</div>

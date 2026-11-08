@@ -1,5 +1,7 @@
 "use client";
 
+import VerifiedBadge from "@/components/VerifiedBadge";
+
 import {
 	Heart,
 	LoaderCircle,
@@ -232,7 +234,7 @@ export default function RecipeComments({
 					<div className="min-w-0 flex-1">
 						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 							<span className="text-sm font-semibold text-gray-900 dark:text-white">
-								{authorName(comment)}
+								{authorName(comment)} <VerifiedBadge verified={comment.author.isVerifiedBadge} />
 							</span>
 							<span className="text-xs text-gray-500 dark:text-gray-400">
 								{relativeTime(comment.createdAt)}

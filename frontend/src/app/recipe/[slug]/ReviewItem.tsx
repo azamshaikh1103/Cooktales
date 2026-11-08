@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import VerifiedBadge from "@/components/VerifiedBadge";
 import Image from 'next/image';
 import { FaStar, FaThumbsUp, FaThumbsDown, FaReply, FaPen, FaTrash } from 'react-icons/fa';
 import { MdVerified } from 'react-icons/md';
@@ -91,9 +92,9 @@ export default function ReviewItem({
           </div>
           <div>
             <h5 className="text-sm font-bold text-gray-900 dark:text-white">
-              {review.user.name || review.user.username || 'CookTale member'}
+              {review.user.name || review.user.username || 'CookTale member'} <VerifiedBadge verified={review.user.isVerifiedBadge} />
             </h5>
-            <div className="flex items-center gap-1 text-xs text-gray-400">
+            <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
               <span>{new Date(review.createdAt).toLocaleDateString()}</span>
               {review.editedAt && <span>Edited</span>}
             </div>
@@ -113,7 +114,7 @@ export default function ReviewItem({
       <p className="mb-6 leading-relaxed text-gray-600 dark:text-gray-300">{review.text}</p>
 
       {/* Action Bar */}
-      <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-400 dark:text-gray-500">
+      <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-600 dark:text-gray-300">
         <button
           type="button"
           onClick={() => handleVote('UP')}
@@ -185,7 +186,7 @@ export default function ReviewItem({
             <span className="flex items-center gap-1 text-xs font-black tracking-widest text-[#006C5E] uppercase dark:text-[#4ADE80]">
               <MdVerified /> Chef's Note
             </span>
-            <span className="text-[10px] text-gray-400">
+            <span className="text-sm text-gray-600 dark:text-gray-300">
               {review.authorReplyAt ? new Date(review.authorReplyAt).toLocaleDateString() : ''}
             </span>
           </div>
@@ -208,7 +209,7 @@ export default function ReviewItem({
             <button
               type="button"
               onClick={() => setShowReplyBox(false)}
-              className="cursor-pointer text-xs font-bold text-gray-400 hover:text-gray-600"
+              className="cursor-pointer text-sm font-bold text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
             >
               Cancel
             </button>

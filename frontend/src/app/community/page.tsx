@@ -2,8 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { FaFire, FaCommentDots } from 'react-icons/fa';
-import { MdVerified, MdForum, MdOutlineTimer, MdAccountCircle } from 'react-icons/md';
+import { MdForum, MdOutlineTimer, MdAccountCircle } from 'react-icons/md';
 import Navbar from '@/components/Navbar';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import Footer from '@/components/Footer';
 import imageLoader from "@/lib/loader";
 import { communityClient } from '@/lib/api/communityClient';
@@ -176,19 +177,19 @@ export default async function CommunityPage() {
                       </div>
                       <div className="flex-1">
                         <div className="mb-1 flex items-center gap-3">
-                          <span className="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600 uppercase dark:bg-white/10 dark:text-gray-300">
+                          <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 uppercase dark:bg-white/10 dark:text-gray-300">
                             {topic.category}
                           </span>
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                          <span className="text-xs text-gray-600 dark:text-gray-300">
                             • {timeAgo(topic.createdAt)}
                           </span>
                         </div>
                         <h4 className="text-lg font-bold text-gray-900 transition-colors group-hover:text-[#006C5E] dark:text-gray-100 dark:group-hover:text-[#4ADE80]">
                           {topic.title}
                         </h4>
-                        <div className="mt-3 flex items-center gap-6 text-xs font-bold text-gray-400 dark:text-gray-500">
+                        <div className="mt-3 flex items-center gap-6 text-xs font-bold text-gray-600 dark:text-gray-300">
                           <span className="flex items-center gap-1.5">
-                            <MdAccountCircle className="text-base" /> {topic.author.name}
+                            <MdAccountCircle className="text-base" /> {topic.author.name} <VerifiedBadge verified={topic.author.isVerifiedBadge} />
                           </span>
                           <span className="flex items-center gap-1.5">
                             <FaFire className={topic._count.likes > 20 ? 'text-orange-500' : ''} />{' '}
@@ -247,9 +248,7 @@ export default async function CommunityPage() {
                       <div className="min-w-0 flex-1">
                         <h4 className="flex items-center gap-1 truncate text-sm font-bold text-gray-900 dark:text-gray-200">
                           {chef.name}
-                          {chef.isPro && (
-                            <MdVerified className="text-xs text-[#006C5E] dark:text-[#4ADE80]" />
-                          )}
+                          <VerifiedBadge verified={chef.isVerifiedBadge} />
                         </h4>
                         <p className="truncate text-xs text-gray-500 dark:text-gray-400">
                           @{chef.username}

@@ -90,6 +90,7 @@ export type Story = {
 	}>;
 	media?: StoryMediaInput[];
 	author?: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name: string;
 		username?: string | null;
@@ -111,6 +112,7 @@ export type StoryComment = {
 	createdAt: string;
 	updatedAt?: string;
 	author: {
+		isVerifiedBadge?: boolean;
 		id: string;
 		name?: string | null;
 		username?: string | null;

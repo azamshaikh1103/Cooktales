@@ -21,6 +21,7 @@ export type SearchResult = {
 	description?: string | null;
 	image?: string | null;
 	authorName?: string | null;
+	authorIsVerifiedBadge?: boolean;
 	authorUsername?: string | null;
 	totalTime?: number | null;
 	cuisine?: string | null;

@@ -1,5 +1,7 @@
 "use client";
 
+import VerifiedBadge from "@/components/VerifiedBadge";
+
 import {
 	BookOpen,
 	ChefHat,
@@ -107,7 +109,7 @@ function ResultCard({ result }: { result: SearchResult }) {
 					{label}
 				</p>
 				<h2 className="line-clamp-2 text-base font-semibold text-slate-900 group-hover:text-emerald-800 dark:text-white dark:group-hover:text-emerald-200">
-					{result.title}
+					{result.title} {result.type === "chef" && <VerifiedBadge verified={result.authorIsVerifiedBadge} />}
 				</h2>
 				{result.description && (
 					<p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
@@ -115,7 +117,7 @@ function ResultCard({ result }: { result: SearchResult }) {
 					</p>
 				)}
 				<div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-					{result.authorName && <span>by {result.authorName}</span>}
+					{result.authorName && <span>by {result.authorName} <VerifiedBadge verified={result.authorIsVerifiedBadge} /></span>}
 					{metadata.map((item) => (
 						<span key={item}>{item}</span>
 					))}

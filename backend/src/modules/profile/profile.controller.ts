@@ -1,3 +1,4 @@
+import { addVerifiedBadge } from '../../common/verified-badge';
 import {
   Body,
   Controller,
@@ -38,7 +39,7 @@ export class ProfileController {
 
   @Get('profiles/:handle')
   getPublicProfile(@Param('handle') handle: string) {
-    return this.profileService.getPublicProfile(handle);
+    return this.profileService.getPublicProfile(handle).then(addVerifiedBadge);
   }
 
   @Get('profiles/:handle/recipes')
@@ -53,12 +54,12 @@ export class ProfileController {
 
   @Get('profiles/:handle/followers')
   getFollowers(@Param('handle') handle: string, @Query() query: ProfilePageQueryDto) {
-    return this.profileService.getFollowers(handle, query);
+    return this.profileService.getFollowers(handle, query).then(addVerifiedBadge);
   }
 
   @Get('profiles/:handle/following')
   getFollowing(@Param('handle') handle: string, @Query() query: ProfilePageQueryDto) {
-    return this.profileService.getFollowing(handle, query);
+    return this.profileService.getFollowing(handle, query).then(addVerifiedBadge);
   }
 
   @Get('profiles/:handle/viewer')

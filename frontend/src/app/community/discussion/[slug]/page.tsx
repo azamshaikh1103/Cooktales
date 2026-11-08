@@ -1,3 +1,4 @@
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { communityClient } from '@/lib/api/communityClient';
@@ -61,7 +62,7 @@ export default async function DiscussionPage({ params }: PageProps) {
                 />
               </div>
               <div className="text-sm">
-                <span className="mr-2 font-bold">{discussion.author.name}</span>
+                <span className="mr-2 font-bold">{discussion.author.name} <VerifiedBadge verified={discussion.author.isVerifiedBadge} /></span>
                 <span className="text-gray-500 dark:text-gray-400">
                   {new Date(discussion.createdAt).toLocaleDateString()}
                 </span>

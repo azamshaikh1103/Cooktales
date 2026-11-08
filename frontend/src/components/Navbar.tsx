@@ -196,7 +196,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 						className="group hidden cursor-pointer items-center gap-3 rounded-full border border-transparent bg-[#f1f7f6] px-4 py-2 transition-all hover:border-[#006C5E]/10 hover:bg-[#e2efec] lg:flex dark:bg-white/5 dark:hover:border-white/10 dark:hover:bg-white/10"
 					>
 						<CiSearch className="text-xl text-[#006C5E] dark:text-[#4ADE80]" />
-						<span className="text-sm text-gray-500 group-hover:text-[#006C5E] dark:text-gray-400 dark:group-hover:text-[#4ADE80]">
+						<span className="text-sm text-gray-700 group-hover:text-[#006C5E] dark:text-gray-300 dark:group-hover:text-[#4ADE80]">
 							Search
 						</span>
 					</button>

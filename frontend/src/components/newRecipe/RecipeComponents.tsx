@@ -134,7 +134,7 @@ export const BasicInfoEditor = ({
 				placeholder="Recipe Title"
 				className="w-full bg-transparent p-0 text-3xl font-semibold text-gray-900 outline-none placeholder:text-gray-300 focus:ring-0 lg:text-4xl dark:text-white dark:placeholder:text-gray-700"
 			/>
-			<p className="mt-2 text-xs text-gray-400 dark:text-gray-600">
+			<p className="mt-2 text-xs text-gray-600 dark:text-gray-300">
 				{name.length}/90
 			</p>
 		</div>
@@ -151,7 +151,7 @@ export const BasicInfoEditor = ({
 				placeholder="Tell the story behind this dish..."
 				className="min-h-[80px] w-full resize-none bg-transparent p-0 text-lg leading-relaxed text-gray-600 outline-none placeholder:text-gray-300 focus:ring-0 dark:text-gray-300 dark:placeholder:text-gray-700"
 			/>
-			<p className="mt-2 text-xs text-gray-400 dark:text-gray-600">
+			<p className="mt-2 text-xs text-gray-600 dark:text-gray-300">
 				{about?.length || 0}/1200
 			</p>
 		</div>
@@ -526,7 +526,7 @@ export const IngredientsEditor = ({
 				{items.length === 0 && (
 					<li
 						onClick={add}
-						className="cursor-pointer text-sm text-gray-500 italic hover:text-[#006C5E] dark:text-gray-600 dark:hover:text-[#4ADE80]"
+						className="cursor-pointer text-sm text-gray-600 italic hover:text-[#006C5E] dark:text-gray-300 dark:hover:text-[#4ADE80]"
 					>
 						Click + to add {title.toLowerCase()}
 					</li>

@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -8,6 +7,7 @@ import { communityClient } from "@/lib/api/communityClient";
 import imageLoader from "@/lib/loader";
 import CommentSection from "../CommentSection";
 import RichContent from "../RichContent";
+import { ThreadVote } from "../ThreadVote";
 
 interface PageProps {
 	params: Promise<{ slug: string }>;
@@ -33,24 +33,13 @@ export default async function DiscussionPage({ params }: PageProps) {
 				</div>
 
 				{/* --- MAIN POST --- */}
-				<div className="mb-12 flex gap-6">
-					{/* Vote Rail */}
-					<div className="hidden w-10 shrink-0 flex-col items-center gap-2 md:flex">
-						<button
-							type="button"
-							className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#006C5E] dark:hover:bg-white/10 dark:hover:text-[#4ADE80]"
-						>
-							<FaArrowUp />
-						</button>
-						<span className="text-lg font-black">
-							{discussion._count.likes}
-						</span>
-						<button
-							type="button"
-							className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-500 dark:hover:bg-white/10"
-						>
-							<FaArrowDown />
-						</button>
+				<div className="mb-12 flex flex-col gap-5 md:flex-row md:gap-6">
+					{/* Upvote: a pill above the post on phones, a rail beside it from md up */}
+					<div className="w-fit shrink-0 md:w-10">
+						<ThreadVote
+							discussionId={discussion.id}
+							initialCount={discussion._count.likes}
+						/>
 					</div>
 
 					<div className="flex-1">

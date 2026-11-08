@@ -168,4 +168,18 @@ export const communityClient = {
 			`/community/discussions/${encodeURIComponent(discussionId)}/like`,
 			{ method: "DELETE" },
 		),
+	discussionLikeState: (discussionId: string) =>
+		request<{ likes: number; liked: boolean }>(
+			`/community/discussions/${encodeURIComponent(discussionId)}/like`,
+		),
+	likeComment: (commentId: string) =>
+		request<{ likes: number; liked: boolean }>(
+			`/community/comments/${encodeURIComponent(commentId)}/like`,
+			{ method: "POST", body: "{}" },
+		),
+	unlikeComment: (commentId: string) =>
+		request<{ likes: number; liked: boolean }>(
+			`/community/comments/${encodeURIComponent(commentId)}/like`,
+			{ method: "DELETE" },
+		),
 };

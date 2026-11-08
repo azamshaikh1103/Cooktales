@@ -36,6 +36,21 @@ export class CommunityController {
   @UseGuards(AuthGuard)
   unlike(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.unlike(request.user.sub, id); }
 
+  /** The signed-in reader's own vote state for a thread (pages are cached and anonymous). */
+  @Get('discussions/:id/like')
+  @UseGuards(AuthGuard)
+  likeState(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.discussionLikeState(request.user.sub, id); }
+
+  @Post('comments/:id/like')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  likeComment(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.likeComment(request.user.sub, id); }
+
+  @Delete('comments/:id/like')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  unlikeComment(@Param('id') id: string, @Req() request: AuthenticatedRequest) { return this.community.unlikeComment(request.user.sub, id); }
+
   @Post('discussions/:id/comments')
   @UseGuards(AuthGuard)
   comment(@Param('id') id: string, @Req() request: AuthenticatedRequest, @Body() dto: CreateCommentDto) { return this.community.createComment(request.user.sub, id, dto).then(addVerifiedBadge); }

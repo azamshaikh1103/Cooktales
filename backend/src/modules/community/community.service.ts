@@ -138,6 +138,26 @@ export class CommunityService {
     return this.likeState(userId, discussionId);
   }
 
+  async discussionLikeState(userId: string, discussionId: string) {
+    await this.ensureDiscussion(discussionId);
+    return this.likeState(userId, discussionId);
+  }
+
+  // Anyone signed in can upvote, including the author: one vote per account, and it can be taken back.
+  async likeComment(userId: string, commentId: string) {
+    await this.abuse.checkUserAction(userId, 'like', 60, 60);
+    await this.ensureComment(commentId);
+    await this.prisma.like.createMany({ data: [{ userId, commentId }], skipDuplicates: true });
+    return this.commentLikeState(userId, commentId);
+  }
+
+  async unlikeComment(userId: string, commentId: string) {
+    await this.abuse.checkUserAction(userId, 'unlike', 60, 60);
+    await this.ensureComment(commentId);
+    await this.prisma.like.deleteMany({ where: { userId, commentId } });
+    return this.commentLikeState(userId, commentId);
+  }
+
   async recordView(id: string, ip?: string, userAgent?: string) {
     await this.ensureDiscussion(id);
     await this.abuse.checkUserAction(`${ip || 'unknown'}:${userAgent || 'unknown'}`, 'view', 120, 60);
@@ -145,6 +165,22 @@ export class CommunityService {
   }
 
   private async ensureDiscussion(id: string) { if (!await this.prisma.discussion.findUnique({ where: { id }, select: { id: true } })) throw new NotFoundException('Discussion not found'); }
+  private async ensureComment(id: string) {
+    const comment = await this.prisma.comment.findFirst({
+      where: { id, discussionId: { not: null }, deletedAt: null, status: 'VISIBLE' },
+      select: { id: true },
+    });
+    if (!comment) throw new NotFoundException('Comment not found');
+  }
+
+  private async commentLikeState(userId: string, commentId: string) {
+    const [likes, liked] = await Promise.all([
+      this.prisma.like.count({ where: { commentId } }),
+      this.prisma.like.findUnique({ where: { userId_commentId: { userId, commentId } }, select: { id: true } }),
+    ]);
+    return { likes, liked: Boolean(liked) };
+  }
+
   private async likeState(userId: string, discussionId: string) { const [likes, liked] = await Promise.all([this.prisma.like.count({ where: { discussionId } }), this.prisma.like.findUnique({ where: { userId_discussionId: { userId, discussionId } }, select: { id: true } })]); return { likes, liked: Boolean(liked) }; }
   private async uniqueSlug(title: string) { const base = title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 110) || 'discussion'; for (let suffix = 0; suffix < 20; suffix += 1) { const candidate = suffix ? `${base}-${suffix + 1}` : base; if (!await this.prisma.discussion.findUnique({ where: { slug: candidate }, select: { id: true } })) return candidate; } return `${base}-${randomUUID().slice(0, 8)}`; }
   private appendAttachments(content: string, attachments: { type: 'image' | 'recipe' | 'story'; id: string; publicId?: string }[]) { if (attachments.length > 12) throw new BadRequestException('A discussion can have at most 12 attachments'); const markers = attachments.map((item) => { if (item.type === 'image') { try { const url = new URL(item.id); if (url.protocol !== 'https:' || !item.publicId) throw new Error(); this.media.assertCloudinaryUrl(url.toString()); return `![Image](${url.toString()})`; } catch { throw new BadRequestException('Image attachments must use verified secure URLs'); } } if (!/^[a-zA-Z0-9-]{1,64}$/.test(item.id)) throw new BadRequestException('Invalid attached content'); return `[${item.type === 'recipe' ? 'RECIPE' : 'BLOG'}:${item.id}]`; }); return markers.length ? `${content}\n\n${markers.join('\n')}` : content; }

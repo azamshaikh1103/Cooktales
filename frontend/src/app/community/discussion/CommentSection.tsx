@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaArrowUp, FaFlag, FaReply } from "react-icons/fa";
+import { FaFlag, FaReply } from "react-icons/fa";
 import { toast } from "sonner";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { communityClient } from "@/lib/api/communityClient";
 import { useAuth } from "@/lib/auth/AuthContext";
 import imageLoader from "@/lib/loader";
+import { Upvote } from "./Upvote";
 
 export default function CommentSection({ comments, discussionId }: any) {
 	return (
@@ -49,6 +50,7 @@ export default function CommentSection({ comments, discussionId }: any) {
 
 const CommentItem = ({ comment, discussionId, isReply }: any) => {
 	const [isReplying, setIsReplying] = useState(false);
+	const { user } = useAuth();
 
 	return (
 		<div className={`group flex gap-4 ${isReply ? "opacity-90" : ""}`}>
@@ -84,12 +86,19 @@ const CommentItem = ({ comment, discussionId, isReply }: any) => {
 
 				{/* Actions */}
 				<div className="flex items-center gap-4 text-xs font-bold text-gray-400 dark:text-gray-500">
-					<button
-						type="button"
-						className="flex items-center gap-1 transition-colors hover:text-[#006C5E] dark:hover:text-[#4ADE80]"
-					>
-						<FaArrowUp /> {comment.likes.length || 0}
-					</button>
+					<Upvote
+						variant="comment"
+						label="response"
+						initialCount={comment.likes.length}
+						initialLiked={Boolean(
+							user &&
+								comment.likes.some(
+									(like: { userId: string }) => like.userId === user.id,
+								),
+						)}
+						like={() => communityClient.likeComment(comment.id)}
+						unlike={() => communityClient.unlikeComment(comment.id)}
+					/>
 
 					{/* Only show reply button on Top Level comments to force 2-tier structure */}
 					{!isReply && (

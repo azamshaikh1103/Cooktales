@@ -10,11 +10,12 @@ import { AdminStoriesService } from './admin-stories.service';
 import { AdminUsersService } from './admin-users.service';
 import { AdminCommunicationsService } from './admin-communications.service';
 import { AdminReportsService } from './admin-reports.service';
+import { AdminAffiliateService } from './admin-affiliate.service';
 import { AdminGuard } from './security/admin.guard';
 
 @Module({
   imports: [AuthModule, NotificationsModule, CommunityModule],
   controllers: [AdminController],
-  providers: [AdminAnalyticsService, AdminOperationsService, AdminRecipesService, AdminStoriesService, AdminUsersService, AdminCommunicationsService, AdminReportsService, AdminGuard],
+  providers: [AdminAnalyticsService, AdminOperationsService, AdminRecipesService, AdminStoriesService, AdminUsersService, AdminCommunicationsService, AdminReportsService, AdminAffiliateService, AdminGuard],
 })
 export class AdminModule {}

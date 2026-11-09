@@ -539,7 +539,14 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 
 							<ul className="space-y-4">
 								{recipe.ingredients.map((ing) => (
-									<ListItem key={ing.id} item={ing} recipeId={recipe.id} />
+									<ListItem
+										key={ing.id}
+										item={ing}
+										kind="ingredient"
+										recipeId={recipe.id}
+										recipeName={recipe.name}
+										creatorId={recipe.author?.id}
+									/>
 								))}
 							</ul>
 						</div>
@@ -555,7 +562,14 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 								</h3>
 								<ul className="space-y-4">
 									{recipe.equipments.map((eq) => (
-										<ListItem key={eq.id} item={eq} recipeId={recipe.id} />
+										<ListItem
+											key={eq.id}
+											item={eq}
+											kind="equipment"
+											recipeId={recipe.id}
+											recipeName={recipe.name}
+											creatorId={recipe.author?.id}
+										/>
 									))}
 								</ul>
 							</div>
@@ -818,7 +832,19 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 	);
 };
 
-const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
+const ListItem = ({
+	item,
+	kind,
+	recipeId,
+	recipeName,
+	creatorId,
+}: {
+	item: any;
+	kind: "ingredient" | "equipment";
+	recipeId: string;
+	recipeName: string;
+	creatorId?: string;
+}) => {
 	const [checked, setChecked] = useState(false);
 	const toggleChecked = () => {
 		const next = !checked;
@@ -887,10 +913,22 @@ const ListItem = ({ item, recipeId }: { item: any; recipeId: string }) => {
 							try {
 								destination = new URL(item.link).hostname;
 							} catch {}
-							track("click_shop_ingredients", {
+							track("affiliate_click", {
 								recipe_id: recipeId,
+								recipe_name: recipeName,
+								creator_id: creatorId,
+								item_kind: kind,
+								item_name: item.name,
 								destination,
 							});
+							// Our own log: exact counts even when an ad blocker hides analytics.
+							void recipeClient
+								.recordAffiliateClick({
+									recipeId,
+									itemKind: kind,
+									itemId: item.id,
+								})
+								.catch(() => {});
 						}}
 						className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1.5 text-[10px] font-bold tracking-wide text-gray-500 uppercase transition-all hover:bg-[#006C5E] hover:text-white dark:bg-white/10 dark:text-gray-400 dark:hover:bg-[#4ADE80] dark:hover:text-black"
 					>

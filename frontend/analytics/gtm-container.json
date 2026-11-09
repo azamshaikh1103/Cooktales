@@ -397,6 +397,36 @@
                   {
                     "type": "TEMPLATE",
                     "key": "parameter",
+                    "value": "item_kind"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - item_kind}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "item_name"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - item_name}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
                     "value": "destination"
                   },
                   {
@@ -561,7 +591,7 @@
               {
                 "type": "TEMPLATE",
                 "key": "arg1",
-                "value": "^(view_recipe|view_story|scroll_depth|filter_category|load_more|search|search_no_results|search_result_click|open_gallery_image|check_ingredient|click_shop_ingredients|share|start_cooking|cook_step|finish_cooking|abandon_cooking|save_recipe|unsave_recipe|save_story|unsave_story|post_review|follow_creator|unfollow_creator|sign_up|login|onboarding_complete|install_prompt_shown|install_prompt_accepted|install_prompt_dismissed)$"
+                "value": "^(view_recipe|view_story|scroll_depth|filter_category|load_more|search|search_no_results|search_result_click|open_gallery_image|check_ingredient|affiliate_click|share|start_cooking|cook_step|finish_cooking|abandon_cooking|save_recipe|unsave_recipe|save_story|unsave_story|post_review|follow_creator|unfollow_creator|sign_up|login|onboarding_complete|install_prompt_shown|install_prompt_accepted|install_prompt_dismissed)$"
               }
             ]
           }
@@ -1094,6 +1124,58 @@
         "accountId": "6401663462",
         "containerId": "284668080",
         "variableId": "21",
+        "name": "DLV - item_kind",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ct_params.item_kind"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6401663462",
+        "containerId": "284668080",
+        "variableId": "22",
+        "name": "DLV - item_name",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ct_params.item_name"
+          }
+        ],
+        "fingerprint": "0",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6401663462",
+        "containerId": "284668080",
+        "variableId": "23",
         "name": "DLV - destination",
         "type": "v",
         "parameter": [
@@ -1119,7 +1201,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "22",
+        "variableId": "24",
         "name": "DLV - method",
         "type": "v",
         "parameter": [
@@ -1145,7 +1227,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "23",
+        "variableId": "25",
         "name": "DLV - step_number",
         "type": "v",
         "parameter": [
@@ -1171,7 +1253,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "24",
+        "variableId": "26",
         "name": "DLV - total_steps",
         "type": "v",
         "parameter": [
@@ -1197,7 +1279,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "25",
+        "variableId": "27",
         "name": "DLV - rating",
         "type": "v",
         "parameter": [
@@ -1223,7 +1305,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "26",
+        "variableId": "28",
         "name": "DLV - skipped",
         "type": "v",
         "parameter": [
@@ -1249,7 +1331,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "27",
+        "variableId": "29",
         "name": "DLV - platform",
         "type": "v",
         "parameter": [
@@ -1275,7 +1357,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "28",
+        "variableId": "30",
         "name": "DLV - dismissal_count",
         "type": "v",
         "parameter": [
@@ -1301,7 +1383,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "29",
+        "variableId": "31",
         "name": "DLV - logged_in",
         "type": "v",
         "parameter": [
@@ -1327,7 +1409,7 @@
       {
         "accountId": "6401663462",
         "containerId": "284668080",
-        "variableId": "30",
+        "variableId": "32",
         "name": "DLV - traffic_type",
         "type": "v",
         "parameter": [

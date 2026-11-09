@@ -25,7 +25,14 @@ export const ANALYTICS_EVENTS = {
 	search_result_click: ["search_term", "result_type", "result_position"],
 	open_gallery_image: ["recipe_id", "image_index"],
 	check_ingredient: ["recipe_id", "context", "checked"],
-	click_shop_ingredients: ["recipe_id", "destination"],
+	affiliate_click: [
+		"recipe_id",
+		"recipe_name",
+		"creator_id",
+		"item_kind",
+		"item_name",
+		"destination",
+	],
 	share: ["content_type", "content_id", "method"],
 
 	// Cooking

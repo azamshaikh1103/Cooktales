@@ -13,6 +13,8 @@ import { AdminUserReasonDto, ListAdminUsersQueryDto } from './dto/admin-users.dt
 import { AdminUsersService } from './admin-users.service';
 import { AdminCommunicationsService } from './admin-communications.service';
 import { AdminReportsService } from './admin-reports.service';
+import { AdminAffiliateService } from './admin-affiliate.service';
+import { AffiliateSummaryQueryDto } from './dto/admin-affiliate.dto';
 import { ListAdminReportsQueryDto, ReportTargetParamsDto, ResolveAdminReportDto } from './dto/admin-reports.dto';
 import { ListAdminContactMessagesQueryDto, ListAdminNewsletterSubscribersQueryDto, UpdateAdminContactMessageDto } from './dto/admin-communications.dto';
 
@@ -27,6 +29,7 @@ export class AdminController {
     private readonly users: AdminUsersService,
     private readonly communications: AdminCommunicationsService,
     private readonly reports: AdminReportsService,
+    private readonly affiliate: AdminAffiliateService,
   ) {}
 
   @Get('analytics/overview')
@@ -120,6 +123,11 @@ export class AdminController {
   @Get('newsletter-subscribers')
   listNewsletterSubscribers(@Query() query: ListAdminNewsletterSubscribersQueryDto) {
     return this.communications.listNewsletterSubscribers(query);
+  }
+
+  @Get('affiliate-clicks')
+  affiliateClicks(@Query() query: AffiliateSummaryQueryDto) {
+    return this.affiliate.summary(query.days);
   }
 
   @Get('reports')

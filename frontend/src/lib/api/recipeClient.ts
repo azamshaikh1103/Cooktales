@@ -386,6 +386,19 @@ export const recipeClient = {
 		);
 	},
 
+	/** Logs an ingredient or equipment "Source" link click. Safe to fire and forget. */
+	recordAffiliateClick(input: {
+		recipeId: string;
+		itemKind: "ingredient" | "equipment";
+		itemId: string;
+	}) {
+		return request<{ counted: boolean }>("/affiliate/clicks", {
+			method: "POST",
+			body: JSON.stringify(input),
+			keepalive: true,
+		});
+	},
+
 	recordView(id: string) {
 		return request<{ counted: boolean }>(
 			`/recipes/${encodeURIComponent(id)}/views`,

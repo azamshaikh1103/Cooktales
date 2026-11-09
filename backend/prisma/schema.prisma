@@ -76,6 +76,7 @@ model User {
   likes                   Like[]
   pointHistory            PointHistory[]
   reportsFiled            Report[]             @relation("ReportsFiled")
+  affiliateClicks         AffiliateClick[]
   ratings                 Rating[]
   recipes                 Recipe[]
   recipeEditDrafts        RecipeEditDraft[]
@@ -1006,4 +1007,29 @@ model Report {
   @@unique([reporterId, targetType, targetId])
   @@index([status, targetType, targetId])
   @@index([targetType, targetId])
+}
+
+/// One click on an ingredient or equipment "Source" (affiliate) link. Details are copied at click
+/// time so the log stays readable after a recipe is edited or deleted. No IP address is stored.
+model AffiliateClick {
+  id          String   @id @default(uuid())
+  recipeId    String
+  recipeSlug  String
+  recipeName  String
+  creatorId   String
+  creatorName String
+  itemKind    String
+  itemId      String
+  itemName    String
+  linkUrl     String
+  domain      String
+  userId      String?
+  country     String?
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([recipeId, createdAt])
+  @@index([creatorId, createdAt])
+  @@index([domain, createdAt])
 }

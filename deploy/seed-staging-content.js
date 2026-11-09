@@ -68,7 +68,7 @@ async function copyRecipe(slug, authorId) {
   if (await prisma.recipe.findUnique({ where: { slug }, select: { id: true } })) {
     return "skipped";
   }
-  const r = await getJson(`/recipes/${slug}`);
+  const r = (await getJson(`/recipes/${slug}`)).recipe;
   const child = (list = [], pick) => list.map((item, index) => ({ ...pick(item), position: item.position ?? index }));
   await prisma.recipe.create({
     data: {
@@ -120,7 +120,7 @@ async function copyStory(slug, authorId) {
   if (await prisma.story.findUnique({ where: { slug }, select: { id: true } })) {
     return "skipped";
   }
-  const s = await getJson(`/stories/${slug}`);
+  const s = (await getJson(`/stories/${slug}`)).story;
   await prisma.story.create({
     data: {
       slug: s.slug,

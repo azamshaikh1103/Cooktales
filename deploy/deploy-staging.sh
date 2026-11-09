@@ -8,6 +8,7 @@ deploy_script="${COOKTALE_DEPLOY_SCRIPT:-$repo_dir/deploy/deploy-production.sh}"
 
 exec env \
   COOKTALE_ENV_FILE="$repo_dir/.env.staging" \
+  ENV_FILE="$repo_dir/.env.staging" \
   COOKTALE_STATE_DIR="$repo_dir/deploy/.state-staging" \
   COOKTALE_DEPLOY_LABEL="Staging" \
   COOKTALE_MONITORING_COMPOSE="" \

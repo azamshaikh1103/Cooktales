@@ -14,7 +14,8 @@ permissions:
 
 concurrency:
   group: staging-deployment
-  cancel-in-progress: true
+  # Never kill a deploy halfway; a newer run waits its turn.
+  cancel-in-progress: false
 
 jobs:
   deploy:

@@ -78,7 +78,7 @@ export const BasicCard = ({ recipe }: RecipeCardProps) => {
 				<div className="mt-2 flex w-full items-center justify-between py-1 lg:py-4">
 					{/* Author */}
 					<div className="flex items-center gap-1 lg:gap-2">
-						<div className="relative h-8 w-8 overflow-hidden rounded-full bg-gray-200 lg:h-10 lg:w-10 dark:bg-white/10">
+						<div className="avatar-ring relative h-8 w-8 overflow-hidden rounded-full bg-gray-200 lg:h-10 lg:w-10 dark:bg-white/10">
 							{recipe.author?.image ? (
 								<Image
 									src={recipe.author.image}

@@ -63,6 +63,9 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 		"id" | "stars" | "text" | "createdAt" | "editedAt"
 	> | null>(null);
 	const router = useRouter();
+	const authorProfileUrl = recipe.author
+		? `/profile/${encodeURIComponent(recipe.author.username || recipe.author.id)}`
+		: null;
 	const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isShareOpen, setIsShareOpen] = useState(false);
@@ -415,7 +418,7 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 						{(() => {
 							const authorContent = (
 								<>
-									<div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+									<div className="avatar-ring relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
 										{recipe.author?.image && (
 											<Image
 												src={recipe.author.image}
@@ -432,9 +435,9 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 									</span>
 								</>
 							);
-							return recipe.author?.username ? (
+							return authorProfileUrl ? (
 								<Link
-									href={`/profile/${recipe.author.username}`}
+									href={authorProfileUrl}
 									className="flex cursor-pointer items-center gap-3"
 								>
 									{authorContent}
@@ -735,10 +738,14 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 				</div>
 			</div>
 
-			{recipe.author && (
+			{recipe.author && authorProfileUrl && (
 				<div className="mx-auto mt-12 max-w-4xl px-6">
 					<div className="flex flex-col items-center gap-8 rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm md:flex-row md:text-left dark:border-white/5 dark:bg-[#152a26]">
-						<div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-[#006C5E]/10 dark:border-[#4ADE80]/10">
+						<Link
+							href={authorProfileUrl}
+							aria-label={`View ${recipe.author.name || "author"} profile`}
+							className="avatar-ring relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-[#006C5E]/10 dark:border-[#4ADE80]/10"
+						>
 							{recipe.author.image && (
 								<Image
 									src={recipe.author.image}
@@ -748,27 +755,28 @@ export const RecipeDetailClient = ({ recipe }: { recipe: PublicRecipe }) => {
 									className="object-cover"
 								/>
 							)}
-						</div>
+						</Link>
 						<div className="flex-1">
 							<div className="mb-1 text-xs font-bold tracking-wider text-[#006C5E] uppercase dark:text-[#4ADE80]">
 								Recipe By
 							</div>
 							<h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
-								{recipe.author.name}{" "}
-								<VerifiedBadge verified={recipe.author.isVerifiedBadge} />
+								<Link href={authorProfileUrl}>
+									{recipe.author.name}{" "}
+									<VerifiedBadge verified={recipe.author.isVerifiedBadge} />
+								</Link>
 							</h3>
 							<p className="mx-auto max-w-lg text-sm text-gray-600 md:mx-0 dark:text-gray-300">
 								{recipe.author.about ||
 									"Passionate about sharing delicious recipes with the world."}
 							</p>
 						</div>
-						<button
-							type="button"
-							onClick={() => router.push(`/profile/${recipe.author.username}`)}
+						<Link
+							href={authorProfileUrl}
 							className="cursor-pointer rounded-full bg-black px-8 py-3 font-bold text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
 						>
 							View Profile
-						</button>
+						</Link>
 					</div>
 				</div>
 			)}

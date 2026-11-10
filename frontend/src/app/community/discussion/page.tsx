@@ -136,7 +136,7 @@ export default function DiscussionsPage() {
 															width={24}
 															height={24}
 															alt="User"
-															className="rounded-full bg-gray-200"
+															className="avatar-ring rounded-full bg-gray-200"
 															loader={imageLoader}
 														/>
 														<span className="text-sm font-bold text-gray-600 dark:text-gray-300">

@@ -97,7 +97,7 @@ export default function ReviewItem({
 			{/* Review Header */}
 			<div className="mb-4 flex items-start justify-between">
 				<div className="flex items-center gap-3">
-					<div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+					<div className="avatar-ring relative h-10 w-10 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
 						{review.user.image ? (
 							<Image
 								src={review.user.image}

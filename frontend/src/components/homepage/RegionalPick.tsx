@@ -284,7 +284,7 @@ const RegionalCard = ({ recipe }: { recipe: Recipe }) => {
 								src={recipe.author.image}
 								width={24}
 								height={24}
-								className="rounded-full object-cover"
+								className="avatar-ring rounded-full object-cover"
 								alt=""
 								loader={imageLoader}
 							/>

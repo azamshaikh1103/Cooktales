@@ -43,7 +43,7 @@ export default async function LeaderboardPage() {
 										{index + 1}
 									</span>
 
-									<div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+									<div className="avatar-ring relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
 										<Image
 											src={chef.image || "/placeholder.png"}
 											fill

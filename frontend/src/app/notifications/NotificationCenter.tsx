@@ -33,7 +33,7 @@ function NotificationAvatar({
 				width={44}
 				height={44}
 				loader={imageLoader}
-				className="h-11 w-11 rounded-full object-cover"
+				className="avatar-ring h-11 w-11 rounded-full object-cover"
 			/>
 		);
 	}

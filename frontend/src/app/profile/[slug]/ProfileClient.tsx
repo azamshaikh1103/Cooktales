@@ -349,7 +349,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
 
 function Avatar({ user }: { user: PublicProfile }) {
 	return (
-		<div className="h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white bg-[#f1f7f6] md:h-32 md:w-32 dark:border-[#0d1f1c] dark:bg-white/10">
+		<div className="avatar-ring h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white bg-[#f1f7f6] md:h-32 md:w-32 dark:border-[#0d1f1c] dark:bg-white/10">
 			{user.image ? (
 				<Image
 					src={user.image}
@@ -483,7 +483,7 @@ function SocialListModal({
 							onClick={onClose}
 							className="flex cursor-pointer items-center gap-3 rounded-xl p-3 hover:bg-gray-50 dark:hover:bg-white/5"
 						>
-							<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#f1f7f6] text-sm font-semibold text-[#006C5E] dark:bg-white/10 dark:text-[#4ADE80]">
+							<div className="avatar-ring flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#f1f7f6] text-sm font-semibold text-[#006C5E] dark:bg-white/10 dark:text-[#4ADE80]">
 								{person.image ? (
 									<Image
 										src={person.image}

@@ -44,7 +44,7 @@ export default function StudioSidebar({
 					href={`/profile/${user.username}`}
 					className="flex items-center gap-3 self-start rounded-2xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-[#006C5E]/40 hover:text-[#006C5E] sm:self-auto dark:border-white/10 dark:text-gray-200 dark:hover:border-[#4ADE80]/40 dark:hover:text-[#4ADE80]"
 				>
-					<div className="h-8 w-8 overflow-hidden rounded-full bg-[#f1f7f6] dark:bg-white/10">
+					<div className="avatar-ring h-8 w-8 overflow-hidden rounded-full bg-[#f1f7f6] dark:bg-white/10">
 						{user.image ? (
 							<Image src={user.image} width={32} height={32} alt="" />
 						) : null}

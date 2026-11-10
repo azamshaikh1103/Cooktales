@@ -95,7 +95,7 @@ export default async function DiscussionPage({ params }: PageProps) {
 						</h1>
 
 						<div className="mb-8 flex items-center gap-3 border-b border-gray-200 pb-8 dark:border-white/10">
-							<div className="relative h-10 w-10 overflow-hidden rounded-full border border-gray-200 dark:border-white/10">
+							<div className="avatar-ring relative h-10 w-10 overflow-hidden rounded-full border border-gray-200 dark:border-white/10">
 								<Image
 									src={discussion.author.image || "/placeholder.png"}
 									fill

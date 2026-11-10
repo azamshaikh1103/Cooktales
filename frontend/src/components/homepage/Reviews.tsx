@@ -218,7 +218,7 @@ const ReviewCard = ({ review }: { review: Review }) => {
 						width={56}
 						height={56}
 						alt={review.user.name}
-						className="rounded-full border-2 border-white bg-gray-100 object-cover shadow-md dark:border-[#0d1f1c] dark:bg-white/10"
+						className="avatar-ring rounded-full border-2 border-white bg-gray-100 object-cover shadow-md dark:border-[#0d1f1c] dark:bg-white/10"
 						loader={imageLoader}
 					/>
 					{/* Verified Badge */}

@@ -129,7 +129,7 @@ const CommentItem = ({ comment, discussionId, isReply, locked }: any) => {
 		<div className={`group flex gap-4 ${isReply ? "opacity-90" : ""}`}>
 			{/* Avatar */}
 			<div
-				className={`relative shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10 ${isReply ? "h-8 w-8" : "h-10 w-10"}`}
+				className={`avatar-ring relative shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10 ${isReply ? "h-8 w-8" : "h-10 w-10"}`}
 			>
 				<Image
 					src={comment.author.image || "/placeholder.png"}

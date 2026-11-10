@@ -387,7 +387,7 @@ const RecipeMasonryCard = ({ recipe }: { recipe: Recipe }) => {
 					</div>
 					{recipe.author && (
 						<div className="flex items-center gap-2.5">
-							<div className="relative h-7 w-7 overflow-hidden rounded-full border border-white/70 bg-white/20">
+							<div className="avatar-ring relative h-7 w-7 overflow-hidden rounded-full border border-white/70 bg-white/20">
 								{recipe.author.image && (
 									<Image
 										src={recipe.author.image}

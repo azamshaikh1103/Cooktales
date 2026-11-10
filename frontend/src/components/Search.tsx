@@ -311,7 +311,7 @@ const SearchResultItem = ({
 		>
 			{/* Image / Icon */}
 			<div
-				className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ${
+				className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg ${result.type === "chef" ? "avatar-ring" : ""} ${
 					result.image
 						? ""
 						: active

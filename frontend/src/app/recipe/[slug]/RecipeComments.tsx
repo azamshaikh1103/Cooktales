@@ -215,7 +215,7 @@ export default function RecipeComments({
 				}
 			>
 				<div className="flex gap-3">
-					<div className="relative mt-1 h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+					<div className="avatar-ring relative mt-1 h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
 						{comment.author.image ? (
 							<Image
 								src={comment.author.image}

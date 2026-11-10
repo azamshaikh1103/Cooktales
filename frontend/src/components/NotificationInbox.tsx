@@ -237,7 +237,7 @@ export default function NotificationInbox() {
 												width={36}
 												height={36}
 												loader={imageLoader}
-												className="h-9 w-9 rounded-full object-cover"
+												className="avatar-ring h-9 w-9 rounded-full object-cover"
 											/>
 										) : (
 											<NotificationTypeIcon

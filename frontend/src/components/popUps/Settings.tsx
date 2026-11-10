@@ -449,7 +449,7 @@ export const ProfileTab = () => {
 
 			{/* Avatar Section */}
 			<div className="flex items-center gap-6 border-b border-gray-100 pb-8 dark:border-white/5">
-				<div className="group relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 dark:border-[#152a26] dark:bg-white/10">
+				<div className="avatar-ring group relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 dark:border-[#152a26] dark:bg-white/10">
 					{formData.image ? (
 						<Image
 							src={formData.image}

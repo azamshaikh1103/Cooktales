@@ -272,7 +272,7 @@ export default async function CommunityPage() {
 											<div className="w-4 text-center font-black text-gray-300 dark:text-gray-600">
 												{index + 1}
 											</div>
-											<div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+											<div className="avatar-ring relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
 												{chef.image ? (
 													<Image
 														src={chef.image}

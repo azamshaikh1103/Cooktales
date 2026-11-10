@@ -89,7 +89,9 @@ function ResultCard({ result }: { result: SearchResult }) {
 			href={resultHref(result)}
 			className="group flex min-h-36 gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-emerald-600/45 hover:bg-emerald-50/40 dark:border-white/10 dark:bg-[#102622] dark:hover:border-emerald-300/40 dark:hover:bg-white/5"
 		>
-			<div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
+			<div
+				className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300 ${result.type === "chef" ? "avatar-ring" : ""}`}
+			>
 				{result.image ? (
 					<Image
 						src={result.image}

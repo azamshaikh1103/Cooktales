@@ -226,3 +226,12 @@ h6 {
 		"Segoe UI", sans-serif;
 	font-weight: 700;
 }
+
+/* Keep profile photos distinct from both light and dark surfaces. */
+.avatar-ring {
+	outline: 1px solid rgb(15 23 42 / 16%);
+	outline-offset: -1px;
+}
+.dark .avatar-ring {
+	outline-color: rgb(255 255 255 / 22%);
+}

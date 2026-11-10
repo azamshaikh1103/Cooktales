@@ -243,7 +243,7 @@ const Navbar = ({ alwaysVisible = false }: { alwaysVisible?: boolean }) => {
 					<button
 						type="button"
 						onClick={() => dispatch(setProfilePopup(true))}
-						className="hidden h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-transparent bg-transparent opacity-90 transition-opacity hover:opacity-100 lg:flex dark:border-white/10"
+						className="avatar-ring hidden h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-transparent bg-transparent opacity-90 transition-opacity hover:opacity-100 lg:flex dark:border-white/10"
 						aria-label="Open profile menu"
 					>
 						{user?.image ? (
@@ -357,7 +357,7 @@ const ProfilePopup = ({ onRequestLogout }: { onRequestLogout: () => void }) => {
 			{status === "authenticated" ? (
 				<>
 					<div className="flex items-center gap-3 px-4 py-3">
-						<div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f1f7f6] text-[#006C5E] dark:bg-white/10 dark:text-[#4ADE80]">
+						<div className="avatar-ring relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f1f7f6] text-[#006C5E] dark:bg-white/10 dark:text-[#4ADE80]">
 							{user?.image ? (
 								<Image
 									src={user.image}

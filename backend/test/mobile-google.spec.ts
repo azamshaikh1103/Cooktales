@@ -2,6 +2,9 @@ import { AccountStatus } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
 import { AuthService } from '../src/modules/auth/auth.service';
 import { MobileAuthController } from '../src/modules/auth/mobile-auth.controller';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import request from 'supertest';
 
 describe('mobile Google sign-in', () => {
   const user = { id: '1', email: 'user@gmail.com', name: 'User', username: 'user', image: null, role: 'USER', isPro: false, surveyCompleted: true, status: AccountStatus.ACTIVE, deletedAt: null };
@@ -72,5 +75,26 @@ describe('mobile authentication endpoints', () => {
     const controller = new MobileAuthController({ refresh } as unknown as AuthService);
     controller.refresh({ refreshToken: 'mobile-token' }, { headers: { cookie: 'refreshToken=browser-token' } } as never);
     expect(refresh).toHaveBeenCalledWith('mobile-token', expect.anything());
+  });
+
+  it('validates the mobile Google endpoint and blocks browser-origin requests over HTTP', async () => {
+    const mobileGoogleSignIn = jest.fn().mockResolvedValue({ accessToken: 'access', refreshToken: 'refresh' });
+    const module = await Test.createTestingModule({
+      controllers: [MobileAuthController],
+      providers: [{ provide: AuthService, useValue: { mobileGoogleSignIn } }],
+    }).compile();
+    const app = module.createNestApplication();
+    app.setGlobalPrefix('api');
+    app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+    await app.init();
+    try {
+      await request(app.getHttpServer()).post('/api/v1/auth/mobile/google').send({ idToken: 'token' }).expect(200);
+      await request(app.getHttpServer()).post('/api/v1/auth/mobile/google').set('Origin', 'https://example.com').send({ idToken: 'token' }).expect(403);
+      await request(app.getHttpServer()).post('/api/v1/auth/mobile/google').send({ idToken: '' }).expect(400);
+      expect(mobileGoogleSignIn).toHaveBeenCalledTimes(1);
+    } finally {
+      await app.close();
+    }
   });
 });

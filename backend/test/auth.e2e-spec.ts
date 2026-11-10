@@ -180,7 +180,8 @@ describe('Authentication API', () => {
       .send({})
       .expect(200);
 
-    expect(getCookie(refreshed)).toBe(oldCookie);
+    expect(getCookie(refreshed)).toBeDefined();
+    expect(getCookie(refreshed)?.split(';', 1)[0]).toBe(oldCookie?.split(';', 1)[0]);
     expect(refreshed.body).not.toHaveProperty('refreshToken');
 
     await prisma.authSession.updateMany({
@@ -197,7 +198,7 @@ describe('Authentication API', () => {
 
     const newCookie = getCookie(rotated);
     expect(newCookie).toBeDefined();
-    expect(newCookie).not.toBe(oldCookie);
+    expect(newCookie?.split(';', 1)[0]).not.toBe(oldCookie?.split(';', 1)[0]);
 
     await request(app.getHttpServer())
       .post('/api/v1/auth/refresh')

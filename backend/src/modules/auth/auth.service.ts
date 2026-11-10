@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AccountStatus, UserRole } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import type { AppConfig } from '../../config/env.validation';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../redis/redis.service';
@@ -35,6 +36,8 @@ type RequestMeta = {
 
 @Injectable()
 export class AuthService {
+  private readonly googleClient = new OAuth2Client();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -468,6 +471,56 @@ export class AuthService {
       },
     });
 
+    return this.createAuthResponse(user, meta);
+  }
+
+  async mobileGoogleSignIn(idToken: string, meta: RequestMeta) {
+    await this.rateLimit.checkGoogle(meta);
+    const clientId = this.config.get('GOOGLE_CLIENT_ID', { infer: true });
+    if (!clientId) throw new ServiceUnavailableException('Google OAuth is not configured');
+
+    let profile;
+    try {
+      const ticket = await this.googleClient.verifyIdToken({ idToken, audience: clientId });
+      profile = ticket.getPayload();
+    } catch {
+      throw new UnauthorizedException('Invalid Google sign-in');
+    }
+    if (!profile?.sub || !profile.email || !profile.email_verified) {
+      throw new UnauthorizedException('Google account email must be verified');
+    }
+
+    const email = profile.email.toLowerCase().trim();
+    const account = await this.prisma.oAuthAccount.findUnique({
+      where: { provider_providerAccountId: { provider: 'google', providerAccountId: profile.sub } },
+      include: { user: true },
+    });
+    if (account) {
+      if (account.user.status !== AccountStatus.ACTIVE || account.user.deletedAt) {
+        throw new UnauthorizedException('Account is not active');
+      }
+      return this.createAuthResponse(account.user, meta);
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing && (existing.status !== AccountStatus.ACTIVE || existing.deletedAt)) {
+      throw new UnauthorizedException('Account is not active');
+    }
+    if (existing && !email.endsWith('@gmail.com') && !profile.hd) {
+      throw new UnauthorizedException('Sign in with your existing account first');
+    }
+    const user = existing ?? await this.prisma.user.create({
+      data: {
+        email,
+        name: profile.name || email.split('@')[0],
+        username: await this.generateUniqueUsername(profile.name || email.split('@')[0]),
+        image: profile.picture,
+        emailVerified: new Date(),
+      },
+    });
+    await this.prisma.oAuthAccount.create({
+      data: { userId: user.id, type: 'oauth', provider: 'google', providerAccountId: profile.sub },
+    });
     return this.createAuthResponse(user, meta);
   }
 

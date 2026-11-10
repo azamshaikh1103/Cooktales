@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
+import { MobileAuthController } from './mobile-auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { RedisService } from '../../redis/redis.service';
@@ -14,7 +15,7 @@ import { TurnstileService } from './security/turnstile.service';
 
 @Module({
   imports: [JwtModule.register({})],
-  controllers: [AuthController, EmailPreferencesController],
+  controllers: [AuthController, MobileAuthController, EmailPreferencesController],
   providers: [
     AuthService,
     AuthGuard,
